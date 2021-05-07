@@ -13,8 +13,9 @@
 class Server
 {
 private:
-	int					socket_;
+	int					listener_;
 	struct sockaddr_in	address_;
+	char				buff_[510];
 
 	void	launch			();
 
@@ -34,10 +35,13 @@ public:
 		S_SHUTDOWN
 	};
 
-	int		accept_client	() const;
-	void	send_msg		(int client_socket, const std::string& msg) const;
-	Signal	send_input_msg	(int client_socket) const;
+	int			accept_client	() const;
+	void		send_msg		(int client_socket, const std::string& msg) const;
+	Signal		send_input_msg	(int client_socket) const;
+	std::string get_msg			(int client_socket);
 
+	/// HAVE TO BE DELETED
+	int get_listener() const { return listener_; }
 };
 
 
