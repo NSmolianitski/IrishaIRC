@@ -4,10 +4,12 @@
 
 #include "Server.hpp"
 
+#include <fcntl.h>
+
 Server::Server(int port)
 {
-	socket_ = socket(AF_INET, SOCK_STREAM, 0);
-	if (socket_ == -1) throw std::runtime_error("Socket creation failed!");
+	listener_ = socket(PF_INET, SOCK_STREAM, 0);
+	if (listener_ == -1) throw std::runtime_error("Socket creation failed!");
 	//! TODO: socket error check
 
 	address_.sin_family = AF_INET;
@@ -18,7 +20,7 @@ Server::Server(int port)
 
 Server::~Server()
 {
-	close(socket_);
+	close(listener_);
 }
 
 /**
@@ -27,13 +29,13 @@ Server::~Server()
 void Server::launch()
 {
 	int option = 1;
-	setsockopt(socket_, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option)); // Flag for reusing port on restart
+	setsockopt(listener_, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option)); // Flag for reusing port on restart
 
-	int b = bind(socket_, reinterpret_cast<struct sockaddr *>(&address_), sizeof(address_));
+	int b = bind(listener_, reinterpret_cast<struct sockaddr *>(&address_), sizeof(address_));
 	if (b == -1) throw std::runtime_error("Binding failed!");
 	//! TODO: binding error check
 
-	listen(socket_, 5);
+	listen(listener_, 5);
 	std::cout << "Server started. Waiting for the client connection." << std::endl;
 }
 
@@ -45,7 +47,8 @@ void Server::launch()
  */
 int Server::accept_client() const
 {
-	int client_socket = accept(socket_, nullptr, nullptr);
+	int client_socket = accept(listener_, nullptr, nullptr);
+	fcntl(client_socket, F_SETFL, O_NONBLOCK);
 
 	std::cout << "Client connected! ⛄" << std::endl;
 	send_msg(client_socket, "✰ Welcome to the Irishka's server! ✰"); // Send greeting message
@@ -81,4 +84,17 @@ Server::Signal Server::send_input_msg(int client_socket) const
 	send_msg(client_socket, message);
 	std::cout << "Message \"" + message + "\" was sent" << std::endl;
 	return S_MSG_SENT;
+}
+
+/**
+ * @description	The get_msg() function receives a message from the client
+ *
+ * @param		client_socket
+ * @return		message from the client
+ */
+std::string Server::get_msg(int client_socket)
+{
+	int read_bytes = recv(client_socket, &buff_, 510, 0);
+	buff_[read_bytes] = '\0';
+	return (buff_);
 }
