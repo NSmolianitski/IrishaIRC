@@ -31,7 +31,7 @@ public:
 	explicit Server(int port);
 	~Server();
 
-	enum Signal /// ???
+	enum Signal /// TODO: ???
 	{
 		S_NOSIGNAL,
 		S_MSG_SENT,
@@ -44,6 +44,8 @@ public:
 	Signal		send_input_msg		(int client_socket) const;
 	std::string get_msg				(int client_socket);
 	void		loop				();
+
+	friend void	sending_loop		(const Server* server); //! TODO: REMOVE //////////////////////////////////////
 };
 
 
