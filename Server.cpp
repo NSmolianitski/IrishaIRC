@@ -3,6 +3,7 @@
 //
 
 #include "Server.hpp"
+#include "utils.hpp"
 
 #include <fcntl.h>
 
@@ -41,7 +42,7 @@ void Server::launch()
 	//! TODO: binding error check
 
 	listen(listener_, 5);
-	std::cout << "Server started. Waiting for the client connection." << std::endl;
+	std::cout << BOLD WHITE "⭐ Server started. Waiting for the client connection. ⭐\n" CLR << std::endl;
 }
 
 /**
@@ -61,7 +62,7 @@ int Server::accept_client()
 	if (client_socket > max_fd_)
 		max_fd_ = client_socket;
 
-	std::cout << "Client #" << client_socket << " connected! ⛄" << std::endl;
+	std::cout << ITALIC BLUE "Client №" << client_socket << " connected! " << "⛄" CLR << std::endl;
 	send_msg(client_socket, "✰ Welcome to the Irishka's server! ✰"); // Send greeting message
 	return client_socket;
 }
@@ -74,7 +75,8 @@ int Server::accept_client()
  */
 void Server::send_msg(int client_socket, const std::string& msg) const
 {
-	send(client_socket, msg.c_str(), msg.length(), 0);
+	int n = send(client_socket, msg.c_str(), msg.length(), 0);
+	if (n == -1) throw std::runtime_error("Send error");
 }
 
 /**
@@ -123,11 +125,12 @@ void Server::loop()
 	int			n;
 	std::string	client_msg;
 
+	signal(SIGPIPE, SIG_IGN);
 	while (true)
 	{
 		read_fds_ = client_fds_;
 		n = select(max_fd_ + 1, &read_fds_, nullptr, nullptr, nullptr);
-		if (n == -1) throw std::runtime_error("select error");
+		if (n == -1) throw std::runtime_error("Select error");
 
 		for (int i = 3; i < max_fd_ + 1; ++i)
 		{
@@ -137,18 +140,24 @@ void Server::loop()
 					accept_client();
 				else
 				{
-					client_msg = get_msg(i);
-					if (!client_msg.empty())
-						std::cout << "[Client#" << i << "] " + client_msg << std::endl;
+					client_msg = get_msg(i).append("\n");
+					if (client_msg != "\n")
+						std::cout << "[" GREEN "Client №" << i << CLR "] " + client_msg << std::flush;
 				}
 			}
 		}
 	}
 }
 
-int Server::handle_disconnection(int client_socket)
+/**
+ * @description	The handle_disconnection() function closes client socket and removes if
+ * 				from the client_fds_ member
+ *
+ * @param		client_socket
+ */
+void Server::handle_disconnection(int client_socket)
 {
-	std::cout << "Client #" << client_socket << " closed connection." << std::endl;
 	close(client_socket);
 	FD_CLR(client_socket, &client_fds_);
+	std::cout << "Client #" << client_socket << " closed connection. ☠" << std::endl;
 }
