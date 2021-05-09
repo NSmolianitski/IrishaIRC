@@ -6,6 +6,7 @@
 #include "utils.hpp"
 
 #include <fcntl.h>
+#include <thread>     //! TODO: REMOVE ///////////////////////////////////////////////////////////////////////////////////////////
 
 Server::Server(int port)
 {
@@ -116,6 +117,25 @@ std::string Server::get_msg(int client_socket)
 	return (buff_);
 }
 
+void sending_loop(const Server* server) //! TODO: REMOVE //////////////////////////////////////////////////////////////////////////
+{
+	std::string	message;
+	while (true)
+	{
+		getline(std::cin, message);
+		message.append("\n");
+		for (int i = 3; i < server->max_fd_ + 1; ++i)
+		{
+			if (FD_ISSET(i, &server->client_fds_) && i != server->listener_)
+			{
+				int send_bytes = send(i, message.c_str(), message.length(), 0);
+				if (send_bytes < 0) throw std::runtime_error("Send error in send_msg()");
+				std::cout << PURPLE ITALIC "Message sent to client №" << i << CLR << std::endl;
+			}
+		}
+	}
+} //! TODO: REMOVE //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 /**
  * @description	The loop() function launches the main server loop, which listens for
  * 				new clients, sends and receives messages
@@ -126,6 +146,7 @@ void Server::loop()
 	std::string	client_msg;
 
 	signal(SIGPIPE, SIG_IGN);
+	std::thread	sender(sending_loop, this); //! TODO: REMOVE ////////////////////////////////////////////////////////////////////////////////////////////
 	while (true)
 	{
 		read_fds_ = client_fds_;
@@ -140,13 +161,14 @@ void Server::loop()
 					accept_client();
 				else
 				{
-					client_msg = get_msg(i).append("\n");
+					client_msg = get_msg(i);
 					if (client_msg != "\n")
 						std::cout << "[" BLUE "Client №" << i << CLR "] " + client_msg << std::flush;
 				}
 			}
 		}
 	}
+	sender.detach(); //! TODO: REMOVE /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 }
 
 /**
@@ -161,3 +183,15 @@ void Server::handle_disconnection(int client_socket)
 	FD_CLR(client_socket, &client_fds_);
 	std::cout << ITALIC PURPLE "Client #" << client_socket << " closed connection. ☠" CLR << std::endl;
 }
+
+/*
+ * COMMANDS:
+ *
+ * :localhost 001 Guest52 ⭐ Welcome to the Irishka's server! ⭐ Guest52
+ * :localhost PING Guest52
+ * :localhost PONG
+ * :localhost 371 Guest52 :info
+ *
+ * :amy PRIVMSG #channel :message
+ * :amy PRIVMSG Guest52 :message
+ */
