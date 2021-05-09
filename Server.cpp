@@ -110,7 +110,7 @@ std::string Server::get_msg(int client_socket)
 
 	if (read_bytes == 0)
 		handle_disconnection(client_socket);
-	buff_[read_bytes] = '\0';
+	buff_[read_bytes - 1] = '\0';
 	return (buff_);
 }
 
