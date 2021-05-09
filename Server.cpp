@@ -12,6 +12,11 @@ Server::Server(int port)
 	if (listener_ == -1) throw std::runtime_error("Socket creation failed!");
 	//! TODO: socket error check
 
+	FD_ZERO(&client_fds_);
+	FD_SET(listener_, &client_fds_);
+
+	max_fd_ = listener_;
+
 	address_.sin_family = AF_INET;
 	address_.sin_port = htons(port);
 	address_.sin_addr.s_addr = INADDR_ANY;
@@ -45,12 +50,18 @@ void Server::launch()
  *
  * @return		client_socket
  */
-int Server::accept_client() const
+int Server::accept_client()
 {
 	int client_socket = accept(listener_, nullptr, nullptr);
+		if (client_socket == -1) throw std::runtime_error("Accepting failed");
+
 	fcntl(client_socket, F_SETFL, O_NONBLOCK);
 
-	std::cout << "Client connected! ⛄" << std::endl;
+	FD_SET(client_socket, &client_fds_);
+	if (client_socket > max_fd_)
+		max_fd_ = client_socket;
+
+	std::cout << "Client #" << client_socket << " connected! ⛄" << std::endl;
 	send_msg(client_socket, "✰ Welcome to the Irishka's server! ✰"); // Send greeting message
 	return client_socket;
 }
@@ -95,6 +106,49 @@ Server::Signal Server::send_input_msg(int client_socket) const
 std::string Server::get_msg(int client_socket)
 {
 	int read_bytes = recv(client_socket, &buff_, 510, 0);
+	if (read_bytes < 0) throw std::runtime_error("Recv error in get_msg()");
+
+	if (read_bytes == 0)
+		handle_disconnection(client_socket);
 	buff_[read_bytes] = '\0';
 	return (buff_);
+}
+
+/**
+ * @description	The loop() function launches the main server loop, which listens for
+ * 				new clients, sends and receives messages
+ */
+void Server::loop()
+{
+	int			n;
+	std::string	client_msg;
+
+	while (true)
+	{
+		read_fds_ = client_fds_;
+		n = select(max_fd_ + 1, &read_fds_, nullptr, nullptr, nullptr);
+		if (n == -1) throw std::runtime_error("select error");
+
+		for (int i = 3; i < max_fd_ + 1; ++i)
+		{
+			if (FD_ISSET(i, &read_fds_))
+			{
+				if (i == listener_)
+					accept_client();
+				else
+				{
+					client_msg = get_msg(i);
+					if (!client_msg.empty())
+						std::cout << "[Client#" << i << "] " + client_msg << std::endl;
+				}
+			}
+		}
+	}
+}
+
+int Server::handle_disconnection(int client_socket)
+{
+	std::cout << "Client #" << client_socket << " closed connection." << std::endl;
+	close(client_socket);
+	FD_CLR(client_socket, &client_fds_);
 }
