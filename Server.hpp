@@ -16,6 +16,9 @@ private:
 	int					listener_;
 	struct sockaddr_in	address_;
 	char				buff_[510];
+	fd_set				client_fds_;
+	fd_set				read_fds_;
+	int					max_fd_;
 
 	void	launch			();
 
@@ -35,10 +38,12 @@ public:
 		S_SHUTDOWN
 	};
 
-	int			accept_client	() const;
-	void		send_msg		(int client_socket, const std::string& msg) const;
-	Signal		send_input_msg	(int client_socket) const;
-	std::string get_msg			(int client_socket);
+	int			accept_client		();
+	int			handle_disconnection(int client_socket);
+	void		send_msg			(int client_socket, const std::string& msg) const;
+	Signal		send_input_msg		(int client_socket) const;
+	std::string get_msg				(int client_socket);
+	void		loop				();
 
 	/// HAVE TO BE DELETED
 	int get_listener() const { return listener_; }
