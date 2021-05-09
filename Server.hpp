@@ -5,10 +5,10 @@
 #ifndef FT_IRC_SERVER_HPP
 #define FT_IRC_SERVER_HPP
 
+#include <iostream>
+
 #include <unistd.h>
 #include <netinet/in.h>
-
-#include <iostream>
 
 class Server
 {
@@ -31,7 +31,7 @@ public:
 	explicit Server(int port);
 	~Server();
 
-	enum Signal
+	enum Signal /// ???
 	{
 		S_NOSIGNAL,
 		S_MSG_SENT,
@@ -39,14 +39,11 @@ public:
 	};
 
 	int			accept_client		();
-	int			handle_disconnection(int client_socket);
+	void		handle_disconnection(int client_socket);
 	void		send_msg			(int client_socket, const std::string& msg) const;
 	Signal		send_input_msg		(int client_socket) const;
 	std::string get_msg				(int client_socket);
 	void		loop				();
-
-	/// HAVE TO BE DELETED
-	int get_listener() const { return listener_; }
 };
 
 
