@@ -165,7 +165,7 @@ void Server::loop()
 				else
 				{
 					client_msg = get_msg(i);
-					if (client_msg != "\n")
+					if (!client_msg.empty())
 						std::cout << "[" BLUE "Client №" << i << CLR "] " + client_msg << std::flush;
 				}
 			}
@@ -184,7 +184,7 @@ void Server::handle_disconnection(int client_socket)
 {
 	close(client_socket);
 	FD_CLR(client_socket, &client_fds_);
-	std::cout << ITALIC PURPLE "Client #" << client_socket << " closed connection. ☠" CLR << std::endl;
+	std::cout << ITALIC PURPLE "Client №" << client_socket << " closed connection. ☠" CLR << std::endl;
 }
 
 /*
