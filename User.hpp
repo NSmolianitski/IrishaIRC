@@ -19,7 +19,7 @@ private:
 	int 		mod_;
 	bool 		isOper_;
 	std::string netwideId_;
-	Server&		server_;
+	std::string	server_;
 	int 		socket_;
 
 	/// Unused constructors
@@ -28,7 +28,7 @@ private:
 	User& operator= (const User& other) { return *this; };
 
 public:
-	User(int socket, const Server& server, int mod, const std::string& userName, const std::string& realName)
+	User(int socket, const std::string server, int mod, const std::string& userName, const std::string& realName)
 		: socket_(socket), server_(server), mod_(mod), userName_(userName), realName_(realName)
 	{
 		isOper_ = false;
@@ -37,23 +37,23 @@ public:
 
 	~User() {};
 
-	void		setNick			(const std::string& nick)		{ nick_ = nick; }
-	void		setUserName		(const std::string& userName)	{ userName_ = userName; }
-	void 		setRealName 	(const std::string& realName)	{ realName_ = realName; }
-	void 		setPassword		(const std::string& password)	{ password_ = password; }
-	void 		setMod			(int mod)						{ mod_ = mod; }
-	void 		setIsOper		(bool isOper)					{ isOper_ = isOper; }
-	void 		setNetwideId	(const std::string& netWideId)	{ netWideId_ = netWideId; }
+	void		setNick			(const std::string& nick);
+	void		setUserName		(const std::string& userName);
+	void 		setRealName 	(const std::string& realName);
+	void 		setPassword		(const std::string& password);
+	void 		setMod			(int mod);
+	void 		setIsOper		(bool isOper);
+	void 		setNetwideId	(const std::string& netwideId);
 
-	const std::string&	nick		() const { return nick_; }
-	const std::string&	userName	() const { return userName_; }
-	const std::string&	realName	() const { return realName_; }
-	const std::string&	password	() const { return password_; }
-	int 				mod			() const { return mod_; }
-	bool 				isOper		() const { return isOper_; }
-	const std::string&	netwideId	() const { return netwideId_; }
-	const Server&		server		() const { return server_; }
-	int					socket		() const {return socket_; }
+	const std::string&	nick		() const;
+	const std::string&	userName	() const;
+	const std::string&	realName	() const;
+	const std::string&	password	() const;
+	int 				mod			() const;
+	bool 				isOper		() const;
+	const std::string&	netwideId	() const;
+	const std::string&	server		() const;
+	int					socket		() const;
 
 };
 
