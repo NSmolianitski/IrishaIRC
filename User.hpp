@@ -55,7 +55,6 @@ public:
 	const Server&		server		() const { return server_; }
 	int					socket		() const {return socket_; }
 
-
 };
 
 
