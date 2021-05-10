@@ -192,6 +192,10 @@ void Server::handle_disconnection(int client_socket)
  * :localhost PONG
  * :localhost 371 Guest52 :info
  *
+ * :localhost 332 Guest52 #shell :topic
+ * :localhost 353 Guest52 = #shell :@doc amy Guest52
+ * :localhost PRIVMSG #shell :topic
+ *
  * :amy PRIVMSG #channel :message
- * :amy PRIVMSG Guest52 :message
+ * :amy PRIVMSG Guest52 Guest50 Guest51 #shell :message
  */

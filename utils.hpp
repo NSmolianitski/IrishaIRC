@@ -5,6 +5,7 @@
 #ifndef FT_IRC_UTILS_HPP
 #define FT_IRC_UTILS_HPP
 
+///	Font-style and colors
 #define RED		"\033[31m"
 #define GREEN	"\033[32m"
 #define YELLOW	"\033[33m"

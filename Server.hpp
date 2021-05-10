@@ -15,7 +15,7 @@ class Server
 private:
 	int					listener_;
 	struct sockaddr_in	address_;
-	char				buff_[510];
+	char				buff_[512];
 	fd_set				client_fds_;
 	fd_set				read_fds_;
 	int					max_fd_;
