@@ -63,7 +63,7 @@ int Server::accept_client()
 	if (client_socket > max_fd_)
 		max_fd_ = client_socket;
 
-	std::cout << ITALIC PURPLE "Client №" << client_socket << " connected! " << "⛄" CLR << std::endl;
+	std::cout << ITALIC BLUE "Client №" << client_socket << " connected! " << "⛄" CLR << std::endl;
 	send_msg(client_socket, "✰ Welcome to the Irishka's server! ✰"); // Send greeting message
 	return client_socket;
 }
@@ -91,12 +91,12 @@ Server::Signal Server::send_input_msg(int client_socket) const
 	getline(std::cin, message);
 	if (message == "/exit" || message == "/EXIT")
 	{
-		std::cout << ITALIC PURPLE "Server shutdown." CLR << std::endl;
+		std::cout << "Server shutdown." << std::endl;
 		return S_SHUTDOWN;
 	}
 
 	send_msg(client_socket, message);
-	std::cout << ITALIC PURPLE "Message \"" + message + "\" was sent" CLR << std::endl;
+	std::cout << "Message \"" + message + "\" was sent" << std::endl;
 	return S_MSG_SENT;
 }
 
@@ -113,7 +113,7 @@ std::string Server::get_msg(int client_socket)
 
 	if (read_bytes == 0)
 		handle_disconnection(client_socket);
-	buff_[read_bytes] = '\0';
+	buff_[read_bytes - 1] = '\0';
 	return (buff_);
 }
 
@@ -163,7 +163,7 @@ void Server::loop()
 				{
 					client_msg = get_msg(i);
 					if (client_msg != "\n")
-						std::cout << "[" BLUE "Client №" << i << CLR "] " + client_msg << std::flush;
+						std::cout << "[" GREEN "Client №" << i << CLR "] " + client_msg << std::flush;
 				}
 			}
 		}
@@ -181,7 +181,7 @@ void Server::handle_disconnection(int client_socket)
 {
 	close(client_socket);
 	FD_CLR(client_socket, &client_fds_);
-	std::cout << ITALIC PURPLE "Client #" << client_socket << " closed connection. ☠" CLR << std::endl;
+	std::cout << "Client #" << client_socket << " closed connection. ☠" << std::endl;
 }
 
 /*
