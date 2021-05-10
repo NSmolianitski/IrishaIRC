@@ -117,7 +117,7 @@ std::string Server::get_msg(int client_socket)
 	return (buff_);
 }
 
-void sending_loop(const Server* server) //! TODO: REMOVE //////////////////////////////////////////////////////////////////////////
+void sending_loop(const Server* server) //! TODO: REMOVE /////////////////////loop for sending thread////////////////////////////////////////////////
 {
 	std::string	message;
 	while (true)
@@ -162,7 +162,7 @@ void Server::loop()
 				else
 				{
 					client_msg = get_msg(i);
-					if (client_msg != "\n")
+					if (!client_msg.empty())
 						std::cout << "[" BLUE "Client №" << i << CLR "] " + client_msg << std::flush;
 				}
 			}
@@ -181,13 +181,13 @@ void Server::handle_disconnection(int client_socket)
 {
 	close(client_socket);
 	FD_CLR(client_socket, &client_fds_);
-	std::cout << ITALIC PURPLE "Client #" << client_socket << " closed connection. ☠" CLR << std::endl;
+	std::cout << ITALIC PURPLE "Client №" << client_socket << " closed connection. ☠" CLR << std::endl;
 }
 
 /*
  * COMMANDS:
  *
- * :localhost 001 Guest52 ⭐ Welcome to the Irishka's server! ⭐ Guest52
+ * :localhost 001 Guest52 ⭐ Welcome to Irisha server! ⭐ Guest52
  * :localhost PING Guest52
  * :localhost PONG
  * :localhost 371 Guest52 :info
