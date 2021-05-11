@@ -6,13 +6,21 @@
 #define FT_IRC_USER_HPP
 
 #include <string>
+#include "Server.hpp"
 
 class User
 {
 private:
-	int			id_;
+	//int			id_;
 	std::string	nick_;
-	std::string	name_;
+	std::string	userName_;
+	std::string realName_;
+	std::string password_;
+	int 		mod_;
+	bool 		isOper_;
+	std::string netwideId_;
+	std::string	server_;
+	int 		socket_;
 
 	/// Unused constructors
 	User() {};
@@ -20,16 +28,32 @@ private:
 	User& operator= (const User& other) { return *this; };
 
 public:
-	User(int id, const std::string& nick) : id_(id), nick_(nick) {};
+	User(int socket, const std::string server, int mod, const std::string& userName, const std::string& realName)
+		: socket_(socket), server_(server), mod_(mod), userName_(userName), realName_(realName)
+	{
+		isOper_ = false;
+		password_ = false;
+	};
+
 	~User() {};
 
-	void		set_id		(int id) { id_ = id; }
-	void		set_nick	(const std::string& nick) { nick_ = nick; }
-	void		set_name	(const std::string& name) { name_ = name; }
+	void		setNick			(const std::string& nick);
+	void		setUserName		(const std::string& userName);
+	void 		setRealName 	(const std::string& realName);
+	void 		setPassword		(const std::string& password);
+	void 		setMod			(int mod);
+	void 		setIsOper		(bool isOper);
+	void 		setNetwideId	(const std::string& netwideId);
 
-	int			id			() const { return id_; }
-	std::string nick		() const { return nick_; }
-	std::string name		() const { return name_; }
+	const std::string&	nick		() const;
+	const std::string&	userName	() const;
+	const std::string&	realName	() const;
+	const std::string&	password	() const;
+	int 				mod			() const;
+	bool 				isOper		() const;
+	const std::string&	netwideId	() const;
+	const std::string&	server		() const;
+	int					socket		() const;
 
 };
 
