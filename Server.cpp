@@ -4,25 +4,53 @@
 
 #include "Server.hpp"
 #include "utils.hpp"
-
+#include <netdb.h>
 #include <fcntl.h>
 #include <thread>     //! TODO: REMOVE ///////////////////////////////////////////////////////////////////////////////////////////
 
 Server::Server(int port)
 {
-	listener_ = socket(PF_INET, SOCK_STREAM, 0);
-	if (listener_ == -1) throw std::runtime_error("Socket creation failed!");
-	//! TODO: socket error check
-
-	FD_ZERO(&client_fds_);
-	FD_SET(listener_, &client_fds_);
-
-	max_fd_ = listener_;
-
-	address_.sin_family = AF_INET;
-	address_.sin_port = htons(port);
-	address_.sin_addr.s_addr = INADDR_ANY;
+	init(port);
 	launch();
+}
+
+Server::Server(int port, const std::string& password)
+{
+	init(port);
+	password_ = password;
+	launch();
+}
+
+Server::Server(const std::string& hostName, int portNetwork, const std::string& passwordNetwork,
+			   int port, const std::string& password)
+{
+	struct sockaddr_in	serverAddress;
+
+	init(port);
+	launch();
+	password_ = password;
+
+	speaker_ = socket(PF_INET, SOCK_STREAM, 0);
+	if (speaker_ < 0) throw std::runtime_error("Socket opening error");
+
+	FD_SET(speaker_, &client_fds_);
+	if (speaker_ > max_fd_)
+		max_fd_ = speaker_;
+
+	serverAddress.sin_family = AF_INET;
+	serverAddress.sin_port = htons(portNetwork);
+
+	struct hostent	*host = gethostbyname(hostName.c_str());
+	if (host == 0) throw std::runtime_error("No such host");
+
+	bcopy(static_cast<char *>(host->h_addr)
+			, reinterpret_cast<char *>(&serverAddress.sin_addr.s_addr)
+			, host->h_length);
+
+	int c = ::connect(speaker_, reinterpret_cast<struct sockaddr *>(&serverAddress), sizeof(serverAddress));
+
+	if (c < 0) throw std::runtime_error("Connection error");
+	std::cout << "Connection established! " << "🔥" << "\n" << std::endl;
 }
 
 Server::~Server()
@@ -46,6 +74,21 @@ void Server::launch()
 	std::cout << BOLD WHITE "⭐ Server started. Waiting for the client connection. ⭐\n" CLR << std::endl;
 }
 
+void Server::init(int port)
+{
+	listener_ = socket(PF_INET, SOCK_STREAM, 0);
+	if (listener_ == -1) throw std::runtime_error("Socket creation failed!");
+	//! TODO: socket error check
+
+	FD_ZERO(&client_fds_);
+	FD_SET(listener_, &client_fds_);
+
+	max_fd_ = listener_;
+
+	address_.sin_family = AF_INET;
+	address_.sin_port = htons(port);
+	address_.sin_addr.s_addr = INADDR_ANY;
+}
 /**
  * @description	The accept_client() function accepts one client and
  * 				sends greeting message
@@ -64,7 +107,7 @@ int Server::accept_client()
 		max_fd_ = client_socket;
 
 	std::cout << ITALIC PURPLE "Client №" << client_socket << " connected! " << "⛄" CLR << std::endl;
-	send_msg(client_socket, "✰ Welcome to the Irishka's server! ✰"); // Send greeting message
+	send_msg(client_socket, "✰ Welcome to the Irisha server! ✰"); // Send greeting message
 	return client_socket;
 }
 
@@ -133,7 +176,7 @@ void sending_loop(const Server* server) //! TODO: REMOVE ///////////////////////
 			{
 				int send_bytes = send(i, message.c_str(), message.length(), 0);
 				if (send_bytes < 0) throw std::runtime_error("Send error in send_msg()");
-				std::cout << PURPLE ITALIC "Message sent to client №" << i << CLR << std::endl;
+				//std::cout << PURPLE ITALIC "Message sent to client №" << i << CLR << std::endl;
 			}
 		}
 	}
