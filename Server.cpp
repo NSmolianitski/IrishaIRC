@@ -201,4 +201,6 @@ void Server::handle_disconnection(int client_socket)
  *
  * :amy PRIVMSG #channel :message
  * :amy PRIVMSG Guest52 Guest50 Guest51 #shell :message
+ * :localhost 001 Goodluck :Hello Goodluck
+ * :localhost 433 * Goodluck :Nickname is already in use.
  */
