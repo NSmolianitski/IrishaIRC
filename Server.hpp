@@ -9,6 +9,9 @@
 
 #include <unistd.h>
 #include <netinet/in.h>
+#include <vector>
+#include <string>
+#include <sstream>
 
 class Server
 {
@@ -19,6 +22,7 @@ private:
 	fd_set				client_fds_;
 	fd_set				read_fds_;
 	int					max_fd_;
+	std::vector<std::string> commands;
 
 	void	launch			();
 
@@ -44,7 +48,7 @@ public:
 	Signal		send_input_msg		(int client_socket) const;
 	std::string get_msg				(int client_socket);
 	void		loop				();
-
+    static void        parsing             (const std::string& msg) ;
 	friend void	sending_loop		(const Server* server); //! TODO: REMOVE //////////////////////////////////////
 };
 

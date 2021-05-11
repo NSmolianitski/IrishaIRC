@@ -23,6 +23,8 @@ Server::Server(int port)
 	address_.sin_port = htons(port);
 	address_.sin_addr.s_addr = INADDR_ANY;
 	launch();
+	commands.push_back("NICK");
+	commands.push_back("PASS");
 }
 
 Server::~Server()
@@ -165,6 +167,11 @@ void Server::loop()
 				else
 				{
 					client_msg = get_msg(i);
+                    if (client_msg.find("NICK") == 0)
+                    {
+                        send_msg(4, ":127.0.0.1 001 Goodluck :⭐ Welcome to Irisha server! ⭐");
+                    }
+					parsing(client_msg);
 					if (client_msg != "\n")
 						std::cout << "[" BLUE "Client №" << i << CLR "] " + client_msg << std::flush;
 				}
@@ -185,6 +192,20 @@ void Server::handle_disconnection(int client_socket)
 	close(client_socket);
 	FD_CLR(client_socket, &client_fds_);
 	std::cout << ITALIC PURPLE "Client #" << client_socket << " closed connection. ☠" CLR << std::endl;
+}
+///Parser
+void Server::parsing(const std::string& msg) {
+    std::vector<std::string> array;
+    std::istringstream is(msg);
+    std::string s;
+    while (std::getline(is, s, ' '))
+        array.push_back(s);
+    std::copy
+    (
+        array.begin(),
+        array.end(),
+        std::ostream_iterator<std::string>(std::cout, "\n")
+    );
 }
 
 /*
