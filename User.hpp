@@ -37,13 +37,13 @@ public:
 
 	~User() {};
 
-	void		setNick			(const std::string& nick);
-	void		setUserName		(const std::string& userName);
-	void 		setRealName 	(const std::string& realName);
-	void 		setPassword		(const std::string& password);
-	void 		setMod			(int mod);
-	void 		setIsOper		(bool isOper);
-	void 		setNetwideId	(const std::string& netwideId);
+	void	setNick			(const std::string& nick);
+	void	setUserName		(const std::string& userName);
+	void	setRealName 	(const std::string& realName);
+	void	setPassword		(const std::string& password);
+	void	setMod			(int mod);
+	void	setIsOper		(bool isOper);
+	void	setNetwideId	(const std::string& netwideId);
 
 	const std::string&	nick		() const;
 	const std::string&	userName	() const;

@@ -3,7 +3,7 @@
 
 void server_cycle()
 {
-	Server server(2000);
+	Server server(6667);
 	server.loop();
 }
 

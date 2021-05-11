@@ -3,6 +3,7 @@
 //
 
 #include "Server.hpp"
+#include "Command.hpp"
 #include "utils.hpp"
 
 #include <fcntl.h>
@@ -64,7 +65,7 @@ int Server::accept_client()
 		max_fd_ = client_socket;
 
 	std::cout << ITALIC PURPLE "Client №" << client_socket << " connected! " << "⛄" CLR << std::endl;
-	send_msg(client_socket, "✰ Welcome to the Irishka's server! ✰"); // Send greeting message
+	send_msg(client_socket, ":serv1.irisha.net ✰ Welcome to Irisha server! ✰"); // Send greeting message
 	return client_socket;
 }
 
@@ -88,19 +89,15 @@ void Server::send_msg(int client_socket, const std::string& msg) const
  *
  * @param		client_socket
  */
-Server::Signal Server::send_input_msg(int client_socket) const
+void Server::send_input_msg(int client_socket) const
 {
 	std::string message;
 	getline(std::cin, message);
 	if (message == "/exit" || message == "/EXIT")
-	{
 		std::cout << ITALIC PURPLE "Server shutdown." CLR << std::endl;
-		return S_SHUTDOWN;
-	}
 
 	send_msg(client_socket, message);
 	std::cout << ITALIC PURPLE "Message \"" + message + "\" was sent" CLR << std::endl;
-	return S_MSG_SENT;
 }
 
 /**
@@ -185,6 +182,13 @@ void Server::handle_disconnection(int client_socket)
 	close(client_socket);
 	FD_CLR(client_socket, &client_fds_);
 	std::cout << ITALIC PURPLE "Client №" << client_socket << " closed connection. ☠" CLR << std::endl;
+}
+
+/// Commands
+
+void Server::nick()
+{
+
 }
 
 /*
