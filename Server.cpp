@@ -33,7 +33,7 @@ Server::Server(const std::string& hostName, int portNetwork, const std::string& 
 	speaker_ = socket(PF_INET, SOCK_STREAM, 0);
 	if (speaker_ < 0) throw std::runtime_error("Socket opening error");
 
-	FD_SET(speaker_, &client_fds_);
+	FD_SET(speaker_, &all_fds_);
 	if (speaker_ > max_fd_)
 		max_fd_ = speaker_;
 
@@ -80,8 +80,8 @@ void Server::init(int port)
 	if (listener_ == -1) throw std::runtime_error("Socket creation failed!");
 	//! TODO: socket error check
 
-	FD_ZERO(&client_fds_);
-	FD_SET(listener_, &client_fds_);
+	FD_ZERO(&all_fds_);
+	FD_SET(listener_, &all_fds_);
 
 	max_fd_ = listener_;
 
@@ -102,7 +102,7 @@ int Server::accept_client()
 
 	fcntl(client_socket, F_SETFL, O_NONBLOCK);
 
-	FD_SET(client_socket, &client_fds_);
+	FD_SET(client_socket, &all_fds_);
 	if (client_socket > max_fd_)
 		max_fd_ = client_socket;
 
@@ -172,7 +172,7 @@ void sending_loop(const Server* server) //! TODO: REMOVE ///////////////////////
 		message.append("\n");
 		for (int i = 3; i < server->max_fd_ + 1; ++i)
 		{
-			if (FD_ISSET(i, &server->client_fds_) && i != server->listener_)
+			if (FD_ISSET(i, &server->all_fds_) && i != server->listener_)
 			{
 				int send_bytes = send(i, message.c_str(), message.length(), 0);
 				if (send_bytes < 0) throw std::runtime_error("Send error in send_msg()");
@@ -195,7 +195,7 @@ void Server::loop()
 	std::thread	sender(sending_loop, this); //! TODO: REMOVE ////////////////////////////////////////////////////////////////////////////////////////////
 	while (true)
 	{
-		read_fds_ = client_fds_;
+		read_fds_ = all_fds_;
 		n = select(max_fd_ + 1, &read_fds_, nullptr, nullptr, nullptr);
 		if (n == -1) throw std::runtime_error("Select error");
 
@@ -219,14 +219,14 @@ void Server::loop()
 
 /**
  * @description	The handle_disconnection() function closes client socket and removes if
- * 				from the client_fds_ member
+ * 				from the all_fds_ member
  *
  * @param		client_socket
  */
 void Server::handle_disconnection(int client_socket)
 {
 	close(client_socket);
-	FD_CLR(client_socket, &client_fds_);
+	FD_CLR(client_socket, &all_fds_);
 	std::cout << ITALIC PURPLE "Client #" << client_socket << " closed connection. ☠" CLR << std::endl;
 }
 
