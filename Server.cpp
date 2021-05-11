@@ -76,7 +76,10 @@ int Server::accept_client()
  */
 void Server::send_msg(int client_socket, const std::string& msg) const
 {
-	int n = send(client_socket, msg.c_str(), msg.length(), 0);
+	std::string message = msg;
+	message.append("\r\n");
+
+	int n = send(client_socket, message.c_str(), message.length(), 0);
 	if (n == -1) throw std::runtime_error("Send error");
 }
 
@@ -187,7 +190,7 @@ void Server::handle_disconnection(int client_socket)
 /*
  * COMMANDS:
  *
- * :localhost 001 Guest52 ⭐ Welcome to the Irishka's server! ⭐ Guest52
+ * :localhost 001 Guest52 ⭐ Welcome to Irisha server! ⭐
  * :localhost PING Guest52
  * :localhost PONG
  * :localhost 371 Guest52 :info
