@@ -38,7 +38,7 @@ public:
 		   int port, const std::string& password);
 	~Irisha();
 	std::string createPASSmsg(std::string password);
-	std::string createSERVERmsg(std::string password);
+	std::string createSERVERmsg();
 
 	enum Signal /// TODO: ???
 	{

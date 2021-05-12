@@ -53,7 +53,7 @@ Irisha::Irisha(const std::string& host_name, int network_port, const std::string
 
 	//registration
 	send_msg(speaker,createPASSmsg(network_password));
-//	send_msg(speaker, )
+	send_msg(speaker, createSERVERmsg());
 }
 
 Irisha::~Irisha()
@@ -241,13 +241,24 @@ void Irisha::handle_disconnection(int client_socket)
 /**
  * Returns PASS message string
  * @param password - parent server password for connection
- * @return - PASS command in this format: PASS <password> <version> <flags>
+ * @return - PASS command string in this format: PASS <password> <version> <flags>
  */
 std::string Irisha::createPASSmsg(std::string password)
 {
 	std::string msg = "PASS ";
 	msg.append(password);
 	msg.append(" 0210 Irisha| ");
+	return msg;
+}
+
+/**
+ * Returns SERVER message string
+ * @return - SERVER command string in this format: <servername> <info>
+ */
+std::string Irisha::createSERVERmsg()	///TODO: choose servername smarter
+{
+	std::string msg = "SERVER ";
+	msg.append("irc2.example.net :Irisha server");
 	return msg;
 }
 
