@@ -2,19 +2,19 @@
 // Created by Parfait Kentaurus on 5/6/21.
 //
 
-#ifndef FT_IRC_SERVER_HPP
-#define FT_IRC_SERVER_HPP
+#ifndef FT_IRC_IRISHA_HPP
+#define FT_IRC_IRISHA_HPP
 
 #include <iostream>
 
 #include <unistd.h>
 #include <netinet/in.h>
 
-class Server
+class Irisha
 {
 private:
 	int					listener_;
-	int 				speaker_;
+	//int 				speaker_;
 	struct sockaddr_in	address_;
 	char				buff_[512];
 	fd_set				all_fds_;
@@ -27,16 +27,16 @@ private:
 	void	launch();
 	void 	init(int port);
 	/// Unused constructors
-	Server() {};
-	Server(const Server& other) {};
-	Server& operator= (const Server& other) { return *this; };
+	Irisha() {};
+	Irisha(const Irisha& other) {};
+	Irisha& operator= (const Irisha& other) { return *this; };
 
 public:
-	explicit Server(int port);
-	Server(int port, const std::string& password);
-	Server(const std::string& host_name, int network_port, const std::string& network_password,
+	explicit Irisha(int port);
+	Irisha(int port, const std::string& password);
+	Irisha(const std::string& host_name, int network_port, const std::string& network_password,
 		   int port, const std::string& password);
-	~Server();
+	~Irisha();
 
 	enum Signal /// TODO: ???
 	{
@@ -52,9 +52,9 @@ public:
 	std::string get_msg				(int client_socket);
 	void		loop				();
 
-	friend void	sending_loop		(const Server* server); //! TODO: REMOVE //////////////////////////////////////
+	friend void	sending_loop		(const Irisha* server); //! TODO: REMOVE //////////////////////////////////////
 };
 
 
 
-#endif //FT_IRC_SERVER_HPP
+#endif //FT_IRC_IRISHA_HPP

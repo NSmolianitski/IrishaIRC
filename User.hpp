@@ -6,7 +6,7 @@
 #define FT_IRC_USER_HPP
 
 #include <string>
-#include "Server.hpp"
+#include "Irisha.hpp"
 
 class User
 {
