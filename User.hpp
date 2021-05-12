@@ -13,12 +13,12 @@ class User
 private:
 	//int			id_;
 	std::string	nick_;
-	std::string	userName_;
-	std::string realName_;
+	std::string	username_;
+	std::string real_name_;
 	std::string password_;
 	int 		mod_;
-	bool 		isOper_;
-	std::string netwideId_;
+	bool 		operator_;
+	std::string netwideID_;
 	std::string	server_;
 	int 		socket_;
 
@@ -28,30 +28,30 @@ private:
 	User& operator= (const User& other) { return *this; };
 
 public:
-	User(int socket, const std::string server, int mod, const std::string& userName, const std::string& realName)
-		: socket_(socket), server_(server), mod_(mod), userName_(userName), realName_(realName)
+	User(int socket, const std::string& server, int mod, const std::string& username, const std::string& real_name)
+		: socket_(socket), server_(server), mod_(mod), username_(username), real_name_(real_name)
 	{
-		isOper_ = false;
-		password_ = false;
+		operator_ = false;
+		password_ = "";
 	};
 
 	~User() {};
 
-	void	setNick			(const std::string& nick);
-	void	setUserName		(const std::string& userName);
-	void	setRealName 	(const std::string& realName);
-	void	setPassword		(const std::string& password);
-	void	setMod			(int mod);
-	void	setIsOper		(bool isOper);
-	void	setNetwideId	(const std::string& netwideId);
+	void	set_nick		(const std::string& nick);
+	void	set_username	(const std::string& username);
+	void	set_real_name 	(const std::string& real_name);
+	void	set_password	(const std::string& password);
+	void	set_mod			(int mod);
+	void	set_operator	(bool is_operator);
+	void	set_netwideID	(const std::string& netwideID);
 
 	const std::string&	nick		() const;
-	const std::string&	userName	() const;
-	const std::string&	realName	() const;
+	const std::string&	username	() const;
+	const std::string&	real_name	() const;
 	const std::string&	password	() const;
 	int 				mod			() const;
-	bool 				isOper		() const;
-	const std::string&	netwideId	() const;
+	bool 				is_operator	() const;
+	const std::string&	netwideID	() const;
 	const std::string&	server		() const;
 	int					socket		() const;
 
