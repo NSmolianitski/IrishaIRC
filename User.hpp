@@ -24,8 +24,8 @@ private:
 	std::string	server_;
 
 	/// Unused constructors
-	User() : AConnection(0, T_CLIENT) {};
-	User(const User& other) : AConnection(0, T_CLIENT) {};
+	User() : AConnection(0, T_CLIENT,0) {};
+	User(const User& other) : AConnection(0, T_CLIENT, 0) {};
 	User& operator= (const User& other) { return *this; };
 
 public:

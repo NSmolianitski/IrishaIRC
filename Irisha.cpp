@@ -217,10 +217,14 @@ void Irisha::loop()
 					client_msg = get_msg(i);
 					if (!client_msg.empty())
 						std::cout << "[" BLUE "Client №" << i << CLR "] " + client_msg << std::flush;
-					//command Irisha::cmd;
-					RegForm* rf = RegForm::expecting_registration(i, reg_expect);	//is this connection registered?
-					if (rf != 0)
-					//	registr_connection(rf, cmd);						//no, register it
+					Command cmd;
+					std::list<RegForm>::iterator it = RegForm::expecting_registration(i, reg_expect);	//is this connection registered?
+					if (it != reg_expect.end())																//no, register it
+					{
+						int registered = registr_connection(it, cmd);
+						if (registered)
+							reg_expect.erase(it);
+					}
 					//else
 					//	handle_command(cmd, i);								//yes, handle not registration command
 				}
@@ -247,10 +251,10 @@ void Irisha::handle_disconnection(int client_socket)
 
 /// Commands
 
-void Irisha::nick(const Command& cmd)
-{
-
-}
+//void Irisha::nick(const Command& cmd)
+//{
+//
+//}
 
 /***************Creating message strings***************/
 

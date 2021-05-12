@@ -9,7 +9,7 @@
  * @param		real_name
  */
 User::User(int socket, const std::string& server, int mod, const std::string& username, const std::string& real_name)
-		: AConnection(socket, T_CLIENT), server_(server), mod_(mod), username_(username), real_name_(real_name)
+		: AConnection(socket, T_CLIENT, 0), server_(server), mod_(mod), username_(username), real_name_(real_name)
 {
 	operator_ = false;
 	password_ = "";
