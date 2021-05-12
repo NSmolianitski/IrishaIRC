@@ -37,6 +37,8 @@ public:
 	Irisha(const std::string& host_name, int network_port, const std::string& network_password,
 		   int port, const std::string& password);
 	~Irisha();
+	std::string createPASSmsg(std::string password);
+	std::string createSERVERmsg(std::string password);
 
 	enum Signal /// TODO: ???
 	{

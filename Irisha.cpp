@@ -51,7 +51,9 @@ Irisha::Irisha(const std::string& host_name, int network_port, const std::string
 	if (c < 0) throw std::runtime_error("Connection error");
 	std::cout << "Connection established! " << "🔥" << "\n" << std::endl;
 
-	//send_msg()
+	//registration
+	send_msg(speaker,createPASSmsg(network_password));
+//	send_msg(speaker, )
 }
 
 Irisha::~Irisha()
@@ -232,6 +234,21 @@ void Irisha::handle_disconnection(int client_socket)
 	close(client_socket);
 	FD_CLR(client_socket, &all_fds_);
 	std::cout << ITALIC PURPLE "Client #" << client_socket << " closed connection. ☠" CLR << std::endl;
+}
+
+/***************Creating message strings***************/
+
+/**
+ * Returns PASS message string
+ * @param password - parent server password for connection
+ * @return - PASS command in this format: PASS <password> <version> <flags>
+ */
+std::string Irisha::createPASSmsg(std::string password)
+{
+	std::string msg = "PASS ";
+	msg.append(password);
+	msg.append(" 0210 Irisha| ");
+	return msg;
 }
 
 /*
