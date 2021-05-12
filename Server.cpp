@@ -4,7 +4,7 @@
 
 #include "Server.hpp"
 #include "utils.hpp"
-
+#include "parser.hpp"
 #include <fcntl.h>
 #include <thread>     //! TODO: REMOVE ///////////////////////////////////////////////////////////////////////////////////////////
 
@@ -23,8 +23,6 @@ Server::Server(int port)
 	address_.sin_port = htons(port);
 	address_.sin_addr.s_addr = INADDR_ANY;
 	launch();
-	commands.push_back("NICK");
-	commands.push_back("PASS");
 }
 
 Server::~Server()
@@ -150,7 +148,7 @@ void Server::loop()
 	int			n;
 	std::string	client_msg;
 
-	signal(SIGPIPE, SIG_IGN);
+	//signal(SIGPIPE, SIG_IGN);
 	std::thread	sender(sending_loop, this); //! TODO: REMOVE ////////////////////////////////////////////////////////////////////////////////////////////
 	while (true)
 	{
@@ -167,11 +165,11 @@ void Server::loop()
 				else
 				{
 					client_msg = get_msg(i);
-                    if (client_msg.find("NICK") == 0)
-                    {
-                        send_msg(4, ":127.0.0.1 001 Goodluck :⭐ Welcome to Irisha server! ⭐");
-                    }
-					parsing(client_msg);
+					parseMsg(client_msg, &this->msgStruct_);
+                    // if (client_msg.find("NICK") == 0)
+                    // {
+                    //     send_msg(i, ":127.0.0.1 001 Goodluck :⭐ Welcome to Irisha server! ⭐");
+                    // }
 					if (client_msg != "\n")
 						std::cout << "[" BLUE "Client №" << i << CLR "] " + client_msg << std::flush;
 				}
@@ -194,19 +192,19 @@ void Server::handle_disconnection(int client_socket)
 	std::cout << ITALIC PURPLE "Client #" << client_socket << " closed connection. ☠" CLR << std::endl;
 }
 ///Parser
-void Server::parsing(const std::string& msg) {
-    std::vector<std::string> array;
-    std::istringstream is(msg);
-    std::string s;
-    while (std::getline(is, s, ' '))
-        array.push_back(s);
-    std::copy
-    (
-        array.begin(),
-        array.end(),
-        std::ostream_iterator<std::string>(std::cout, "\n")
-    );
-}
+//void Server::parsing(const std::string& msg) {
+//    std::vector<std::string> array;
+//    std::istringstream is(msg);
+//    std::string s;
+//    while (std::getline(is, s, ' '))
+//        array.push_back(s);
+//    std::copy
+//    (
+//        array.begin(),
+//        array.end(),
+//        std::ostream_iterator<std::string>(std::cout, "\n")
+//    );
+//}
 
 /*
  * COMMANDS:

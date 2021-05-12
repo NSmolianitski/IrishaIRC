@@ -1,8 +1,10 @@
-//
-// Created by Dmitriy on 12.05.2021.
-//
-
-#ifndef FT_IRC_PARSER_HPP
-#define FT_IRC_PARSER_HPP
-
-#endif //FT_IRC_PARSER_HPP
+#pragma once
+#include <vector>
+#include <deque>
+#include <string>
+//typedef struct s_msg{
+//	std::string pref;
+//	std::string command;
+//	std::vector<std::string> param;
+//}				t_msg;
+void 	parseMsg(std::string msg, t_msg *msgStruct);
