@@ -21,10 +21,10 @@ Server::Server(int port, const std::string& password)
 	launch();
 }
 
-Server::Server(const std::string& hostName, int portNetwork, const std::string& passwordNetwork,
+Server::Server(const std::string& host_name, int network_port, const std::string& network_password,
 			   int port, const std::string& password)
 {
-	struct sockaddr_in	serverAddress;
+	struct sockaddr_in	server_address;
 
 	init(port);
 	launch();
@@ -37,17 +37,17 @@ Server::Server(const std::string& hostName, int portNetwork, const std::string& 
 	if (speaker_ > max_fd_)
 		max_fd_ = speaker_;
 
-	serverAddress.sin_family = AF_INET;
-	serverAddress.sin_port = htons(portNetwork);
+	server_address.sin_family = AF_INET;
+	server_address.sin_port = htons(network_port);
 
-	struct hostent	*host = gethostbyname(hostName.c_str());
+	struct hostent	*host = gethostbyname(host_name.c_str());
 	if (host == 0) throw std::runtime_error("No such host");
 
 	bcopy(static_cast<char *>(host->h_addr)
-			, reinterpret_cast<char *>(&serverAddress.sin_addr.s_addr)
+			, reinterpret_cast<char *>(&server_address.sin_addr.s_addr)
 			, host->h_length);
 
-	int c = ::connect(speaker_, reinterpret_cast<struct sockaddr *>(&serverAddress), sizeof(serverAddress));
+	int c = ::connect(speaker_, reinterpret_cast<struct sockaddr *>(&server_address), sizeof(server_address));
 
 	if (c < 0) throw std::runtime_error("Connection error");
 	std::cout << "Connection established! " << "🔥" << "\n" << std::endl;
@@ -163,7 +163,7 @@ std::string Server::get_msg(int client_socket)
 	return (buff_);
 }
 
-void sending_loop(const Server* server) //! TODO: REMOVE //////////////////////////////////////////////////////////////////////////
+void sending_loop(const Server* server) //! TODO: REMOVE ///////////////////thread loop///////////////////////////////////////////////////////////////
 {
 	std::string	message;
 	while (true)

@@ -21,8 +21,8 @@ private:
 	fd_set				read_fds_;
 	fd_set				serv_fds_;
 	int					max_fd_;
-	std::string 		hostName_; // host server. Need when this server connected to other.
-	std::string			password_; //password for clients and servers connection to connect this server
+	std::string 		host_name_;	// Host server. Need when this server connected to other.
+	std::string			password_;	// Password for clients and servers connection to connect this server
 
 	void	launch();
 	void 	init(int port);
@@ -34,7 +34,7 @@ private:
 public:
 	explicit Server(int port);
 	Server(int port, const std::string& password);
-	Server(const std::string& hostName, int portNetwork, const std::string& passwordNetwork,
+	Server(const std::string& host_name, int network_port, const std::string& network_password,
 		   int port, const std::string& password);
 	~Server();
 
