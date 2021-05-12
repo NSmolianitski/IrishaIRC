@@ -5,13 +5,15 @@
 #ifndef FT_IRC_USER_HPP
 #define FT_IRC_USER_HPP
 
-#include <string>
-#include "Server.hpp"
+#include "AConnection.hpp"
+#include "Irisha.hpp"
 
-class User
+#include <string>
+
+class User : public AConnection
 {
 private:
-	//int			id_;
+	//int		id_;
 	std::string	nick_;
 	std::string	username_;
 	std::string real_name_;
@@ -20,22 +22,15 @@ private:
 	bool 		operator_;
 	std::string netwideID_;
 	std::string	server_;
-	int 		socket_;
 
 	/// Unused constructors
-	User() {};
-	User(const User& other) {};
+	User() : AConnection(0, T_CLIENT) {};
+	User(const User& other) : AConnection(0, T_CLIENT) {};
 	User& operator= (const User& other) { return *this; };
 
 public:
-	User(int socket, const std::string& server, int mod, const std::string& username, const std::string& real_name)
-		: socket_(socket), server_(server), mod_(mod), username_(username), real_name_(real_name)
-	{
-		operator_ = false;
-		password_ = "";
-	};
-
-	~User() {};
+	User(int socket, const std::string& server, int mod, const std::string& username, const std::string& real_name);
+	~User();
 
 	void	set_nick		(const std::string& nick);
 	void	set_username	(const std::string& username);
@@ -53,8 +48,6 @@ public:
 	bool 				is_operator	() const;
 	const std::string&	netwideID	() const;
 	const std::string&	server		() const;
-	int					socket		() const;
-
 };
 
 

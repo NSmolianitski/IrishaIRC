@@ -2,26 +2,26 @@
 // Created by Parfait Kentaurus on 5/6/21.
 //
 
-#include "Server.hpp"
+#include "Irisha.hpp"
 #include "utils.hpp"
 #include <netdb.h>
 #include <fcntl.h>
 #include <thread>     //! TODO: REMOVE ///////////////////////////////////////////////////////////////////////////////////////////
 
-Server::Server(int port)
+Irisha::Irisha(int port)
 {
 	init(port);
 	launch();
 }
 
-Server::Server(int port, const std::string& password)
+Irisha::Irisha(int port, const std::string& password)
 {
 	init(port);
 	password_ = password;
 	launch();
 }
 
-Server::Server(const std::string& host_name, int network_port, const std::string& network_password,
+Irisha::Irisha(const std::string& host_name, int network_port, const std::string& network_password,
 			   int port, const std::string& password)
 {
 	struct sockaddr_in	server_address;
@@ -30,30 +30,33 @@ Server::Server(const std::string& host_name, int network_port, const std::string
 	launch();
 	password_ = password;
 
-	speaker_ = socket(PF_INET, SOCK_STREAM, 0);
-	if (speaker_ < 0) throw std::runtime_error("Socket opening error");
+	int speaker = socket(PF_INET, SOCK_STREAM, 0); //socket to connect with parent server
+	if (speaker < 0) throw std::runtime_error("Socket opening error");
 
-	FD_SET(speaker_, &all_fds_);
-	if (speaker_ > max_fd_)
-		max_fd_ = speaker_;
+	FD_SET(speaker, &all_fds_);
+	if (speaker > max_fd_)
+		max_fd_ = speaker;
 
 	server_address.sin_family = AF_INET;
 	server_address.sin_port = htons(network_port);
 
 	struct hostent	*host = gethostbyname(host_name.c_str());
-	if (host == 0) throw std::runtime_error("No such host");
+	if (host == nullptr) throw std::runtime_error("No such host");
 
 	bcopy(static_cast<char *>(host->h_addr)
 			, reinterpret_cast<char *>(&server_address.sin_addr.s_addr)
 			, host->h_length);
 
-	int c = ::connect(speaker_, reinterpret_cast<struct sockaddr *>(&server_address), sizeof(server_address));
-
+	int c = ::connect(speaker, reinterpret_cast<struct sockaddr *>(&server_address), sizeof(server_address));
 	if (c < 0) throw std::runtime_error("Connection error");
 	std::cout << "Connection established! " << "🔥" << "\n" << std::endl;
+
+	//registration
+	send_msg(speaker,createPASSmsg(network_password));
+//	send_msg(speaker, )
 }
 
-Server::~Server()
+Irisha::~Irisha()
 {
 	close(listener_);
 }
@@ -61,24 +64,22 @@ Server::~Server()
 /**
  * @description	The launch() function binds socket and starts to listen
  */
-void Server::launch()
+void Irisha::launch()
 {
 	int option = 1;
 	setsockopt(listener_, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option)); // Flag for reusing port on restart
 
 	int b = bind(listener_, reinterpret_cast<struct sockaddr *>(&address_), sizeof(address_));
 	if (b == -1) throw std::runtime_error("Binding failed!");
-	//! TODO: binding error check
 
 	listen(listener_, 5);
 	std::cout << BOLD WHITE "⭐ Server started. Waiting for the client connection. ⭐\n" CLR << std::endl;
 }
 
-void Server::init(int port)
+void Irisha::init(int port)
 {
 	listener_ = socket(PF_INET, SOCK_STREAM, 0);
 	if (listener_ == -1) throw std::runtime_error("Socket creation failed!");
-	//! TODO: socket error check
 
 	FD_ZERO(&all_fds_);
 	FD_SET(listener_, &all_fds_);
@@ -95,7 +96,7 @@ void Server::init(int port)
  *
  * @return		client_socket
  */
-int Server::accept_client()
+int Irisha::accept_client()
 {
 	int client_socket = accept(listener_, nullptr, nullptr);
 		if (client_socket == -1) throw std::runtime_error("Accepting failed");
@@ -117,7 +118,7 @@ int Server::accept_client()
  * @param		client_socket
  * @param		msg: message for the client
  */
-void Server::send_msg(int client_socket, const std::string& msg) const
+void Irisha::send_msg(int client_socket, const std::string& msg) const
 {
 	std::string message = msg;
 	message.append("\r\n");
@@ -131,7 +132,7 @@ void Server::send_msg(int client_socket, const std::string& msg) const
  *
  * @param		client_socket
  */
-void Server::send_input_msg(int client_socket) const
+void Irisha::send_input_msg(int client_socket) const
 {
 	std::string message;
 	getline(std::cin, message);
@@ -148,7 +149,7 @@ void Server::send_input_msg(int client_socket) const
  * @param		client_socket
  * @return		message from the client
  */
-std::string Server::get_msg(int client_socket)
+std::string Irisha::get_msg(int client_socket)
 {
 	int read_bytes = recv(client_socket, &buff_, 510, 0);
 	if (read_bytes < 0) throw std::runtime_error("Recv error in get_msg()");
@@ -159,7 +160,7 @@ std::string Server::get_msg(int client_socket)
 	return (buff_);
 }
 
-void sending_loop(const Server* server) //! TODO: REMOVE ///////////////////thread loop///////////////////////////////////////////////////////////////
+void sending_loop(const Irisha* server) //! TODO: REMOVE ///////////////////thread loop///////////////////////////////////////////////////////////////
 {
 	std::string	message;
 	while (true)
@@ -182,7 +183,7 @@ void sending_loop(const Server* server) //! TODO: REMOVE ///////////////////thre
  * @description	The loop() function launches the main server loop, which listens for
  * 				new clients, sends and receives messages
  */
-void Server::loop()
+void Irisha::loop()
 {
 	int			n;
 	std::string	client_msg;
@@ -200,7 +201,10 @@ void Server::loop()
 			if (FD_ISSET(i, &read_fds_))
 			{
 				if (i == listener_)
+				{
 					accept_client();
+					//+++
+				}
 				else
 				{
 					client_msg = get_msg(i);
@@ -219,7 +223,7 @@ void Server::loop()
  *
  * @param		client_socket
  */
-void Server::handle_disconnection(int client_socket)
+void Irisha::handle_disconnection(int client_socket)
 {
 	close(client_socket);
 	FD_CLR(client_socket, &all_fds_);
@@ -230,9 +234,24 @@ void Server::handle_disconnection(int client_socket)
 
 /// Commands
 
-void Server::nick()
+void Irisha::nick()
 {
 
+}
+
+/***************Creating message strings***************/
+
+/**
+ * Returns PASS message string
+ * @param password - parent server password for connection
+ * @return - PASS command in this format: PASS <password> <version> <flags>
+ */
+std::string Irisha::createPASSmsg(std::string password)
+{
+	std::string msg = "PASS ";
+	msg.append(password);
+	msg.append(" 0210 Irisha| ");
+	return msg;
 }
 
 /*

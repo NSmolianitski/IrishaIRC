@@ -1,9 +1,9 @@
 
-#include "Server.hpp"
+#include "Irisha.hpp"
 
 void server_cycle()
 {
-	Server server(6667);
+	Irisha server(6667);
 	server.loop();
 }
 
