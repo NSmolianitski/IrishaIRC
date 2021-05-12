@@ -3,11 +3,16 @@
 //
 
 #include "Irisha.hpp"
+#include "User.hpp"
 #include "utils.hpp"
+
+#include <thread>     //! TODO: REMOVE ///////////////////////////////////////////////////////////////////////////////////////////
+
 #include <netdb.h>
 #include <fcntl.h>
 #include <list>
 #include <thread>     //! TODO: REMOVE ///////////////////////////////////////////////////////////////////////////////////////////
+
 
 Irisha::Irisha(int port)
 {
@@ -109,7 +114,7 @@ int Irisha::accept_connection()
 		max_fd_ = client_socket;
 
 	std::cout << ITALIC PURPLE "Client №" << client_socket << " connected! " << "⛄" CLR << std::endl;
-	send_msg(client_socket, "✰ Welcome to the Irisha server! ✰"); // Send greeting message
+	send_msg(client_socket, "✰ Welcome to Irisha server! ✰"); // Send greeting message
 	return client_socket;
 }
 
@@ -133,19 +138,15 @@ void Irisha::send_msg(int client_socket, const std::string& msg) const
  *
  * @param		client_socket
  */
-Irisha::Signal Irisha::send_input_msg(int client_socket) const
+void Irisha::send_input_msg(int client_socket) const
 {
 	std::string message;
 	getline(std::cin, message);
 	if (message == "/exit" || message == "/EXIT")
-	{
 		std::cout << ITALIC PURPLE "Server shutdown." CLR << std::endl;
-		return S_SHUTDOWN;
-	}
 
 	send_msg(client_socket, message);
 	std::cout << ITALIC PURPLE "Message \"" + message + "\" was sent" CLR << std::endl;
-	return S_MSG_SENT;
 }
 
 /**
@@ -178,7 +179,7 @@ void sending_loop(const Irisha* server) //! TODO: REMOVE ///////////////////thre
 			{
 				int send_bytes = send(i, message.c_str(), message.length(), 0);
 				if (send_bytes < 0) throw std::runtime_error("Send error in send_msg()");
-				//std::cout << PURPLE ITALIC "Message sent to client №" << i << CLR << std::endl;
+				std::cout << PURPLE ITALIC "Message sent to client №" << i << CLR << std::endl;
 			}
 		}
 	}
@@ -214,7 +215,7 @@ void Irisha::loop()
 				else
 				{
 					client_msg = get_msg(i);
-					if (client_msg != "\n")
+					if (!client_msg.empty())
 						std::cout << "[" BLUE "Client №" << i << CLR "] " + client_msg << std::flush;
 					//command Irisha::cmd;
 					RegForm* rf = RegForm::expecting_registration(i, reg_expect);	//is this connection registered?
@@ -240,6 +241,15 @@ void Irisha::handle_disconnection(int client_socket)
 	close(client_socket);
 	FD_CLR(client_socket, &all_fds_);
 	std::cout << ITALIC PURPLE "Client #" << client_socket << " closed connection. ☠" CLR << std::endl;
+	FD_CLR(client_socket, &all_fds_);
+	std::cout << ITALIC PURPLE "Client №" << client_socket << " closed connection. ☠" CLR << std::endl;
+}
+
+/// Commands
+
+void Irisha::nick(const Command& cmd)
+{
+
 }
 
 /***************Creating message strings***************/

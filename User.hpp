@@ -48,6 +48,7 @@ public:
 	bool 				is_operator	() const;
 	const std::string&	netwideID	() const;
 	const std::string&	server		() const;
+
 };
 
 

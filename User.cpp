@@ -33,4 +33,3 @@ int 				User::mod			() const { return mod_; }
 bool 				User::is_operator	() const { return operator_; }
 const std::string&	User::netwideID		() const { return netwideID_; }
 const std::string&	User::server		() const { return server_; }
-
