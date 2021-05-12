@@ -3,10 +3,13 @@
 //
 
 #include "Irisha.hpp"
+#include "User.hpp"
 #include "utils.hpp"
+
+#include <thread>     //! TODO: REMOVE ///////////////////////////////////////////////////////////////////////////////////////////
+
 #include <netdb.h>
 #include <fcntl.h>
-#include <thread>     //! TODO: REMOVE ///////////////////////////////////////////////////////////////////////////////////////////
 
 Irisha::Irisha(int port)
 {
@@ -173,7 +176,7 @@ void sending_loop(const Irisha* server) //! TODO: REMOVE ///////////////////thre
 			{
 				int send_bytes = send(i, message.c_str(), message.length(), 0);
 				if (send_bytes < 0) throw std::runtime_error("Send error in send_msg()");
-				//std::cout << PURPLE ITALIC "Message sent to client №" << i << CLR << std::endl;
+				std::cout << PURPLE ITALIC "Message sent to client №" << i << CLR << std::endl;
 			}
 		}
 	}
@@ -234,7 +237,7 @@ void Irisha::handle_disconnection(int client_socket)
 
 /// Commands
 
-void Irisha::nick()
+void Irisha::nick(const Command& cmd)
 {
 
 }
