@@ -41,7 +41,7 @@ Irisha::Irisha(const std::string& host_name, int network_port, const std::string
 	server_address.sin_port = htons(network_port);
 
 	struct hostent	*host = gethostbyname(host_name.c_str());
-	if (host == 0) throw std::runtime_error("No such host");
+	if (host == nullptr) throw std::runtime_error("No such host");
 
 	bcopy(static_cast<char *>(host->h_addr)
 			, reinterpret_cast<char *>(&server_address.sin_addr.s_addr)
@@ -71,7 +71,6 @@ void Irisha::launch()
 
 	int b = bind(listener_, reinterpret_cast<struct sockaddr *>(&address_), sizeof(address_));
 	if (b == -1) throw std::runtime_error("Binding failed!");
-	//! TODO: binding error check
 
 	listen(listener_, 5);
 	std::cout << BOLD WHITE "⭐ Server started. Waiting for the client connection. ⭐\n" CLR << std::endl;
@@ -81,7 +80,6 @@ void Irisha::init(int port)
 {
 	listener_ = socket(PF_INET, SOCK_STREAM, 0);
 	if (listener_ == -1) throw std::runtime_error("Socket creation failed!");
-	//! TODO: socket error check
 
 	FD_ZERO(&all_fds_);
 	FD_SET(listener_, &all_fds_);

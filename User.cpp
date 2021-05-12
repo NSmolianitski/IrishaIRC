@@ -1,5 +1,22 @@
 #include "User.hpp"
 
+/**
+ * @description	Default User constructor
+ * @param		socket
+ * @param		username
+ * @param		server
+ * @param		mod
+ * @param		real_name
+ */
+User::User(int socket, const std::string& server, int mod, const std::string& username, const std::string& real_name)
+		: AConnection(socket, T_CLIENT), server_(server), mod_(mod), username_(username), real_name_(real_name)
+{
+	operator_ = false;
+	password_ = "";
+}
+
+User::~User() {}
+
 void	User::set_nick		(const std::string& nick)		{ nick_ = nick; }
 void	User::set_username	(const std::string& username)	{ username_ = username; }
 void	User::set_real_name (const std::string& real_name)	{ real_name_ = real_name; }
@@ -16,4 +33,4 @@ int 				User::mod			() const { return mod_; }
 bool 				User::is_operator	() const { return operator_; }
 const std::string&	User::netwideID		() const { return netwideID_; }
 const std::string&	User::server		() const { return server_; }
-int					User::socket		() const { return socket_; }
+
