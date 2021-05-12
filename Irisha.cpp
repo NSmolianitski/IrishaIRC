@@ -6,6 +6,7 @@
 #include "utils.hpp"
 #include <netdb.h>
 #include <fcntl.h>
+#include <list>
 #include <thread>     //! TODO: REMOVE ///////////////////////////////////////////////////////////////////////////////////////////
 
 Irisha::Irisha(int port)
@@ -91,12 +92,12 @@ void Irisha::init(int port)
 	address_.sin_addr.s_addr = INADDR_ANY;
 }
 /**
- * @description	The accept_client() function accepts one client and
+ * @description	The accept_connection() function accepts one connection (server or client) and
  * 				sends greeting message
  *
- * @return		client_socket
+ * @return		connection_socket
  */
-int Irisha::accept_client()
+int Irisha::accept_connection()
 {
 	int client_socket = accept(listener_, nullptr, nullptr);
 		if (client_socket == -1) throw std::runtime_error("Accepting failed");
@@ -191,6 +192,7 @@ void Irisha::loop()
 {
 	int			n;
 	std::string	client_msg;
+	std::list<Irisha::RegForm> reg_expect;	//not registered connections
 
 	signal(SIGPIPE, SIG_IGN);
 	std::thread	sender(sending_loop, this); //! TODO: REMOVE ////////////////////////////////////////////////////////////////////////////////////////////
@@ -206,14 +208,20 @@ void Irisha::loop()
 			{
 				if (i == listener_)
 				{
-					accept_client();
-					//+++
+					accept_connection();
+					reg_expect.push_back(RegForm(i));
 				}
 				else
 				{
 					client_msg = get_msg(i);
 					if (client_msg != "\n")
 						std::cout << "[" BLUE "Client №" << i << CLR "] " + client_msg << std::flush;
+					//command Irisha::cmd;
+					RegForm* rf = RegForm::expecting_registration(i, reg_expect);	//is this connection registered?
+					if (rf != 0)
+					//	registr_connection(rf, cmd);						//no, register it
+					//else
+					//	handle_command(cmd, i);								//yes, handle not registration command
 				}
 			}
 		}
