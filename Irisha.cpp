@@ -237,9 +237,21 @@ void Irisha::handle_disconnection(int client_socket)
 
 /// Commands
 
-void Irisha::nick(const Command& cmd)
+void Irisha::nick(const Command& cmd, const int socket)
 {
-
+	std::map<int, AConnection *>::iterator it = connections_.find(socket);
+	if (it != connections_.end())	// Change nickname
+	{
+		User* user = dynamic_cast<User *>(it->second);
+		if (user == nullptr) throw std::runtime_error("Object is not a User. Dynamic cast failed!");
+	}
+	else	// Add new user
+	{
+		if (cmd.arguments.empty() || !is_a_valid_nick(cmd.arguments[0]))
+			return;
+		AConnection* user = new User(socket, domain_, cmd.arguments[0]);
+		connections_.insert(std::pair<int, AConnection*>(socket, user));
+	}
 }
 
 /***************Creating message strings***************/

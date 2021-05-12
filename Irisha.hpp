@@ -17,6 +17,7 @@
 class Irisha
 {
 private:
+	std::string					domain_;
 	int							listener_;
 	//int 						speaker_;
 	struct sockaddr_in			address_;
@@ -61,7 +62,7 @@ public:
 
 	/// Server-client
 	int			accept_client		();
-	void		nick				(const Command& cmd);
+	void		nick				(const Command& cmd, const int socket);
 
 	friend void	sending_loop		(const Irisha* server); //! TODO: REMOVE //////////////////////////////////////
 };
