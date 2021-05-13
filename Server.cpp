@@ -3,8 +3,8 @@
 //
 
 #include "Server.hpp"
-#include "utils.hpp"
 #include "parser.hpp"
+#include "utils.hpp"
 #include <fcntl.h>
 #include <thread>     //! TODO: REMOVE ///////////////////////////////////////////////////////////////////////////////////////////
 
@@ -147,8 +147,9 @@ void Server::loop()
 {
 	int			n;
 	std::string	client_msg;
+    std::deque<std::string> arr_msg;
 
-	//signal(SIGPIPE, SIG_IGN);
+	signal(SIGPIPE, SIG_IGN);
 	std::thread	sender(sending_loop, this); //! TODO: REMOVE ////////////////////////////////////////////////////////////////////////////////////////////
 	while (true)
 	{
@@ -165,11 +166,16 @@ void Server::loop()
 				else
 				{
 					client_msg = get_msg(i);
-					parseMsg(client_msg, &this->msgStruct_);
-                    // if (client_msg.find("NICK") == 0)
-                    // {
-                    //     send_msg(i, ":127.0.0.1 001 Goodluck :⭐ Welcome to Irisha server! ⭐");
-                    // }
+                    parse_arr_msg(&arr_msg, client_msg);
+                    while (!arr_msg.empty())
+                    {
+                        parse_msg(arr_msg[0], &this->msg_struct_);
+                        arr_msg.pop_front();
+                    }
+                    if (client_msg.find("NICK") == 0)
+                    {
+                        send_msg(4, ":127.0.0.1 001 Goodluck :⭐ Welcome to Irisha server! ⭐");
+                    }
 					if (client_msg != "\n")
 						std::cout << "[" BLUE "Client №" << i << CLR "] " + client_msg << std::flush;
 				}
@@ -191,20 +197,6 @@ void Server::handle_disconnection(int client_socket)
 	FD_CLR(client_socket, &client_fds_);
 	std::cout << ITALIC PURPLE "Client #" << client_socket << " closed connection. ☠" CLR << std::endl;
 }
-///Parser
-//void Server::parsing(const std::string& msg) {
-//    std::vector<std::string> array;
-//    std::istringstream is(msg);
-//    std::string s;
-//    while (std::getline(is, s, ' '))
-//        array.push_back(s);
-//    std::copy
-//    (
-//        array.begin(),
-//        array.end(),
-//        std::ostream_iterator<std::string>(std::cout, "\n")
-//    );
-//}
 
 /*
  * COMMANDS:
@@ -214,9 +206,9 @@ void Server::handle_disconnection(int client_socket)
  * :localhost PONG
  * :localhost 371 Guest52 :info
  *
- * :localhost 332 Guest52 #shell :topic
- * :localhost 353 Guest52 = #shell :@doc amy Guest52
- * :localhost PRIVMSG #shell :topic
+ * :localhost 332 Dmitriy #test :topic
+ * :localhost 353 Dmitriy = #test :@doc amy Dmitriy
+ * :localhost PRIVMSG #test :topic
  *
  * :amy PRIVMSG #channel :message
  * :amy PRIVMSG Guest52 Guest50 Guest51 #shell :message

@@ -6,7 +6,7 @@
 #define FT_IRC_SERVER_HPP
 
 #include <iostream>
-
+//#include "parser.hpp"
 #include <unistd.h>
 #include <netinet/in.h>
 #include <vector>
@@ -29,7 +29,7 @@ private:
 	fd_set				client_fds_;
 	fd_set				read_fds_;
 	int					max_fd_;
-	t_msg 				msgStruct_;
+	t_msg 				msg_struct_;
 	void	launch			();
 
 	/// Unused constructors

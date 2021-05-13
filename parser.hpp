@@ -2,9 +2,7 @@
 #include <vector>
 #include <deque>
 #include <string>
-//typedef struct s_msg{
-//	std::string pref;
-//	std::string command;
-//	std::vector<std::string> param;
-//}				t_msg;
-void 	parseMsg(std::string msg, t_msg *msgStruct);
+#include "Server.hpp"
+
+void 	parse_msg(const std::string& msg, t_msg *msgStruct);
+void    parse_arr_msg(std::deque<std::string> *arr_msg, const std::string& client_msg);
