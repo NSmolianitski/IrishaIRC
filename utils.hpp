@@ -13,8 +13,17 @@
 #define WHITE	"\033[97m"
 #define PURPLE	"\033[35m"
 
+#define CLR		"\033[0m"
 #define BOLD	"\033[1m"
 #define ITALIC	"\033[3m"
-#define CLR		"\033[0m"
+#define UND		"\033[4m"
+
+#define DOMAIN	"server-domain"
+#define PASS	"server-password"
+
+void		remove_comment		(std::string& str);
+void		string_trim			(std::string& str, const std::string& trim_symbols);
+std::string	get_config_value	(const std::string& path, const std::string& setting);
+void		check_config		(const std::string& path);
 
 #endif

@@ -15,9 +15,12 @@
 #include <netinet/in.h>
 #include <list>
 
+#define CONFIG_PATH "irisha.conf"
+
 class Irisha
 {
 private:
+	std::string					domain_;
 	int							listener_;
 	//int 						speaker_;
 	struct sockaddr_in			address_;
@@ -76,8 +79,10 @@ public:
 		   int port, const std::string& password);
 	~Irisha();
 
+	void		apply_config		(const std::string& path);
+	void		print_info			();
 	int			accept_connection	();
-	int			registr_connection	(std::list<RegForm>::iterator rf, Command cmd);
+	int			register_connection	(std::list<RegForm>::iterator rf, Command cmd);
 	std::string createPASSmsg		(std::string password);
 	std::string createSERVERmsg		();
 	void		handle_disconnection(int client_socket);

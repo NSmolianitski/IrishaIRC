@@ -7,12 +7,10 @@
 #include "utils.hpp"
 
 #include <thread>     //! TODO: REMOVE ///////////////////////////////////////////////////////////////////////////////////////////
+#include <list>
 
 #include <netdb.h>
 #include <fcntl.h>
-#include <list>
-#include <thread>     //! TODO: REMOVE ///////////////////////////////////////////////////////////////////////////////////////////
-
 
 Irisha::Irisha(int port)
 {
@@ -68,6 +66,41 @@ Irisha::~Irisha()
 }
 
 /**
+ * @description	Applies config settings and checks for domain and password validity
+ * @param		path: path to config
+ */
+void Irisha::apply_config(const std::string& path)
+{
+	check_config(path);
+	domain_		= get_config_value(path, DOMAIN);
+	password_	= get_config_value(path, PASS);
+	int	dots	= 0;
+	for (size_t i = 0; i < domain_.length(); ++i)
+	{
+		if (domain_[i] == '.')
+		{
+			if (domain_[i + 1] == '.')
+				throw std::runtime_error("Config error: dots can't be near each other in domain name");
+			++dots;
+		}
+	}
+	if (dots < 2)
+		throw std::runtime_error("Config error: server domain must contain at least two dots.");
+	if (domain_.empty() || password_.empty())
+		throw std::runtime_error("Config error: server domain and password must not be empty.");
+}
+
+/**
+ * @description	Prints server information
+ */
+void Irisha::print_info()
+{
+	std::cout << BOLD UND "Current server configuration" << CLR "\n";
+	std::cout << "domain: " << ITALIC PURPLE + domain_ << CLR "\n";
+	std::cout << "password: " << ITALIC PURPLE + password_ << CLR << std::endl;
+}
+
+/**
  * @description	The launch() function binds socket and starts to listen
  */
 void Irisha::launch()
@@ -79,11 +112,13 @@ void Irisha::launch()
 	if (b == -1) throw std::runtime_error("Binding failed!");
 
 	listen(listener_, 5);
-	std::cout << BOLD WHITE "⭐ Server started. Waiting for the client connection. ⭐\n" CLR << std::endl;
+	print_info();
+	std::cout << BOLD WHITE "\n⭐ Server started. Waiting for the client connection. ⭐\n" CLR << std::endl;
 }
 
 void Irisha::init(int port)
 {
+	apply_config(CONFIG_PATH);
 	listener_ = socket(PF_INET, SOCK_STREAM, 0);
 	if (listener_ == -1) throw std::runtime_error("Socket creation failed!");
 
@@ -97,9 +132,8 @@ void Irisha::init(int port)
 	address_.sin_addr.s_addr = INADDR_ANY;
 }
 /**
- * @description	The accept_connection() function accepts one connection (server or client) and
+ * @description	Accepts one connection (server or client) and
  * 				sends greeting message
- *
  * @return		connection_socket
  */
 int Irisha::accept_connection()
@@ -119,8 +153,7 @@ int Irisha::accept_connection()
 }
 
 /**
- * @description	The send_msg() function sends a message to the client
- *
+ * @description	Sends a message to the client
  * @param		client_socket
  * @param		msg: message for the client
  */
@@ -134,8 +167,7 @@ void Irisha::send_msg(int client_socket, const std::string& msg) const
 }
 
 /**
- * @description	The send_input_msg() function sends a message from input
- *
+ * @description	Sends a message from input
  * @param		client_socket
  */
 void Irisha::send_input_msg(int client_socket) const
@@ -150,8 +182,7 @@ void Irisha::send_input_msg(int client_socket) const
 }
 
 /**
- * @description	The get_msg() function receives a message from the client
- *
+ * @description	Receives a message from the client
  * @param		client_socket
  * @return		message from the client
  */
@@ -186,7 +217,7 @@ void sending_loop(const Irisha* server) //! TODO: REMOVE ///////////////////thre
 } //! TODO: REMOVE //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
- * @description	The loop() function launches the main server loop, which listens for
+ * @description	Launches the main server loop, which listens for
  * 				new clients, sends and receives messages
  */
 void Irisha::loop()
@@ -219,12 +250,12 @@ void Irisha::loop()
 						std::cout << "[" BLUE "Client №" << i << CLR "] " + client_msg << std::flush;
 					Command cmd;
 					std::list<RegForm>::iterator it = RegForm::expecting_registration(i, reg_expect);	//is this connection registered?
-					if (it != reg_expect.end())																//no, register it
-					{
-						int registered = registr_connection(it, cmd);
-						if (registered)
-							reg_expect.erase(it);
-					}
+//					if (it != reg_expect.end())																//no, register it
+//					{
+//						int registered = register_connection(it, cmd);
+//						if (registered)
+//							reg_expect.erase(it);
+//					}
 					//else
 					//	handle_command(cmd, i);								//yes, handle not registration command
 				}
@@ -235,9 +266,8 @@ void Irisha::loop()
 }
 
 /**
- * @description	The handle_disconnection() function closes client socket and removes if
+ * @description	Closes client socket and removes if
  * 				from the all_fds_ member
- *
  * @param		client_socket
  */
 void Irisha::handle_disconnection(int client_socket)
@@ -259,9 +289,9 @@ void Irisha::handle_disconnection(int client_socket)
 /***************Creating message strings***************/
 
 /**
- * Returns PASS message string
- * @param password - parent server password for connection
- * @return - PASS command string in this format: PASS <password> <version> <flags>
+ * @description	Returns PASS message string
+ * @param		password - parent server password for connection
+ * @return		PASS command string in this format: PASS <password> <version> <flags>
  */
 std::string Irisha::createPASSmsg(std::string password)
 {
@@ -272,8 +302,8 @@ std::string Irisha::createPASSmsg(std::string password)
 }
 
 /**
- * Returns SERVER message string
- * @return - SERVER command string in this format: <servername> <info>
+ * @description	Returns SERVER message string
+ * @return		SERVER command string in this format: <servername> <info>
  */
 std::string Irisha::createSERVERmsg()	///TODO: choose servername smarter
 {
