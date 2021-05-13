@@ -3,7 +3,7 @@
 
 void server_cycle()
 {
-	Irisha server(6667);
+	Irisha server("localhost", 6667, "secret", 2000, "psw");
 	server.loop();
 }
 

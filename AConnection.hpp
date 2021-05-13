@@ -16,15 +16,17 @@ class AConnection
 private:
 	int		socket_;
 	Type	type_;
+	int		hopcount_;
 
 	/// Unused constructors
 	AConnection();
 public:
-	AConnection(int socket, Type type);
+	AConnection(int socket, Type type, int hopcount);
 	virtual ~AConnection() = 0;
 
-	int socket() const;
-	int type() const;
+	int socket	() const;
+	int type	() const;
+	int hopcount() const;
 };
 
 

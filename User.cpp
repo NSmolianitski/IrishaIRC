@@ -9,7 +9,7 @@
  * @param		real_name
  */
 User::User(int socket, const std::string& server, const std::string& nick)
-	: AConnection(socket, T_CLIENT), server_(server), nick_(nick), operator_(false)
+	: AConnection(socket, T_CLIENT, 0), server_(server), nick_(nick), operator_(false)
 {
 
 }
