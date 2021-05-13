@@ -287,7 +287,8 @@ void Irisha::nick(const Command& cmd, const int socket)
 	if (it != connections_.end())	// Change nickname
 	{
 		User* user = dynamic_cast<User *>(it->second);
-		if (user == nullptr) throw std::runtime_error("Object is not a User. Dynamic cast failed!");
+		if (user == nullptr)
+			throw std::runtime_error("NICK function: object is not a User. Dynamic cast failed!");
 	}
 	else	// Add new user
 	{

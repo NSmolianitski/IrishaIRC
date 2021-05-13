@@ -27,16 +27,6 @@ void		remove_comment		(std::string& str);
 void		string_trim			(std::string& str, const std::string& trim_symbols);
 std::string	get_config_value	(const std::string& path, const std::string& setting);
 void		check_config		(const std::string& path);
-
-bool is_a_valid_nick(const std::string& nick)
-{
-	if (nick.empty() || nick.size() > 9 || isnumber(nick.front()))
-		return false;
-	if (nick.find_first_not_of("abcdefghijklmnopqrstuvwxyz"
-							   "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-							   "01234567890_[]\\`^{|}-") != std::string::npos)
-		return false;
-	return true;
-}
+bool		is_a_valid_nick		(const std::string& nick);
 
 #endif
