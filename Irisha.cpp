@@ -56,8 +56,8 @@ Irisha::Irisha(const std::string& host_name, int network_port, const std::string
 	std::cout << "Connection established! " << "🔥" << "\n" << std::endl;
 
 	//registration
-	send_msg(speaker,createPASSmsg(network_password));
-	send_msg(speaker, createSERVERmsg());
+	send_msg(speaker, NO_PREFIX, createPASSmsg(network_password));
+	send_msg(speaker, NO_PREFIX, createSERVERmsg());
 }
 
 Irisha::~Irisha()
@@ -148,43 +148,53 @@ int Irisha::accept_connection()
 		max_fd_ = client_socket;
 
 	std::cout << ITALIC PURPLE "Client №" << client_socket << " connected! " << "⛄" CLR << std::endl;
-	send_msg(client_socket, "✰ Welcome to Irisha server! ✰"); // Send greeting message
+	send_msg(client_socket, domain_, "✰ Welcome to Irisha server! ✰"); // Send greeting message
 	return client_socket;
 }
 
 /**
- * @description	Sends a message to the client
- * @param		client_socket
- * @param		msg: message for the client
+ * @description	Sends a message to socket
+ * @param		sock: socket
+ * @param		msg: message
  */
-void Irisha::send_msg(int client_socket, const std::string& msg) const
+void Irisha::send_msg(int sock, const std::string& prefix, const std::string& msg) const
 {
-	std::string message = msg;
+	std::string message;
+	if (!prefix.empty())
+		message = ":" + prefix + " " + msg;
+	else
+		message = msg;
 	message.append("\r\n");
 
-	int n = send(client_socket, message.c_str(), message.length(), 0);
+	ssize_t n = send(sock, message.c_str(), message.length(), 0);
 	if (n == -1) throw std::runtime_error("Send error");
 }
 
 /**
  * @description	Sends a message from input
- * @param		client_socket
+ * @param		sock: socket
  */
-void Irisha::send_input_msg(int client_socket) const
+void Irisha::send_input_msg(int sock) const
 {
-	std::string message;
-	getline(std::cin, message);
-	if (message == "/exit" || message == "/EXIT")
+	std::string input;
+	getline(std::cin, input);
+	if (input == "/exit" || input == "/EXIT")
+	{
 		std::cout << ITALIC PURPLE "Server shutdown." CLR << std::endl;
+		exit(0);
+	}
 
-	send_msg(client_socket, message);
-	std::cout << ITALIC PURPLE "Message \"" + message + "\" was sent" CLR << std::endl;
+	std::string message = ":" + domain_ + " " + input;
+	message.append("\r\n");
+
+	ssize_t n = send(sock, message.c_str(), message.length(), 0);
+	if (n == -1) throw std::runtime_error("Send error");
 }
 
 /**
- * @description	Receives a message from the client
- * @param		client_socket
- * @return		message from the client
+ * @description	Receives a message from socket
+ * @param		socket
+ * @return		message received from socket
  */
 std::string Irisha::get_msg(int client_socket)
 {
@@ -199,20 +209,27 @@ std::string Irisha::get_msg(int client_socket)
 
 void sending_loop(const Irisha* server) //! TODO: REMOVE ///////////////////thread loop///////////////////////////////////////////////////////////////
 {
-	std::string	message;
+	std::string serv_prefix = ":" + server->domain_ + " ";
+	std::string input, message;
 	while (true)
 	{
-		getline(std::cin, message);
-		message.append("\n");
+		getline(std::cin, input);
+		input.append("\r\n");
+		if (input[0] == '*' && input[1] == ' ')
+			input = input.replace(0, 2, serv_prefix);
+		message.append(input);
 		for (int i = 3; i < server->max_fd_ + 1; ++i)
 		{
 			if (FD_ISSET(i, &server->all_fds_) && i != server->listener_)
 			{
 				int send_bytes = send(i, message.c_str(), message.length(), 0);
 				if (send_bytes < 0) throw std::runtime_error("Send error in send_msg()");
-				std::cout << PURPLE ITALIC "Message sent to client №" << i << CLR << std::endl;
+				message.pop_back();
+				message.pop_back();
+				std::cout << PURPLE ITALIC "Message \"" + message + "\" sent to socket №" << i << CLR << std::endl;
 			}
 		}
+		message.clear();
 	}
 } //! TODO: REMOVE //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -279,23 +296,64 @@ void Irisha::handle_disconnection(int client_socket)
 	std::cout << ITALIC PURPLE "Client №" << client_socket << " closed connection. ☠" CLR << std::endl;
 }
 
+User* Irisha::find_user(const std::string& nick) const
+{
+	User*	user;
+	std::map<int, AConnection*>::const_iterator it = connections_.begin();
+	for (; it != connections_.end(); ++it)
+	{
+		if (it->second->type() == T_CLIENT)
+		{
+			user = static_cast<User*>(it->second);
+			if (user->nick() == nick)
+				return user;
+		}
+	}
+	return nullptr;
+}
+
 /// Commands
 
-void Irisha::nick(const Command& cmd, const int socket)
+/**
+ * @description	handles NICK command
+ * @param cmd: Command structure
+ * @param socket: command sender
+ */
+void Irisha::nick(const Command& cmd, const int sock)
 {
-	std::map<int, AConnection *>::iterator it = connections_.find(socket);
-	if (it != connections_.end())	// Change nickname
+	if (cmd.arguments.empty()) // NICK command without params
+	{
+		send_msg(sock, domain_, ":No nickname given");
+		return;
+	}
+	std::string new_nick = cmd.arguments[0];
+	std::map<int, AConnection*>::iterator it = connections_.find(sock);
+
+	if (it == connections_.end())	// Add new user
+	{
+		if (cmd.arguments.empty())
+			return;
+		else if (!is_a_valid_nick(new_nick))
+			send_msg(sock, domain_, new_nick + " :Erroneus nickname"); //! TODO: change to error reply
+		add_user(sock, new_nick);
+	}
+	else							// Change nickname
 	{
 		User* user = dynamic_cast<User *>(it->second);
-		if (user == nullptr)
-			throw std::runtime_error("NICK function: object is not a User. Dynamic cast failed!");
-	}
-	else	// Add new user
-	{
-		if (cmd.arguments.empty() || !is_a_valid_nick(cmd.arguments[0]))
-			return;
-		AConnection* user = new User(socket, domain_, cmd.arguments[0]);
-		connections_.insert(std::pair<int, AConnection*>(socket, user));
+		if (user == nullptr) // if user is not local
+		{
+			find_user(cmd.sender)->set_nick(new_nick);
+			// TODO: send message to next server
+		}
+		else
+		{
+			 if (find_user(new_nick))
+			 {
+				 send_msg(sock, domain_, new_nick + " :Nickname is already in use"); //! TODO: change to error reply
+				 return;
+			 }
+			user->set_nick(new_nick);
+		}
 	}
 }
 
@@ -321,8 +379,20 @@ std::string Irisha::createPASSmsg(std::string password)
 std::string Irisha::createSERVERmsg()	///TODO: choose servername smarter
 {
 	std::string msg = "SERVER ";
-	msg.append("irc2.example.net :Irisha server");
+	msg.append(domain_ + " :Irisha server");
 	return msg;
+}
+
+void Irisha::add_user(int sock, const std::string& nick)
+{
+	AConnection* user = new User(sock, domain_, nick);
+	connections_.insert(std::pair<int, AConnection*>(sock, user));
+}
+
+void Irisha::remove_user(const std::string& nick)
+{
+	AConnection* user = find_user(nick);
+	connections_.erase(user->socket());
 }
 
 /*

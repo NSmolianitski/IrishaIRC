@@ -16,13 +16,15 @@
 #include <list>
 
 #define CONFIG_PATH "irisha.conf"
+#define NO_PREFIX	""
+
+class User;
 
 class Irisha
 {
 private:
 	std::string					domain_;
 	int							listener_;
-	//int 						speaker_;
 	struct sockaddr_in			address_;
 	char						buff_[512];
 	fd_set						all_fds_;
@@ -79,23 +81,35 @@ public:
 		   int port, const std::string& password);
 	~Irisha();
 
+	/// Initialization
 	void		apply_config		(const std::string& path);
-	void		print_info			();
-	int			accept_connection	();
-	int			register_connection	(std::list<RegForm>::iterator rf, Command cmd);
-	std::string createPASSmsg		(std::string password);
-	std::string createSERVERmsg		();
-	void		handle_disconnection(int client_socket);
-	void		send_msg			(int client_socket, const std::string& msg) const;
-	void		send_input_msg		(int client_socket) const;
-	std::string get_msg				(int client_socket);
 	void		loop				();
 
-	/// Server-client
-	int			accept_client		();
+	/// Connections
+	int			accept_connection	();
+	int			register_connection	(std::list<RegForm>::iterator rf, Command cmd);
+	void		handle_disconnection(int client_socket);
+
+	/// Users
+	void		add_user			(int sock, const std::string& nick);
+	void		remove_user			(const std::string& nick);
+	User*		find_user			(const std::string& nick) const;
+
+	/// Utils
+	void		send_msg			(int sock, const std::string& prefix, const std::string& msg) const;
+	void		send_input_msg		(int client_socket) const;
+	std::string get_msg				(int client_socket);
+	void		print_info			();
+	friend void	sending_loop		(const Irisha* server); //! TODO: REMOVE //////////////////////////////////////
+
+	/// Servers
+//	Server*		find_server			(const std::string& nick) const;
+
+	/// IRC Commands
 	void		nick				(const Command& cmd, const int socket);
 
-	friend void	sending_loop		(const Irisha* server); //! TODO: REMOVE //////////////////////////////////////
+	std::string createPASSmsg		(std::string password);
+	std::string createSERVERmsg		();
 };
 
 

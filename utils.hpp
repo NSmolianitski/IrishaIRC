@@ -23,10 +23,13 @@
 #define DOMAIN	"server-domain"
 #define PASS	"server-password"
 
+/// Config
 void		remove_comment		(std::string& str);
 void		string_trim			(std::string& str, const std::string& trim_symbols);
 std::string	get_config_value	(const std::string& path, const std::string& setting);
 void		check_config		(const std::string& path);
+
+/// Other
 bool		is_a_valid_nick		(const std::string& nick);
 
 #endif
