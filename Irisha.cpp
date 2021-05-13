@@ -5,6 +5,7 @@
 #include "Irisha.hpp"
 #include "User.hpp"
 #include "utils.hpp"
+#include "Server.hpp"
 
 #include <thread>     //! TODO: REMOVE ///////////////////////////////////////////////////////////////////////////////////////////
 #include <list>
@@ -240,8 +241,8 @@ void Irisha::loop()
 			{
 				if (i == listener_)
 				{
-					accept_connection();
-					reg_expect.push_back(RegForm(i));
+					int connection_fd = accept_connection();
+					reg_expect.push_back(RegForm(connection_fd));
 				}
 				else
 				{
@@ -249,15 +250,25 @@ void Irisha::loop()
 					if (!client_msg.empty())
 						std::cout << "[" BLUE "Client №" << i << CLR "] " + client_msg << std::flush;
 					Command cmd;
-					std::list<RegForm>::iterator it = RegForm::expecting_registration(i, reg_expect);	//is this connection registered?
-//					if (it != reg_expect.end())																//no, register it
-//					{
-//						int registered = register_connection(it, cmd);
-//						if (registered)
-//							reg_expect.erase(it);
-//					}
+					std::list<RegForm>::iterator it = expecting_registration(i, reg_expect);	//is this connection waiting registration?
+					if (it != reg_expect.end())													//yes, register it
+					{
+						if (it->pass_received_ == false) ///delete this
+						{
+							cmd.command = "PASS";
+							cmd.arguments.push_back("hellothere");
+						}
+						else								///and this
+						{
+							cmd.command = "SERVER";
+							cmd.arguments.push_back("monkey.irisha.net");
+						}
+						int registered = register_connection(it, cmd);
+						if (registered == 0)
+							reg_expect.erase(it);
+					}
 					//else
-					//	handle_command(cmd, i);								//yes, handle not registration command
+					//	handle_command(cmd, i);								//no, handle not registration command
 				}
 			}
 		}
@@ -279,12 +290,80 @@ void Irisha::handle_disconnection(int client_socket)
 	std::cout << ITALIC PURPLE "Client №" << client_socket << " closed connection. ☠" CLR << std::endl;
 }
 
-/// Commands
+/// Commands+
 
-//void Irisha::nick(const Command& cmd)
-//{
-//
-//}
+/**
+ * Handling PASS message
+ * @param fd - socket
+ * @param cmd - parsed message
+ * @return 0 if password correct, else 1
+ */
+int Irisha::cmd_PASS(int fd, const Command& cmd)
+{
+	if (cmd.arguments.empty())
+		return 1;
+	if (password_ == cmd.arguments[0])
+		return 0;
+	else
+		return 1;
+}
+
+/**
+ *Handling SERVER message
+ * @param fd - socket
+ * @param cmd - parsed message
+ * @return 0 if registration successfully, else 1
+ */
+int Irisha::cmd_SERVER(int fd, const Command &cmd)
+{
+	//place for your validator
+	int hopcount = 1;
+
+	if (cmd.sender.empty())
+		hopcount = 1;
+	//else
+		//take hopcount from argiments
+	AConnection* server = new Server(cmd.arguments[0], fd, hopcount);
+	connections_.insert(std::pair<int, AConnection*>(fd, server));
+	return 0;
+}
+
+///Commands-
+
+/**
+ *
+ * @param i - socket to identify connection
+ * @param reg_expect - list of not registered connections
+ * @return	node iterator, if socket in list, else end iterator
+ */
+std::list<Irisha::RegForm>::iterator Irisha::expecting_registration(int i, std::list<RegForm>& reg_expect)
+{
+	std::list<RegForm>::iterator it;
+	for (it = reg_expect.begin(); it != reg_expect.end(); it++)
+	{
+		if (it->fd_ == i)
+			return it;
+	}
+	return (reg_expect.end());
+}
+
+
+///TODO: handle client connection
+int			Irisha::register_connection	(std::list<Irisha::RegForm>::iterator rf, Irisha::Command& cmd)
+{
+	if (rf->pass_received_ == false)
+	{
+		if (cmd.command == "PASS" && (cmd_PASS(rf->fd_, cmd) == 0))
+			rf->pass_received_ = true;
+		return 1;
+	}
+	else
+	{
+		if (cmd.command == "SERVER" && (cmd_SERVER(rf->fd_, cmd) == 0))
+			return 0;
+	}
+	return 1;
+}
 
 /***************Creating message strings***************/
 

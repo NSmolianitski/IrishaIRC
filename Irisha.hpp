@@ -22,7 +22,6 @@ class Irisha
 private:
 	std::string					domain_;
 	int							listener_;
-	//int 						speaker_;
 	struct sockaddr_in			address_;
 	char						buff_[512];
 	fd_set						all_fds_;
@@ -30,18 +29,9 @@ private:
 	fd_set						serv_fds_;
 	int							max_fd_;
 	std::string 				host_name_;		// Host server. Need when this server connected to other.
-	std::string					password_;		// Password for clients and servers connection to connect this server
+	std::string					password_;		// Password for clients and servers to connect this server
 	std::map<int, AConnection*>	connections_;	// Server and client connections
 
-	void	launch();
-	void 	init(int port);
-
-	/// Unused constructors
-	Irisha() {};
-	Irisha(const Irisha& other) {};
-	Irisha& operator= (const Irisha& other) { return *this; };
-
-public:
 	typedef struct RegForm
 	{
 		int		fd_;
@@ -52,18 +42,6 @@ public:
 			fd_ = fd;
 			pass_received_ = false;
 		}
-
-		static std::list<RegForm>::iterator expecting_registration(int i, std::list<RegForm>& reg_expect)
-		{
-			std::list<RegForm>::iterator it;
-			for (it = reg_expect.begin(); it != reg_expect.end(); it++)
-			{
-				if (it->fd_ == i)
-					return it;
-			}
-			return (reg_expect.end());
-		}
-
 	}				RegForm;
 
 	struct Command
@@ -72,6 +50,22 @@ public:
 		std::string					command;
 		std::vector<std::string>	arguments;
 	};
+
+	void	launch();
+	void 	init(int port);
+
+	/// Unused constructors
+	Irisha() {};
+	Irisha(const Irisha& other) {};
+	Irisha& operator= (const Irisha& other) { return *this; };
+
+	std::list<Irisha::RegForm>::iterator	expecting_registration(int i, std::list<RegForm>& reg_expect);
+	int										register_connection	(std::list<RegForm>::iterator rf, Command& cmd);
+
+	int 									cmd_PASS(int fd, const Command& cmd);
+	int 									cmd_SERVER(int fd, const Command& cmd);
+
+public:
 
 	explicit Irisha(int port);
 	Irisha(int port, const std::string& password);
@@ -82,7 +76,6 @@ public:
 	void		apply_config		(const std::string& path);
 	void		print_info			();
 	int			accept_connection	();
-	int			register_connection	(std::list<RegForm>::iterator rf, Command cmd);
 	std::string createPASSmsg		(std::string password);
 	std::string createSERVERmsg		();
 	void		handle_disconnection(int client_socket);
@@ -90,6 +83,7 @@ public:
 	void		send_input_msg		(int client_socket) const;
 	std::string get_msg				(int client_socket);
 	void		loop				();
+
 
 	/// Server-client
 	int			accept_client		();
