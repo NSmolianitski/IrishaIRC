@@ -6,7 +6,6 @@
 #define FT_IRC_IRISHA_HPP
 
 #include "AConnection.hpp"
-
 #include <iostream>
 #include <map>
 #include <vector>
@@ -15,7 +14,6 @@
 #include <unistd.h>
 #include <netinet/in.h>
 #include <list>
-
 struct Command
 {
 	std::string					prefix;
@@ -25,6 +23,12 @@ struct Command
 
 #define CONFIG_PATH "irisha.conf"
 #define NO_PREFIX	""
+
+enum cmdResult
+{
+	CMD_SUCCESS,
+	CMD_FAIL
+};
 
 class User;
 
@@ -67,11 +71,13 @@ private:
 	std::list<Irisha::RegForm*>::iterator	expecting_registration(int i, std::list<RegForm*>& reg_expect);
 	int										register_connection	(std::list<RegForm*>::iterator rf);
 
-	int 									PASS(int fd);
-	int 									SERVER(int fd);
+	int		PASS(int fd);
+	int		SERVER(int fd);
+	void	PING(int fd);
+	void	PONG(int fd);
 
-	std::string								createPASSmsg		(std::string password);
-	std::string								createSERVERmsg		();
+	std::string	createPASSmsg		(std::string password);
+	std::string	createSERVERmsg		();
 
 public:
 

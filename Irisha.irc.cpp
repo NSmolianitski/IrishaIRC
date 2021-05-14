@@ -57,11 +57,11 @@ void Irisha::NICK(const Command& cmd, const int sock) //! TODO: handle hopcount
 int Irisha::PASS(int fd)
 {
 	if (cmd_.arguments.empty())
-		return 1;
+		return CMD_FAIL;
 	if (password_ == cmd_.arguments[0])
-		return 0;
+		return CMD_SUCCESS;
 	else
-		return 1;
+		return CMD_FAIL;
 }
 
 /**
@@ -76,11 +76,23 @@ int Irisha::SERVER(int fd)
 	int hopcount = 1;
 
 	if (cmd_.prefix.empty())
-		hopcount = 1;
+		hopcount = CMD_FAIL;
 	//else
-	//take hopcount from argiments
+	//take hopcount from arguments
 	AConnection* server = new Server(cmd_.arguments[0], fd, hopcount);
 	connections_.insert(std::pair<int, AConnection*>(fd, server));
 	std::cout << PURPLE "Server " << (static_cast<Server*>(server))->name() << " registered!" CLR << std::endl;
-	return 0;
+	return CMD_SUCCESS;
+}
+
+void Irisha::PONG(int fd)
+{
+
+}
+
+void Irisha::PING(int fd)
+{
+	//validation
+	if (cmd_.arguments.empty())
+		return ;
 }

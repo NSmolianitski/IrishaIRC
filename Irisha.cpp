@@ -188,8 +188,7 @@ void Irisha::loop()
 						std::list<RegForm*>::iterator it = expecting_registration(i, reg_expect);	//is this connection waiting for registration?
 						if (it != reg_expect.end())													//yes, register it
 						{
-							int registered = register_connection(it);
-							if (registered == 0)
+							if (register_connection(it) == CMD_SUCCESS)
 							{
 								RegForm* rf = *it;
 								reg_expect.erase(it);
@@ -250,14 +249,14 @@ int			Irisha::register_connection	(std::list<Irisha::RegForm*>::iterator rf)
 {
 	if ((*rf)->pass_received_ == false)
 	{
-		if (cmd_.command == "PASS" && (PASS((*rf)->fd_) == 0))
+		if (cmd_.command == "PASS" && (PASS((*rf)->fd_) == CMD_SUCCESS))
 			(*rf)->pass_received_ = true;
-		return 1;
+		return CMD_FAIL;
 	}
 	else
 	{
-		if (cmd_.command == "SERVER" && (SERVER((*rf)->fd_) == 0))
-			return 0;
+		if (cmd_.command == "SERVER" && (SERVER((*rf)->fd_) == CMD_SUCCESS))
+			return CMD_SUCCESS;
 	}
 	return 1;
 }
