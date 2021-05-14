@@ -6,6 +6,7 @@
 #include "User.hpp"
 #include "utils.hpp"
 #include "parser.hpp"
+
 #include <thread>     //! TODO: REMOVE ///////////////////////////////////////////////////////////////////////////////////////////
 #include <list>
 
@@ -16,6 +17,8 @@ Irisha::Irisha(int port)
 {
 	init(port);
 	launch();
+	print_info();
+	std::cout << BOLD WHITE "\n⭐ Server started. Waiting for the client connection. ⭐\n" CLR << std::endl;
 }
 
 Irisha::Irisha(int port, const std::string& password)
@@ -23,6 +26,8 @@ Irisha::Irisha(int port, const std::string& password)
 	init(port);
 	password_ = password;
 	launch();
+	print_info();
+	std::cout << BOLD WHITE "\n⭐ Server started. Waiting for the client connection. ⭐\n" CLR << std::endl;
 }
 
 Irisha::Irisha(const std::string& host_name, int network_port, const std::string& network_password,
@@ -54,6 +59,8 @@ Irisha::Irisha(const std::string& host_name, int network_port, const std::string
 	int c = ::connect(speaker, reinterpret_cast<struct sockaddr *>(&server_address), sizeof(server_address));
 	if (c < 0) throw std::runtime_error("Connection error");
 	std::cout << "Connection established! " << "🔥" << "\n" << std::endl;
+	print_info();
+	std::cout << BOLD WHITE "\n⭐ Server started. Waiting for the client connection. ⭐\n" CLR << std::endl;
 
 	//registration
 	send_msg(speaker, NO_PREFIX, createPASSmsg(network_password));
@@ -112,8 +119,6 @@ void Irisha::launch()
 	if (b == -1) throw std::runtime_error("Binding failed!");
 
 	listen(listener_, 5);
-	print_info();
-	std::cout << BOLD WHITE "\n⭐ Server started. Waiting for the client connection. ⭐\n" CLR << std::endl;
 }
 
 void Irisha::init(int port)
@@ -242,7 +247,7 @@ void Irisha::loop()
 	int			n;
 	std::string	client_msg;
 	std::list<Irisha::RegForm> reg_expect;	//not registered connections
-    std::deque<std::string> arr_msg; // array messages, not /r/n
+    std::deque<std::string> arr_msg;		// array messages, not /r/n
 
 	signal(SIGPIPE, SIG_IGN);
 	std::thread	sender(sending_loop, this); //! TODO: REMOVE ////////////////////////////////////////////////////////////////////////////////////////////
@@ -264,14 +269,13 @@ void Irisha::loop()
 				else
 				{
 					client_msg = get_msg(i);
-                    parse_arr_msg(&arr_msg, client_msg);
+                    parse_arr_msg(arr_msg, client_msg);
                     while (!arr_msg.empty())
                     {
-                        parse_msg(arr_msg[0], &this->msg_struct_);
+                        parse_msg(arr_msg[0], this->cmd_);
+						std::cout << "[" BLUE "Client №" << i << CLR "] " + arr_msg[0] << std::endl;
                         arr_msg.pop_front();
                     }
-					if (!client_msg.empty())
-						std::cout << "[" BLUE "Client №" << i << CLR "] " + client_msg << std::flush;
 					Command cmd;
 					std::list<RegForm>::iterator it = RegForm::expecting_registration(i, reg_expect);	//is this connection registered?
 //					if (it != reg_expect.end())																//no, register it
@@ -286,7 +290,7 @@ void Irisha::loop()
 			}
 		}
 	}
-	sender.detach(); //! TODO: REMOVE /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	sender.detach(); //! TODO: REMOVE ////<======///////////////////////////////////////////////////////////////////////////////
 }
 
 /**
@@ -349,7 +353,7 @@ void Irisha::nick(const Command& cmd, const int sock)
 		User* user = dynamic_cast<User *>(it->second);
 		if (user == nullptr) // if user is not local
 		{
-			find_user(cmd.sender)->set_nick(new_nick);
+			find_user(cmd.prefix)->set_nick(new_nick);
 			// TODO: send message to next server
 		}
 		else

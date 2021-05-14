@@ -16,11 +16,12 @@
 #include <netinet/in.h>
 #include <list>
 
-typedef struct s_msg{
-    std::string pref; // prefix, not ':'
-    std::string command; // command
-    std::vector<std::string> param; // array params
-}				t_msg;
+struct Command
+{
+	std::string					prefix;
+	std::string					command;
+	std::vector<std::string>	arguments;
+};
 
 #define CONFIG_PATH "irisha.conf"
 #define NO_PREFIX	""
@@ -38,7 +39,7 @@ private:
 	fd_set						read_fds_;
 	fd_set						serv_fds_;
 	int							max_fd_;
-    t_msg 				        msg_struct_; // Struct parsing mess
+    Command				        cmd_; // Struct parsing mess
 	std::string 				host_name_;		// Host server. Need when this server connected to other.
 	std::string					password_;		// Password for clients and servers connection to connect this server
 	std::map<int, AConnection*>	connections_;	// Server and client connections
@@ -75,13 +76,6 @@ public:
 		}
 
 	}				RegForm;
-
-	struct Command
-	{
-		std::string					sender;
-		std::string					command;
-		std::vector<std::string>	arguments;
-	};
 
 	explicit Irisha(int port);
 	Irisha(int port, const std::string& password);
