@@ -127,25 +127,26 @@ void Irisha::init(int port)
 	address_.sin_port = htons(port);
 	address_.sin_addr.s_addr = INADDR_ANY;
 }
+
 /**
  * @description	Accepts one connection (server or client) and
  * 				sends greeting message
- * @return		connection_socket
+ * @return		connection socket
  */
 int Irisha::accept_connection()
 {
-	int client_socket = accept(listener_, nullptr, nullptr);
-		if (client_socket == -1) throw std::runtime_error("Accepting failed");
+	int sock = accept(listener_, nullptr, nullptr);
+		if (sock == -1) throw std::runtime_error("Accepting failed");
 
-	fcntl(client_socket, F_SETFL, O_NONBLOCK);
+	fcntl(sock, F_SETFL, O_NONBLOCK);
 
-	FD_SET(client_socket, &all_fds_);
-	if (client_socket > max_fd_)
-		max_fd_ = client_socket;
+	FD_SET(sock, &all_fds_);
+	if (sock > max_fd_)
+		max_fd_ = sock;
 
-	std::cout << ITALIC PURPLE "Client №" << client_socket << " connected! " << "⛄" CLR << std::endl;
-	send_msg(client_socket, domain_, "✰ Welcome to Irisha server! ✰"); // Send greeting message
-	return client_socket;
+	std::cout << ITALIC PURPLE "Client №" << sock << " connected! " << "⛄" CLR << std::endl;
+	send_msg(sock, domain_, "✰ Welcome to Irisha server! ✰"); // Send greeting message
+	return sock;
 }
 
 /**
@@ -182,7 +183,7 @@ void Irisha::loop()
                     parse_arr_msg(arr_msg, client_msg);
                     while (!arr_msg.empty())
                     {
-                        parse_msg(arr_msg[0], this->cmd_);
+                        parse_msg(arr_msg[0], cmd_);
 						std::cout << "[" BLUE "Client №" << i << CLR "] " + arr_msg[0] << std::endl;
                         arr_msg.pop_front();
                     }
@@ -205,7 +206,7 @@ void Irisha::loop()
 							reg_expect.erase(it);
 					}
 					//else
-					//	handle_command(cmd, i);								//no, handle not registration command
+						handle_command(i);								//yes, handle not registration command
 				}
 			}
 		}
@@ -218,13 +219,13 @@ void Irisha::loop()
  * 				from the all_fds_ member
  * @param		client_socket
  */
-void Irisha::handle_disconnection(int client_socket)
+void Irisha::handle_disconnection(int sock)
 {
-	close(client_socket);
-	FD_CLR(client_socket, &all_fds_);
-	std::cout << ITALIC PURPLE "Client #" << client_socket << " closed connection. ☠" CLR << std::endl;
-	FD_CLR(client_socket, &all_fds_);
-	std::cout << ITALIC PURPLE "Client №" << client_socket << " closed connection. ☠" CLR << std::endl;
+	close(sock);
+	FD_CLR(sock, &all_fds_);
+	std::cout << ITALIC PURPLE "Client #" << sock << " closed connection. ☠" CLR << std::endl;
+	FD_CLR(sock, &all_fds_);
+	std::cout << ITALIC PURPLE "Client №" << sock << " closed connection. ☠" CLR << std::endl;
 }
 
 /// Commands+
@@ -256,7 +257,7 @@ int Irisha::SERVER(int fd, const Command &cmd)
 	//place for your validator
 	int hopcount = 1;
 
-	if (cmd.sender.empty())
+	if (cmd.prefix.empty())
 		hopcount = 1;
 	//else
 		//take hopcount from argiments
@@ -286,7 +287,7 @@ std::list<Irisha::RegForm>::iterator Irisha::expecting_registration(int i, std::
 
 
 ///TODO: handle client connection
-int			Irisha::register_connection	(std::list<Irisha::RegForm>::iterator rf, Irisha::Command& cmd)
+int			Irisha::register_connection	(std::list<Irisha::RegForm>::iterator rf, Command& cmd)
 {
 	if (rf->pass_received_ == false)
 	{

@@ -6,12 +6,19 @@
 #include "User.hpp"
 #include "utils.hpp"
 
+void	Irisha::prepare_commands()
+{
+
+//	func foo = &Irisha::NICK;
+	commands_.insert(std::pair<std::string, func>("NICK", &Irisha::NICK));
+}
+
 /**
  * @description	handles NICK command
  * @param cmd: Command structure
  * @param socket: command sender
  */
-void Irisha::NICK(const Command& cmd, const int sock) //! TODO: handle hopcount
+void	Irisha::NICK(const Command& cmd, const int sock) //! TODO: handle hopcount
 {
 	if (cmd.arguments.empty()) // NICK command without params
 	{
@@ -24,7 +31,7 @@ void Irisha::NICK(const Command& cmd, const int sock) //! TODO: handle hopcount
 	if (it == connections_.end())	// Add new user
 	{
 		if (!is_a_valid_nick(new_nick))
-			send_msg(sock, domain_, new_nick + " :Erroneus nickname"); //! TODO: change to error reply
+			send_msg(sock, domain_, new_nick + " :Erroneous nickname"); //! TODO: change to error reply
 		add_user(sock, new_nick);
 	}
 	else							// Change nickname
@@ -32,7 +39,7 @@ void Irisha::NICK(const Command& cmd, const int sock) //! TODO: handle hopcount
 		User* user = dynamic_cast<User *>(it->second);
 		if (user == nullptr) // if user is not local
 		{
-			find_user(cmd.sender)->set_nick(new_nick);
+			find_user(cmd.prefix)->set_nick(new_nick);
 			// TODO: send message to next server
 		}
 		else

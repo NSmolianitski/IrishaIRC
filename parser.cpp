@@ -1,6 +1,9 @@
-#include <sstream>
+
+#include "Irisha.hpp"
 #include "parser.hpp"
 #include "utils.hpp"
+
+#include <sstream>
 
 void 	parse_msg(const std::string& msg, Command& cmd)
 {

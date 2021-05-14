@@ -5,6 +5,8 @@
 #ifndef FT_IRC_ACONNECTION_HPP
 #define FT_IRC_ACONNECTION_HPP
 
+#include <string>
+
 enum Type
 {
 	T_SERVER,
@@ -14,9 +16,10 @@ enum Type
 class AConnection
 {
 private:
-	int		socket_;
-	Type	type_;
-	int		hopcount_;
+	int			socket_;
+	Type		type_;
+	int			hopcount_;
+	std::string	buff_;
 
 	/// Unused constructors
 	AConnection();

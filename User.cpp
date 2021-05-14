@@ -2,14 +2,14 @@
 
 /**
  * @description	Default User constructor
- * @param		socket
+ * @param		sock
  * @param		username
  * @param		server
  * @param		mode
  * @param		real_name
  */
-User::User(int socket, const std::string& server, const std::string& nick)
-	: AConnection(socket, T_CLIENT, 0), server_(server), nick_(nick), operator_(false)
+User::User(int sock, const std::string& server, const std::string& nick)
+	: AConnection(sock, T_CLIENT, 0), server_(server), nick_(nick), operator_(false)
 {
 
 }

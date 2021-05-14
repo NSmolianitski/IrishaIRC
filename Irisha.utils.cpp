@@ -94,4 +94,14 @@ void sending_loop(const Irisha* server) //! TODO: REMOVE ///////////////////thre
 		}
 		message.clear();
 	}
-} //! TODO: REMOVE //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+}
+//! TODO: REMOVE //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Irisha::handle_command(int sock)
+{
+	std::map<std::string, func>::const_iterator it = commands_.find(cmd_.command);
+	if (it != commands_.end())	// Execute command
+		((*this).*it->second)(cmd_, sock);
+	else
+		send_msg(sock, domain_, ":No such command, my friend"); //! TODO: change to error reply (421, "<command> :Unknown command")
+}
