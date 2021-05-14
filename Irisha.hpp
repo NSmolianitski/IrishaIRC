@@ -85,6 +85,7 @@ private:
 	void		add_user			(int sock, const std::string& nick);
 	void		remove_user			(const std::string& nick);
 	User*		find_user			(const std::string& nick) const;
+	void		print_user_list		(); //! TODO: remove
 
 	/// Servers
 //	Server*		find_server			(const std::string& nick) const;
@@ -117,9 +118,9 @@ public:
 		   int port, const std::string& password);
 	~Irisha();
 
-	void		loop				();
+	void		loop		();
 
-	friend void	sending_loop		(const Irisha* server); //! TODO: REMOVE //////////////////////////////////////
+	friend void	sending_loop(const Irisha* server); //! TODO: REMOVE //////////////////////////////////////
 };
 
 void sending_loop(const Irisha* server); //! TODO: REMOVE //////////////////////////////////////

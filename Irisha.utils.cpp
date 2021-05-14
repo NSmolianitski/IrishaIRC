@@ -45,6 +45,7 @@ void Irisha::send_msg(int sock, const std::string& prefix, const std::string& ms
 		message = msg;
 	message.append("\r\n");
 
+//	std::cout << message << std::endl;
 	ssize_t n = send(sock, message.c_str(), message.length(), 0);
 	if (n == -1) throw std::runtime_error("Send error");
 }
@@ -69,6 +70,20 @@ void Irisha::send_input_msg(int sock) const
 	ssize_t n = send(sock, message.c_str(), message.length(), 0);
 	if (n == -1) throw std::runtime_error("Send error");
 }
+
+/**
+ * @description	Calls IRC command if it exists
+ * @param		sock
+ */
+void Irisha::handle_command(int sock)
+{
+	std::map<std::string, func>::const_iterator it = commands_.find(cmd_.command);
+	if (it != commands_.end())	// Execute command
+		((*this).*it->second)(sock);
+	else
+		send_msg(sock, domain_, ":No such command, my friend"); //! TODO: change to error reply (421, "<command> :Unknown command")
+}
+
 
 void sending_loop(const Irisha* server) //! TODO: REMOVE ///////////////////thread loop///////////////////////////////////////////////////////////////
 {
@@ -96,16 +111,3 @@ void sending_loop(const Irisha* server) //! TODO: REMOVE ///////////////////thre
 	}
 }
 //! TODO: REMOVE //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/**
- * @description	Calls IRC command if it exists
- * @param		sock
- */
-void Irisha::handle_command(int sock)
-{
-	std::map<std::string, func>::const_iterator it = commands_.find(cmd_.command);
-	if (it != commands_.end())	// Execute command
-		((*this).*it->second)(sock);
-	else
-		send_msg(sock, domain_, ":No such command, my friend"); //! TODO: change to error reply (421, "<command> :Unknown command")
-}
