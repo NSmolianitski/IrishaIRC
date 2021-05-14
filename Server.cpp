@@ -16,4 +16,6 @@ Server::~Server() {}
 
 Server::Server(const Server &server) : AConnection(-1, T_SERVER, -1) {}
 
-Server & Server::operator=(const Server &rh) { return *this; }
+const std::string& Server::name()	{ return name_; }
+
+Server& Server::operator=(const Server &rh) { return *this; }

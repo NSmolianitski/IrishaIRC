@@ -157,7 +157,7 @@ void Irisha::loop()
 {
 	int			n;
 	std::string	client_msg;
-	std::list<Irisha::RegForm> reg_expect;	//not registered connections
+	std::list<Irisha::RegForm*> reg_expect;	//not registered connections
     std::deque<std::string> arr_msg;		// array messages, not /r/n
 
 	signal(SIGPIPE, SIG_IGN);
@@ -175,7 +175,7 @@ void Irisha::loop()
 				if (i == listener_)
 				{
 					int connection_fd = accept_connection();
-					reg_expect.push_back(RegForm(connection_fd));
+					reg_expect.push_back(new RegForm(connection_fd));
 				}
 				else
 				{
@@ -185,28 +185,21 @@ void Irisha::loop()
                     {
                         parse_msg(arr_msg[0], cmd_);
 						std::cout << "[" BLUE "Client №" << i << CLR "] " + arr_msg[0] << std::endl;
-                        arr_msg.pop_front();
+						arr_msg.pop_front();
+						std::list<RegForm*>::iterator it = expecting_registration(i, reg_expect);	//is this connection waiting for registration?
+						if (it != reg_expect.end())													//yes, register it
+						{
+							if (register_connection(it) == CMD_SUCCESS)
+							{
+								RegForm* rf = *it;
+								reg_expect.erase(it);
+								delete rf;
+							}
+						}
+						//else
+						//	handle_command(cmd, i);								//no, handle not registration command
+
                     }
-					Command cmd;
-					std::list<RegForm>::iterator it = expecting_registration(i, reg_expect);	//is this connection waiting registration?
-					if (it != reg_expect.end())													//yes, register it
-					{
-						if (it->pass_received_ == false) ///delete this
-						{
-							cmd.command = "PASS";
-							cmd.arguments.push_back("hellothere");
-						}
-						else								///and this
-						{
-							cmd.command = "SERVER";
-							cmd.arguments.push_back("monkey.irisha.net");
-						}
-						int registered = register_connection(it, cmd);
-						if (registered == 0)
-							reg_expect.erase(it);
-					}
-					//else
-						handle_command(i);								//yes, handle not registration command
 				}
 			}
 		}
@@ -230,41 +223,7 @@ void Irisha::handle_disconnection(int sock)
 
 /// Commands+
 
-/**
- * Handling PASS message
- * @param fd - socket
- * @param cmd - parsed message
- * @return 0 if password correct, else 1
- */
-int Irisha::PASS(int fd, const Command& cmd)
-{
-	if (cmd.arguments.empty())
-		return 1;
-	if (password_ == cmd.arguments[0])
-		return 0;
-	else
-		return 1;
-}
 
-/**
- *Handling SERVER message
- * @param fd - socket
- * @param cmd - parsed message
- * @return 0 if registration successfully, else 1
- */
-int Irisha::SERVER(int fd, const Command &cmd)
-{
-	//place for your validator
-	int hopcount = 1;
-
-	if (cmd.prefix.empty())
-		hopcount = 1;
-	//else
-		//take hopcount from argiments
-	AConnection* server = new Server(cmd.arguments[0], fd, hopcount);
-	connections_.insert(std::pair<int, AConnection*>(fd, server));
-	return 0;
-}
 
 ///Commands-
 
@@ -274,12 +233,12 @@ int Irisha::SERVER(int fd, const Command &cmd)
  * @param reg_expect - list of not registered connections
  * @return	node iterator, if socket in list, else end iterator
  */
-std::list<Irisha::RegForm>::iterator Irisha::expecting_registration(int i, std::list<RegForm>& reg_expect)
+std::list<Irisha::RegForm*>::iterator Irisha::expecting_registration(int i, std::list<RegForm*>& reg_expect)
 {
-	std::list<RegForm>::iterator it;
+	std::list<RegForm*>::iterator it;
 	for (it = reg_expect.begin(); it != reg_expect.end(); it++)
 	{
-		if (it->fd_ == i)
+		if ((*it)->fd_ == i)
 			return it;
 	}
 	return (reg_expect.end());
@@ -287,18 +246,18 @@ std::list<Irisha::RegForm>::iterator Irisha::expecting_registration(int i, std::
 
 
 ///TODO: handle client connection
-int			Irisha::register_connection	(std::list<Irisha::RegForm>::iterator rf, Command& cmd)
+int			Irisha::register_connection	(std::list<Irisha::RegForm*>::iterator rf)
 {
-	if (rf->pass_received_ == false)
+	if ((*rf)->pass_received_ == false)
 	{
-		if (cmd.command == "PASS" && (PASS(rf->fd_, cmd) == 0))
-			rf->pass_received_ = true;
-		return 1;
+		if (cmd_.command == "PASS" && (PASS((*rf)->fd_) == CMD_SUCCESS))
+			(*rf)->pass_received_ = true;
+		return CMD_FAIL;
 	}
 	else
 	{
-		if (cmd.command == "SERVER" && (SERVER(rf->fd_, cmd) == 0))
-			return 0;
+		if (cmd_.command == "SERVER" && (SERVER((*rf)->fd_) == CMD_SUCCESS))
+			return CMD_SUCCESS;
 	}
 	return 1;
 }

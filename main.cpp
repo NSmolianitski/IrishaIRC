@@ -7,8 +7,8 @@ void server_cycle(const std::string& host, int port_network, const std::string& 
 {
 	try
 	{
-//		Irisha server("localhost", 6667, "secret", 2000, "psw");
-		Irisha server(2000);
+		Irisha server("localhost", 6667, "psw", 6668, "psw");
+//		Irisha server(port, password);
 		server.loop();
 	}
 	catch (std::exception& e)

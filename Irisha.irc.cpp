@@ -4,6 +4,7 @@
 
 #include "Irisha.hpp"
 #include "User.hpp"
+#include "Server.hpp"
 #include "utils.hpp"
 
 void	Irisha::prepare_commands()
@@ -52,4 +53,53 @@ void	Irisha::NICK(const Command& cmd, const int sock) //! TODO: handle hopcount
 			user->set_nick(new_nick);
 		}
 	}
+}
+
+/**
+ * Handling PASS message
+ * @param fd - socket
+ * @param cmd - parsed message
+ * @return 0 if password correct, else 1
+ */
+int Irisha::PASS(int fd)
+{
+	if (cmd_.arguments.empty())
+		return CMD_FAIL;
+	if (password_ == cmd_.arguments[0])
+		return CMD_SUCCESS;
+	else
+		return CMD_FAIL;
+}
+
+/**
+ *Handling SERVER message
+ * @param fd - socket
+ * @param cmd - parsed message
+ * @return 0 if registration successfully, else 1
+ */
+int Irisha::SERVER(int fd)
+{
+	//place for your validator
+	int hopcount = 1;
+
+	if (cmd_.prefix.empty())
+		hopcount = CMD_FAIL;
+	//else
+	//take hopcount from arguments
+	AConnection* server = new Server(cmd_.arguments[0], fd, hopcount);
+	connections_.insert(std::pair<int, AConnection*>(fd, server));
+	std::cout << PURPLE "Server " << (static_cast<Server*>(server))->name() << " registered!" CLR << std::endl;
+	return CMD_SUCCESS;
+}
+
+void Irisha::PONG(int fd)
+{
+
+}
+
+void Irisha::PING(int fd)
+{
+	//validation
+	if (cmd_.arguments.empty())
+		return ;
 }

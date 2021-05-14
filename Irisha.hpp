@@ -26,6 +26,12 @@ struct Command
 #define CONFIG_PATH "irisha.conf"
 #define NO_PREFIX	""
 
+enum CmdResult
+{
+	CMD_SUCCESS,
+	CMD_FAIL
+};
+
 class User;
 
 class Irisha
@@ -37,7 +43,7 @@ private:
 		int		fd_;
 		bool	pass_received_;
 
-		explicit RegForm(int fd)
+		RegForm(int fd)
 		{
 			fd_ = fd;
 			pass_received_ = false;
@@ -66,14 +72,16 @@ private:
 	Irisha(const Irisha& other) {};
 	Irisha& operator= (const Irisha& other) { return *this; };
 
-	std::list<Irisha::RegForm>::iterator	expecting_registration(int i, std::list<RegForm>& reg_expect);
-	int										register_connection	(std::list<RegForm>::iterator rf, Command& cmd);
+	std::list<Irisha::RegForm*>::iterator	expecting_registration(int i, std::list<RegForm*>& reg_expect);
+	int										register_connection	(std::list<RegForm*>::iterator rf);
 
-	int 									PASS(int fd, const Command& cmd);
-	int 									SERVER(int fd, const Command& cmd);
+	int		PASS(int fd);
+	int		SERVER(int fd);
+	void	PING(int fd);
+	void	PONG(int fd);
 
-	std::string								createPASSmsg		(std::string password);
-	std::string								createSERVERmsg		();
+	std::string	createPASSmsg		(std::string password);
+	std::string	createSERVERmsg		();
 
 public:
 	explicit Irisha(int port);
