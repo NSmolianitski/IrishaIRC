@@ -56,13 +56,6 @@ private:
 		}
 	}				RegForm;
 
-	struct Command
-	{
-		std::string					sender;
-		std::string					command;
-		std::vector<std::string>	arguments;
-	};
-
 	void	launch();
 	void 	init(int port);
 
@@ -71,11 +64,11 @@ private:
 	Irisha(const Irisha& other) {};
 	Irisha& operator= (const Irisha& other) { return *this; };
 
-	std::list<Irisha::RegForm>::iterator	expecting_registration(int i, std::list<RegForm>& reg_expect);
-	int										register_connection	(std::list<RegForm>::iterator rf, Command& cmd);
+	std::list<Irisha::RegForm*>::iterator	expecting_registration(int i, std::list<RegForm*>& reg_expect);
+	int										register_connection	(std::list<RegForm*>::iterator rf);
 
-	int 									PASS(int fd, const Command& cmd);
-	int 									SERVER(int fd, const Command& cmd);
+	int 									PASS(int fd);
+	int 									SERVER(int fd);
 
 	std::string								createPASSmsg		(std::string password);
 	std::string								createSERVERmsg		();
