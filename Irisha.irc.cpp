@@ -7,10 +7,11 @@
 #include "Server.hpp"
 #include "utils.hpp"
 
+/**
+ * @description	Inserts all supported IRC commands to map
+ */
 void	Irisha::prepare_commands()
 {
-
-//	func foo = &Irisha::NICK;
 	commands_.insert(std::pair<std::string, func>("NICK", &Irisha::NICK));
 }
 
@@ -19,14 +20,14 @@ void	Irisha::prepare_commands()
  * @param cmd: Command structure
  * @param socket: command sender
  */
-void	Irisha::NICK(const Command& cmd, const int sock) //! TODO: handle hopcount
+CmdResult	Irisha::NICK(const int sock) //! TODO: handle hopcount
 {
-	if (cmd.arguments.empty()) // NICK command without params
+	if (cmd_.arguments.empty()) // NICK command without params
 	{
 		send_msg(sock, domain_, ":No nickname given"); //! TODO: change to error reply
-		return;
+		return CMD_FAILURE;
 	}
-	std::string new_nick = cmd.arguments[0];
+	std::string new_nick = cmd_.arguments[0];
 	std::map<int, AConnection*>::iterator it = connections_.find(sock);
 
 	if (it == connections_.end())	// Add new user
@@ -40,7 +41,7 @@ void	Irisha::NICK(const Command& cmd, const int sock) //! TODO: handle hopcount
 		User* user = dynamic_cast<User *>(it->second);
 		if (user == nullptr) // if user is not local
 		{
-			find_user(cmd.prefix)->set_nick(new_nick);
+			find_user(cmd_.prefix)->set_nick(new_nick);
 			// TODO: send message to next server
 		}
 		else
@@ -48,11 +49,12 @@ void	Irisha::NICK(const Command& cmd, const int sock) //! TODO: handle hopcount
 			if (find_user(new_nick))
 			{
 				send_msg(sock, domain_, new_nick + " :Nickname is already in use"); //! TODO: change to error reply
-				return;
+				return CMD_FAILURE;
 			}
 			user->set_nick(new_nick);
 		}
 	}
+	return CMD_SUCCESS;
 }
 
 /**
@@ -61,14 +63,14 @@ void	Irisha::NICK(const Command& cmd, const int sock) //! TODO: handle hopcount
  * @param cmd - parsed message
  * @return 0 if password correct, else 1
  */
-int Irisha::PASS(int fd)
+CmdResult Irisha::PASS(const int sock)
 {
 	if (cmd_.arguments.empty())
-		return CMD_FAIL;
+		return CMD_FAILURE;
 	if (password_ == cmd_.arguments[0])
 		return CMD_SUCCESS;
 	else
-		return CMD_FAIL;
+		return CMD_FAILURE;
 }
 
 /**
@@ -77,29 +79,29 @@ int Irisha::PASS(int fd)
  * @param cmd - parsed message
  * @return 0 if registration successfully, else 1
  */
-int Irisha::SERVER(int fd)
+CmdResult Irisha::SERVER(const int sock)
 {
 	//place for your validator
 	int hopcount = 1;
 
 	if (cmd_.prefix.empty())
-		hopcount = CMD_FAIL;
+		hopcount = CMD_FAILURE;
 	//else
 	//take hopcount from arguments
-	AConnection* server = new Server(cmd_.arguments[0], fd, hopcount);
-	connections_.insert(std::pair<int, AConnection*>(fd, server));
+	AConnection* server = new Server(cmd_.arguments[0], sock, hopcount);
+	connections_.insert(std::pair<int, AConnection*>(sock, server));
 	std::cout << PURPLE "Server " << (static_cast<Server*>(server))->name() << " registered!" CLR << std::endl;
 	return CMD_SUCCESS;
 }
 
-void Irisha::PONG(int fd)
+CmdResult Irisha::PONG(const int sock)
 {
 
 }
 
-void Irisha::PING(int fd)
+CmdResult Irisha::PING(const int sock)
 {
 	//validation
 	if (cmd_.arguments.empty())
-		return ;
+		return CMD_FAILURE;
 }

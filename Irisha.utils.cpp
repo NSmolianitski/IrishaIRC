@@ -24,7 +24,7 @@ std::string Irisha::get_msg(int client_socket)
 /**
  * @description	Prints server information
  */
-void Irisha::print_info()
+void Irisha::print_info() const
 {
 	std::cout << BOLD UND "Current server configuration" << CLR "\n";
 	std::cout << "domain: " << ITALIC PURPLE + domain_ << CLR "\n";
@@ -97,11 +97,15 @@ void sending_loop(const Irisha* server) //! TODO: REMOVE ///////////////////thre
 }
 //! TODO: REMOVE //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @description	Calls IRC command if it exists
+ * @param		sock
+ */
 void Irisha::handle_command(int sock)
 {
 	std::map<std::string, func>::const_iterator it = commands_.find(cmd_.command);
 	if (it != commands_.end())	// Execute command
-		((*this).*it->second)(cmd_, sock);
+		((*this).*it->second)(sock);
 	else
 		send_msg(sock, domain_, ":No such command, my friend"); //! TODO: change to error reply (421, "<command> :Unknown command")
 }

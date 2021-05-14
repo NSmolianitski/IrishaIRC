@@ -252,7 +252,7 @@ int			Irisha::register_connection	(std::list<Irisha::RegForm*>::iterator rf)
 	{
 		if (cmd_.command == "PASS" && (PASS((*rf)->fd_) == CMD_SUCCESS))
 			(*rf)->pass_received_ = true;
-		return CMD_FAIL;
+		return CMD_FAILURE;
 	}
 	else
 	{

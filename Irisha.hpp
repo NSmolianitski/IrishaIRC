@@ -29,7 +29,7 @@ struct Command
 enum CmdResult
 {
 	CMD_SUCCESS,
-	CMD_FAIL
+	CMD_FAILURE
 };
 
 class User;
@@ -50,7 +50,7 @@ private:
 		}
 	};
 
-	typedef void (Irisha::*func)(const Command& cmd, const int sock);
+	typedef CmdResult (Irisha::*func)(const int sock);
 
 	std::string	domain_;
 	int			listener_;
@@ -67,35 +67,14 @@ private:
 	std::map<int, AConnection*>	connections_;	// Server and client connections
 	std::map<std::string, func>	commands_;		// IRC commands
 
-	/// Unused constructors
-	Irisha() {};
-	Irisha(const Irisha& other) {};
-	Irisha& operator= (const Irisha& other) { return *this; };
-
 	std::list<Irisha::RegForm*>::iterator	expecting_registration(int i, std::list<RegForm*>& reg_expect);
 	int										register_connection	(std::list<RegForm*>::iterator rf);
-
-	int		PASS(int fd);
-	int		SERVER(int fd);
-	void	PING(int fd);
-	void	PONG(int fd);
-
-	std::string	createPASSmsg		(std::string password);
-	std::string	createSERVERmsg		();
-
-public:
-	explicit Irisha(int port);
-	Irisha(int port, const std::string& password);
-	Irisha(const std::string& host_name, int network_port, const std::string& network_password,
-		   int port, const std::string& password);
-	~Irisha();
 
 	/// Initialization
 	void		prepare_commands	();
 	void		launch				();
 	void 		init				(int port);
 	void		apply_config		(const std::string& path);
-	void		loop				();
 
 	/// Connections
 	int			accept_connection	();
@@ -114,11 +93,33 @@ public:
 	void		send_msg			(int sock, const std::string& prefix, const std::string& msg) const;
 	void		send_input_msg		(int sock) const;
 	std::string get_msg				(int sock);
-	void		print_info			();
-	friend void	sending_loop		(const Irisha* server); //! TODO: REMOVE //////////////////////////////////////
+	void		print_info			() const;
 
 	/// IRC Commands
-	void		NICK				(const Command& cmd, const int sock);
+	CmdResult	NICK	(const int sock);
+	CmdResult	PASS	(const int sock);
+	CmdResult	SERVER	(const int sock);
+	CmdResult	PING	(const int sock);
+	CmdResult	PONG	(const int sock);
+
+	std::string	createPASSmsg		(std::string password);
+	std::string	createSERVERmsg		();
+
+	/// Unused constructors
+	Irisha() {};
+	Irisha(const Irisha& other) {};
+	Irisha& operator= (const Irisha& other) { return *this; };
+
+public:
+	explicit Irisha(int port);
+	Irisha(int port, const std::string& password);
+	Irisha(const std::string& host_name, int network_port, const std::string& network_password,
+		   int port, const std::string& password);
+	~Irisha();
+
+	void		loop				();
+
+	friend void	sending_loop		(const Irisha* server); //! TODO: REMOVE //////////////////////////////////////
 };
 
 void sending_loop(const Irisha* server); //! TODO: REMOVE //////////////////////////////////////
