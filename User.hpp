@@ -18,7 +18,7 @@ private:
 	std::string	username_;
 	std::string real_name_;
 	std::string password_;
-	int 		mod_;
+	std::string	mode_;		//! TODO: make mode number parsing
 	bool 		operator_;
 	std::string netwideID_;
 	std::string	server_;
@@ -29,14 +29,14 @@ private:
 	User& operator= (const User& other) { return *this; };
 
 public:
-	User(int socket, const std::string& server, int mod, const std::string& username, const std::string& real_name);
+	User(int socket, const std::string& server, const std::string& nick);
 	~User();
 
 	void	set_nick		(const std::string& nick);
 	void	set_username	(const std::string& username);
 	void	set_real_name 	(const std::string& real_name);
 	void	set_password	(const std::string& password);
-	void	set_mod			(int mod);
+	void	set_mod			(const std::string& mode);
 	void	set_operator	(bool is_operator);
 	void	set_netwideID	(const std::string& netwideID);
 
@@ -44,7 +44,7 @@ public:
 	const std::string&	username	() const;
 	const std::string&	real_name	() const;
 	const std::string&	password	() const;
-	int 				mod			() const;
+	const std::string&	mode		() const;
 	bool 				is_operator	() const;
 	const std::string&	netwideID	() const;
 	const std::string&	server		() const;

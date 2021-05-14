@@ -10,10 +10,10 @@ Server::Server(std::string name, int socket, int hopcount)
 	name_ = name;
 }
 
-Server::Server() {}
+Server::Server() :AConnection(-1, T_SERVER, -1) {}
 
 Server::~Server() {}
 
-Server::Server(const Server &server) {}
+Server::Server(const Server &server) : AConnection(-1, T_SERVER, -1) {}
 
-Server & Server::operator=(const Server &rh) {}
+Server & Server::operator=(const Server &rh) { return *this; }
