@@ -5,7 +5,7 @@
 #include "Irisha.hpp"
 #include "User.hpp"
 #include "utils.hpp"
-
+#include "parser.hpp"
 #include <thread>     //! TODO: REMOVE ///////////////////////////////////////////////////////////////////////////////////////////
 
 #include <netdb.h>
@@ -194,6 +194,7 @@ void Irisha::loop()
 	int			n;
 	std::string	client_msg;
 	std::list<Irisha::RegForm> reg_expect;	//not registered connections
+    std::deque<std::string> arr_msg; // array messages, not /r/n
 
 	signal(SIGPIPE, SIG_IGN);
 	std::thread	sender(sending_loop, this); //! TODO: REMOVE ////////////////////////////////////////////////////////////////////////////////////////////
@@ -215,6 +216,12 @@ void Irisha::loop()
 				else
 				{
 					client_msg = get_msg(i);
+                    parse_arr_msg(&arr_msg, client_msg);
+                    while (!arr_msg.empty())
+                    {
+                        parse_msg(arr_msg[0], &this->msg_struct_);
+                        arr_msg.pop_front();
+                    }
 					if (!client_msg.empty())
 						std::cout << "[" BLUE "Client №" << i << CLR "] " + client_msg << std::flush;
 					Command cmd;
