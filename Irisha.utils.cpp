@@ -45,6 +45,7 @@ void Irisha::send_msg(int sock, const std::string& prefix, const std::string& ms
 		message = msg;
 	message.append("\r\n");
 
+//	std::cout << message << std::endl;
 	ssize_t n = send(sock, message.c_str(), message.length(), 0);
 	if (n == -1) throw std::runtime_error("Send error");
 }

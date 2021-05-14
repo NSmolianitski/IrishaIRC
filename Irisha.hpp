@@ -118,9 +118,9 @@ public:
 		   int port, const std::string& password);
 	~Irisha();
 
-	void		loop				();
+	void		loop		();
 
-	friend void	sending_loop		(const Irisha* server); //! TODO: REMOVE //////////////////////////////////////
+	friend void	sending_loop(const Irisha* server); //! TODO: REMOVE //////////////////////////////////////
 };
 
 void sending_loop(const Irisha* server); //! TODO: REMOVE //////////////////////////////////////

@@ -55,6 +55,7 @@ CmdResult	Irisha::NICK(const int sock) //! TODO: handle hopcount
 				send_msg(sock, domain_, new_nick + " :Nickname is already in use"); //! TODO: change to error reply
 				return CMD_FAILURE;
 			}
+			send_msg(sock, user->nick(), "NICK " + new_nick); //! TODO: check prefix
 			user->set_nick(new_nick);
 		}
 	}
