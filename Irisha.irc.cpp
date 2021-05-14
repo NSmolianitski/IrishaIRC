@@ -5,7 +5,8 @@
 #include "Irisha.hpp"
 #include "User.hpp"
 #include "utils.hpp"
-
+#include "parser.hpp"
+#include "Channel.hpp"
 /**
  * @description	handles NICK command
  * @param cmd: Command structure
@@ -45,4 +46,23 @@ void Irisha::NICK(const Command& cmd, const int sock) //! TODO: handle hopcount
 			user->set_nick(new_nick);
 		}
 	}
+}
+
+void Irisha::JOIN(const Command& cmd, const int sock)
+{
+    std::vector<std::string> arr_channel;
+    std::string str_channels = cmd.arguments[0];
+
+    parse_arr(arr_channel, str_channels, ',');
+    for (size_t i = 0; i < arr_channel.size(); ++i) {
+        if (arr_channel[i][0] == '#' || arr_channel[i][0] == '&'){
+            //send_msg(sock, "", ":localhost 332 Dmitriy " + arr_channel[i] +" :Hello");
+            Channel* channel = new Channel(arr_channel[i]);
+            std::cout << arr_channel[i] << std::endl;
+            send_msg(sock, "", ":Dmitriy JOIN " + arr_channel[i]);
+            send_msg(sock, domain_, "353 Dmitriy = " + arr_channel[i] +" :@Dmitriy");
+            send_msg(sock, domain_, "366 Dmitriy " + arr_channel[i] +" :End of NAMES list");
+        }
+    }
+
 }

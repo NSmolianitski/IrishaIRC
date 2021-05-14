@@ -6,6 +6,7 @@ class Channel
 {
 private:
     std::map<char, int>         mode_;
+    char                        type_;
     std::string                 topic_;
     std::string                 name_;
     std::string                 key_;

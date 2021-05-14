@@ -41,7 +41,6 @@ void parse_arr_msg(std::deque<std::string>& arr_msg, const std::string& client_m
     std::string s;
     std::istringstream is(client_msg);
 
-
     while (std::getline(is, s, '\r'))
         arr_msg.push_back(s);
     if (!arr_msg.empty())
@@ -103,4 +102,13 @@ void parse_argv(int argc, char *argv[], std::string& host, int& port_network, st
         port = std::atoi(argv[2]);
         password = argv[3];
     }
+}
+
+void    parse_arr(std::vector<std::string>& arr, std::string& str, char sep)
+{
+    std::string s;
+    std::istringstream is(str);
+
+    while (std::getline(is, s, sep))
+        arr.push_back(s);
 }

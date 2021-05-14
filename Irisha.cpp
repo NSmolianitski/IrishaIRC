@@ -185,6 +185,8 @@ void Irisha::loop()
 						std::cout << "[" BLUE "Client №" << i << CLR "] " + arr_msg[0] << std::endl;
                         arr_msg.pop_front();
                     }
+                    if (cmd_.command == "JOIN")
+                        JOIN(cmd_, i);
 					Command cmd;
 					std::list<RegForm>::iterator it = RegForm::expecting_registration(i, reg_expect);	//is this connection registered?
 //					if (it != reg_expect.end())																//no, register it

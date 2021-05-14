@@ -8,6 +8,7 @@
 #include "AConnection.hpp"
 
 #include <iostream>
+#include <sstream>
 #include <map>
 #include <vector>
 #include <deque>
@@ -109,7 +110,7 @@ public:
 
 	/// IRC Commands
 	void		NICK				(const Command& cmd, const int socket);
-
+    void        JOIN                (const Command& cmd, const int sock);
 	std::string createPASSmsg		(std::string password);
 	std::string createSERVERmsg		();
 };
