@@ -85,16 +85,34 @@ CmdResult Irisha::PASS(const int sock)
  */
 CmdResult Irisha::SERVER(const int sock)
 {
-	//place for your validator
+	//validation+
+	std::string info = "";
+	for (int i = 0; i < cmd_.arguments.size(); i++)
+	{
+		if (cmd_.arguments[i].find(":") != std::string::npos)
+		{
+			info = cmd_.arguments[i];
+			break ;
+		}
+	}
+	if (info.empty())
+		return CMD_FAILURE;
+	//validation-
+
 	int hopcount;
 	if (cmd_.arguments.empty())
 		return CMD_FAILURE;
-	//if (cmd_.arguments.size() == )
+	if (cmd_.arguments.size() == 1) //only server name sent
+		hopcount = 1;
+	else if (cmd_.arguments.size() == 2 &&
+		(cmd_.arguments[0].find_first_not_of("0123456789") == std::string::npos)) //hopcount and server name sent
+	{
+		try	{ hopcount = std::stoi(cmd_.arguments[0]); }
+		catch(std::exception ex) { return CMD_FAILURE; }
+	}
+	else
+		hopcount = std::stoi(cmd_.arguments[0]); ///TODO: remove it
 
-	if (cmd_.prefix.empty())
-		hopcount = CMD_FAILURE;
-	//else
-	//take hopcount from arguments
 	AConnection* server = new Server(cmd_.arguments[0], sock, hopcount);
 	connections_.insert(std::pair<int, AConnection*>(sock, server));
 	PING(sock);
