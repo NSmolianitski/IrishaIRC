@@ -13,6 +13,8 @@ class Server	:public AConnection
 public:
 	Server(std::string name, int socket, int hopcount);
 	~Server();
+
+	const std::string& name();
 private:
 	std::string name_;
 
