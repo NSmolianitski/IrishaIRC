@@ -1,4 +1,5 @@
 //#include "Server.hpp"
+#include <sstream>
 #include "parser.hpp"
 #include "utils.hpp"
 
@@ -62,21 +63,15 @@ void parse_argv(int argc, char *argv[], std::string& host, int& port_network, st
 {
     std::deque<std::string> array;
     std::string s;
-    if (argc < 3 || argc > 4){
-        std::cout << RED "Error size arguments" CLR << std::endl;
-        exit(1);
-    }
+    if (argc < 3 || argc > 4)
+        throw std::runtime_error("Error size arguments");
     if (argc == 3){
         for (int i = 0; i < strlen(argv[1]); ++i) {
-            if (isdigit(argv[1][i]) == 0){
-                std::cout << RED "Error: port" CLR << std::endl;
-                exit(1);
-            }
+            if (isdigit(argv[1][i]) == 0)
+                throw std::runtime_error("Error: port");
         }
-        if (strlen(argv[1]) > 5 || strlen(argv[1]) < 4){
-            std::cout << RED "Error: size port" CLR << std::endl;
-            exit(1);
-        }
+        if (strlen(argv[1]) > 5 || strlen(argv[1]) < 4)
+            throw std::runtime_error("Error: size port");
         port = std::atoi(argv[1]);
         password = argv[2];
     }
@@ -86,32 +81,26 @@ void parse_argv(int argc, char *argv[], std::string& host, int& port_network, st
             if (!s.empty())
                 array.push_back(s);
         }
-        if (array.size() != 3){
-            std::cout << RED "Error size arguments network" CLR << std::endl;
-            exit(1);
-        }
+        if (array.size() != 3)
+            throw std::runtime_error("Error size arguments network");
         host = array[0];
         array.pop_front();
         for (int i = 0; i < array[0].length(); ++i) {
-            if (isdigit(array[0][i]) == 0){
-                std::cout << RED "Error: port network" CLR << std::endl;
-                exit(1);
-            }
+            if (isdigit(array[0][i]) == 0)
+                throw std::runtime_error("Error: port network");
         }
-        if (array[0].length() > 5 || array[0].length() < 4){
-            std::cout << RED "Error: size port network" CLR << std::endl;
-            exit(1);
-        }
+        if (array[0].length() > 5 || array[0].length() < 4)
+            throw std::runtime_error("Error: size port network");
         port_network = std::stoi(array[0]);
         array.pop_front();
         password_network = array[0];
         array.pop_front();
         for (int i = 0; i < strlen(argv[2]); ++i) {
-            if (isdigit(argv[2][i]) == 0){
-                std::cout << RED "Error: port" CLR << std::endl;
-                exit(1);
-            }
+            if (isdigit(argv[2][i]) == 0)
+                throw std::runtime_error("Error: port");
         }
+        if (strlen(argv[2]) > 5 || strlen(argv[2]) < 4)
+            throw std::runtime_error("Error: size port");
         port = std::atoi(argv[2]);
         password = argv[3];
     }
