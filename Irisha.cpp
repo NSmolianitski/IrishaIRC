@@ -115,6 +115,7 @@ void Irisha::launch()
 void Irisha::init(int port)
 {
 	apply_config(CONFIG_PATH);
+	prepare_commands();
 	listener_ = socket(PF_INET, SOCK_STREAM, 0);
 	if (listener_ == -1) throw std::runtime_error("Socket creation failed!");
 
@@ -187,7 +188,7 @@ void Irisha::loop()
 						std::cout << "[" BLUE "Client №" << i << CLR "] " + arr_msg[0] << std::endl;
 						arr_msg.pop_front();
 						std::list<RegForm*>::iterator it = expecting_registration(i, reg_expect);	//is this connection waiting for registration?
-						if (it != reg_expect.end())													//yes, register it
+						if (it != reg_expect.end())														//yes, register it
 						{
 							if (register_connection(it) == CMD_SUCCESS)
 							{
@@ -196,9 +197,8 @@ void Irisha::loop()
 								delete rf;
 							}
 						}
-						//else
-						//	handle_command(cmd, i);								//no, handle not registration command
-
+						else
+							handle_command(i);															//no, handle not registration command
                     }
 				}
 			}
