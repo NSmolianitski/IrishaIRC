@@ -39,7 +39,7 @@ private:
 	fd_set						read_fds_;
 	fd_set						serv_fds_;
 	int							max_fd_;
-    Command				        cmd_; // Struct parsing mess
+    Command				        cmd_;			// Struct for parsed command
 	std::string 				host_name_;		// Host server. Need when this server connected to other.
 	std::string					password_;		// Password for clients and servers connection to connect this server
 	std::map<int, AConnection*>	connections_;	// Server and client connections
@@ -108,12 +108,13 @@ public:
 //	Server*		find_server			(const std::string& nick) const;
 
 	/// IRC Commands
-	void		nick				(const Command& cmd, const int socket);
+	void		NICK				(const Command& cmd, const int socket);
 
 	std::string createPASSmsg		(std::string password);
 	std::string createSERVERmsg		();
 };
 
+void sending_loop(const Irisha* server); //! TODO: REMOVE //////////////////////////////////////
 
 
 #endif //FT_IRC_IRISHA_HPP

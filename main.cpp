@@ -6,8 +6,8 @@ void server_cycle()
 {
 	try
 	{
-		Irisha server("localhost", 6667, "secret", 2000, "psw");
-//		Irisha server(6667);
+//		Irisha server("localhost", 6667, "secret", 2000, "psw");
+		Irisha server(6667);
 		server.loop();
 	}
 	catch (std::exception& e)
