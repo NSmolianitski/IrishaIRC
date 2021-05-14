@@ -6,6 +6,7 @@
 #include "User.hpp"
 #include "utils.hpp"
 #include "parser.hpp"
+
 #include <thread>     //! TODO: REMOVE ///////////////////////////////////////////////////////////////////////////////////////////
 #include <list>
 
@@ -16,6 +17,8 @@ Irisha::Irisha(int port)
 {
 	init(port);
 	launch();
+	print_info();
+	std::cout << BOLD WHITE "\n⭐ Server started. Waiting for the client connection. ⭐\n" CLR << std::endl;
 }
 
 Irisha::Irisha(int port, const std::string& password)
@@ -23,6 +26,8 @@ Irisha::Irisha(int port, const std::string& password)
 	init(port);
 	password_ = password;
 	launch();
+	print_info();
+	std::cout << BOLD WHITE "\n⭐ Server started. Waiting for the client connection. ⭐\n" CLR << std::endl;
 }
 
 Irisha::Irisha(const std::string& host_name, int network_port, const std::string& network_password,
@@ -54,10 +59,12 @@ Irisha::Irisha(const std::string& host_name, int network_port, const std::string
 	int c = ::connect(speaker, reinterpret_cast<struct sockaddr *>(&server_address), sizeof(server_address));
 	if (c < 0) throw std::runtime_error("Connection error");
 	std::cout << "Connection established! " << "🔥" << "\n" << std::endl;
+	print_info();
+	std::cout << BOLD WHITE "\n⭐ Server started. Waiting for the client connection. ⭐\n" CLR << std::endl;
 
 	//registration
-	send_msg(speaker,createPASSmsg(network_password));
-	send_msg(speaker, createSERVERmsg());
+	send_msg(speaker, NO_PREFIX, createPASSmsg(network_password));
+	send_msg(speaker, NO_PREFIX, createSERVERmsg());
 }
 
 Irisha::~Irisha()
@@ -91,16 +98,6 @@ void Irisha::apply_config(const std::string& path)
 }
 
 /**
- * @description	Prints server information
- */
-void Irisha::print_info()
-{
-	std::cout << BOLD UND "Current server configuration" << CLR "\n";
-	std::cout << "domain: " << ITALIC PURPLE + domain_ << CLR "\n";
-	std::cout << "password: " << ITALIC PURPLE + password_ << CLR << std::endl;
-}
-
-/**
  * @description	The launch() function binds socket and starts to listen
  */
 void Irisha::launch()
@@ -112,8 +109,6 @@ void Irisha::launch()
 	if (b == -1) throw std::runtime_error("Binding failed!");
 
 	listen(listener_, 5);
-	print_info();
-	std::cout << BOLD WHITE "\n⭐ Server started. Waiting for the client connection. ⭐\n" CLR << std::endl;
 }
 
 void Irisha::init(int port)
@@ -148,73 +143,9 @@ int Irisha::accept_connection()
 		max_fd_ = client_socket;
 
 	std::cout << ITALIC PURPLE "Client №" << client_socket << " connected! " << "⛄" CLR << std::endl;
-	send_msg(client_socket, "✰ Welcome to Irisha server! ✰"); // Send greeting message
+	send_msg(client_socket, domain_, "✰ Welcome to Irisha server! ✰"); // Send greeting message
 	return client_socket;
 }
-
-/**
- * @description	Sends a message to the client
- * @param		client_socket
- * @param		msg: message for the client
- */
-void Irisha::send_msg(int client_socket, const std::string& msg) const
-{
-	std::string message = msg;
-	message.append("\r\n");
-
-	int n = send(client_socket, message.c_str(), message.length(), 0);
-	if (n == -1) throw std::runtime_error("Send error");
-}
-
-/**
- * @description	Sends a message from input
- * @param		client_socket
- */
-void Irisha::send_input_msg(int client_socket) const
-{
-	std::string message;
-	getline(std::cin, message);
-	if (message == "/exit" || message == "/EXIT")
-		std::cout << ITALIC PURPLE "Server shutdown." CLR << std::endl;
-
-	send_msg(client_socket, message);
-	std::cout << ITALIC PURPLE "Message \"" + message + "\" was sent" CLR << std::endl;
-}
-
-/**
- * @description	Receives a message from the client
- * @param		client_socket
- * @return		message from the client
- */
-std::string Irisha::get_msg(int client_socket)
-{
-	int read_bytes = recv(client_socket, &buff_, 510, 0);
-	if (read_bytes < 0) throw std::runtime_error("Recv error in get_msg()");
-
-	if (read_bytes == 0)
-		handle_disconnection(client_socket);
-	buff_[read_bytes] = '\0';
-	return (buff_);
-}
-
-void sending_loop(const Irisha* server) //! TODO: REMOVE ///////////////////thread loop///////////////////////////////////////////////////////////////
-{
-	std::string	message;
-	while (true)
-	{
-		getline(std::cin, message);
-		message.append("\n");
-		for (int i = 3; i < server->max_fd_ + 1; ++i)
-		{
-			if (FD_ISSET(i, &server->all_fds_) && i != server->listener_)
-			{
-				int send_bytes = send(i, message.c_str(), message.length(), 0);
-				if (send_bytes < 0) throw std::runtime_error("Send error in send_msg()");
-				std::cout << PURPLE ITALIC "Message sent to client №" << i << CLR << std::endl;
-			}
-		}
-	}
-} //! TODO: REMOVE //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
  * @description	Launches the main server loop, which listens for
@@ -225,7 +156,7 @@ void Irisha::loop()
 	int			n;
 	std::string	client_msg;
 	std::list<Irisha::RegForm> reg_expect;	//not registered connections
-    std::deque<std::string> arr_msg; // array messages, not /r/n
+    std::deque<std::string> arr_msg;		// array messages, not /r/n
 
 	signal(SIGPIPE, SIG_IGN);
 	std::thread	sender(sending_loop, this); //! TODO: REMOVE ////////////////////////////////////////////////////////////////////////////////////////////
@@ -247,14 +178,13 @@ void Irisha::loop()
 				else
 				{
 					client_msg = get_msg(i);
-                    parse_arr_msg(&arr_msg, client_msg);
+                    parse_arr_msg(arr_msg, client_msg);
                     while (!arr_msg.empty())
                     {
-                        parse_msg(arr_msg[0], &this->msg_struct_);
+                        parse_msg(arr_msg[0], this->cmd_);
+						std::cout << "[" BLUE "Client №" << i << CLR "] " + arr_msg[0] << std::endl;
                         arr_msg.pop_front();
                     }
-					if (!client_msg.empty())
-						std::cout << "[" BLUE "Client №" << i << CLR "] " + client_msg << std::flush;
 					Command cmd;
 					std::list<RegForm>::iterator it = RegForm::expecting_registration(i, reg_expect);	//is this connection registered?
 //					if (it != reg_expect.end())																//no, register it
@@ -269,7 +199,7 @@ void Irisha::loop()
 			}
 		}
 	}
-	sender.detach(); //! TODO: REMOVE /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	sender.detach(); //! TODO: REMOVE ////<======///////////////////////////////////////////////////////////////////////////////
 }
 
 /**
@@ -285,13 +215,6 @@ void Irisha::handle_disconnection(int client_socket)
 	FD_CLR(client_socket, &all_fds_);
 	std::cout << ITALIC PURPLE "Client №" << client_socket << " closed connection. ☠" CLR << std::endl;
 }
-
-/// Commands
-
-//void Irisha::nick(const Command& cmd)
-//{
-//
-//}
 
 /***************Creating message strings***************/
 
@@ -315,7 +238,7 @@ std::string Irisha::createPASSmsg(std::string password)
 std::string Irisha::createSERVERmsg()	///TODO: choose servername smarter
 {
 	std::string msg = "SERVER ";
-	msg.append("irc2.example.net :Irisha server");
+	msg.append(domain_ + " :Irisha server");
 	return msg;
 }
 

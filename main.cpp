@@ -5,8 +5,17 @@
 #include "parser.hpp"
 void server_cycle(const std::string& host, int port_network, const std::string& password_network, int port, const std::string& password)
 {
-	Irisha server(2000);
-	server.loop();
+	try
+	{
+//		Irisha server("localhost", 6667, "secret", 2000, "psw");
+		Irisha server(6667);
+		server.loop();
+	}
+	catch (std::exception& e)
+	{
+		std::cerr << RED BOLD "☠ " << "ALARM! " << e.what() << " ☠" CLR << std::endl;
+		exit(1);
+	}
 }
 
 int	main(int argc, char *argv[])

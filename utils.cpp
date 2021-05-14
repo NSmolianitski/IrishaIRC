@@ -87,3 +87,19 @@ void	check_config(const std::string& path)
 		}
 	}
 }
+
+/**
+ * @description	Checks nickname vilidity
+ * @param		nick
+ * @return		true if nickname is valid or false if it's not
+ */
+bool is_a_valid_nick(const std::string& nick)
+{
+	if (nick.empty() || nick.size() > 9 || isnumber(nick.front()))
+		return false;
+	if (nick.find_first_not_of("abcdefghijklmnopqrstuvwxyz"
+							   "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+							   "01234567890_[]\\`^{|}-") != std::string::npos)
+		return false;
+	return true;
+}
