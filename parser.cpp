@@ -1,5 +1,6 @@
 //#include "Server.hpp"
 #include "parser.hpp"
+#include "utils.hpp"
 
 void 	parse_msg(const std::string& msg, t_msg *msgStruct)
 {
@@ -28,7 +29,7 @@ void 	parse_msg(const std::string& msg, t_msg *msgStruct)
      	std::vector<std::string>::iterator itr = msgStruct->param.begin();
      	std::cout << "PARAMS = ";
      	while (itr != msgStruct->param.end()) {
-     		std::cout << *itr << " ";
+     		std::cout << *itr << ITALIC PURPLE " | " CLR;
      		itr++;
      	}
      }
