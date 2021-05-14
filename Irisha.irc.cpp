@@ -13,6 +13,10 @@
 void	Irisha::prepare_commands()
 {
 	commands_.insert(std::pair<std::string, func>("NICK", &Irisha::NICK));
+	commands_.insert(std::pair<std::string, func>("PASS", &Irisha::PASS));
+	commands_.insert(std::pair<std::string, func>("SERVER", &Irisha::SERVER));
+	commands_.insert(std::pair<std::string, func>("PING", &Irisha::PING));
+	commands_.insert(std::pair<std::string, func>("PONG", &Irisha::PONG));
 }
 
 /**
@@ -67,7 +71,7 @@ CmdResult Irisha::PASS(const int sock)
 {
 	if (cmd_.arguments.empty())
 		return CMD_FAILURE;
-	if (password_ == cmd_.arguments[0])
+	else if (password_ == cmd_.arguments[0] || !cmd_.prefix.empty())
 		return CMD_SUCCESS;
 	else
 		return CMD_FAILURE;
@@ -82,7 +86,10 @@ CmdResult Irisha::PASS(const int sock)
 CmdResult Irisha::SERVER(const int sock)
 {
 	//place for your validator
-	int hopcount = 1;
+	int hopcount;
+	if (cmd_.arguments.empty())
+		return CMD_FAILURE;
+	//if (cmd_.arguments.size() == )
 
 	if (cmd_.prefix.empty())
 		hopcount = CMD_FAILURE;
@@ -90,18 +97,27 @@ CmdResult Irisha::SERVER(const int sock)
 	//take hopcount from arguments
 	AConnection* server = new Server(cmd_.arguments[0], sock, hopcount);
 	connections_.insert(std::pair<int, AConnection*>(sock, server));
+	PING(sock);
 	std::cout << PURPLE "Server " << (static_cast<Server*>(server))->name() << " registered!" CLR << std::endl;
 	return CMD_SUCCESS;
 }
 
 CmdResult Irisha::PONG(const int sock)
 {
-
+	if (cmd_.arguments.empty())
+		return CMD_FAILURE; ///TODO: send ERR_NOORIGIN
+	else if (cmd_.arguments.size() == 1)
+		send_msg(sock, domain_, "PONG " + domain_);
+	//else send to receiver
+	return CMD_SUCCESS;
 }
 
 CmdResult Irisha::PING(const int sock)
 {
-	//validation
 	if (cmd_.arguments.empty())
-		return CMD_FAILURE;
+		return CMD_FAILURE; ///TODO: send ERR_NOORIGIN
+	else if (cmd_.arguments.size() == 1) // PINGing this server
+		PONG(sock);
+	//else send to receiver
+	return CMD_SUCCESS;
 }
