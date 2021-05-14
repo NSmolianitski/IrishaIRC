@@ -85,6 +85,7 @@ private:
 	void		add_user			(int sock, const std::string& nick);
 	void		remove_user			(const std::string& nick);
 	User*		find_user			(const std::string& nick) const;
+	void		print_user_list		(); //! TODO: remove
 
 	/// Servers
 //	Server*		find_server			(const std::string& nick) const;

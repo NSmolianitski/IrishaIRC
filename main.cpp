@@ -7,8 +7,8 @@ void server_cycle(const std::string& host, int port_network, const std::string& 
 {
 	try
 	{
-		Irisha server("localhost", 6667, "psw", 6668, "psw");
-//		Irisha server(port, password);
+//		Irisha server("localhost", 6667, "psw", 6668, "psw");
+		Irisha server(6667, "secret");
 		server.loop();
 	}
 	catch (std::exception& e)
@@ -20,11 +20,11 @@ void server_cycle(const std::string& host, int port_network, const std::string& 
 
 int	main(int argc, char *argv[])
 {
-    std::string host;
-    int port_network;
-    std::string password_network;
-    int port;
-    std::string password;
+    std::string	host;
+    int			port_network;
+    std::string	password_network;
+    int			port;
+    std::string	password;
 
 //    parse_argv(argc, argv, host, port_network, password_network, port, password);
 //    std::cout << GREEN "HOST             = " CLR<< host << std::endl;

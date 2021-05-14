@@ -46,3 +46,17 @@ User* Irisha::find_user(const std::string& nick) const
 	}
 	return nullptr;
 }
+
+void Irisha::print_user_list()
+{
+	User*	user;
+	std::map<int, AConnection*>::const_iterator it = connections_.begin();
+	for (; it != connections_.end(); ++it)
+	{
+		if (it->second->type() == T_CLIENT)
+		{
+			user = static_cast<User*>(it->second);
+			std::cout << "Connected users:\n" << user->nick() << std::endl;
+		}
+	}
+}

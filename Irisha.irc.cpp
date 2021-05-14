@@ -22,14 +22,14 @@ void	Irisha::prepare_commands()
  */
 CmdResult	Irisha::NICK(const int sock) //! TODO: handle hopcount
 {
-	if (cmd_.arguments.empty()) // NICK command without params
+	if (cmd_.arguments.empty())	// NICK command without params
 	{
 		send_msg(sock, domain_, ":No nickname given"); //! TODO: change to error reply
 		return CMD_FAILURE;
 	}
+
 	std::string new_nick = cmd_.arguments[0];
 	std::map<int, AConnection*>::iterator it = connections_.find(sock);
-
 	if (it == connections_.end())	// Add new user
 	{
 		if (!is_a_valid_nick(new_nick))
@@ -39,12 +39,12 @@ CmdResult	Irisha::NICK(const int sock) //! TODO: handle hopcount
 	else							// Change nickname
 	{
 		User* user = dynamic_cast<User *>(it->second);
-		if (user == nullptr) // if user is not local
+		if (user == nullptr)	// If user is NOT local
 		{
 			find_user(cmd_.prefix)->set_nick(new_nick);
 			// TODO: send message to next server
 		}
-		else
+		else					// If user is local
 		{
 			if (find_user(new_nick))
 			{
@@ -54,6 +54,7 @@ CmdResult	Irisha::NICK(const int sock) //! TODO: handle hopcount
 			user->set_nick(new_nick);
 		}
 	}
+	print_user_list(); //! TODO: remove
 	return CMD_SUCCESS;
 }
 
