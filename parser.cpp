@@ -2,7 +2,7 @@
 #include "Irisha.hpp"
 #include "parser.hpp"
 #include "utils.hpp"
-
+#include <cstring>
 #include <sstream>
 
 void 	parse_msg(const std::string& msg, Command& cmd)
@@ -23,12 +23,30 @@ void 	parse_msg(const std::string& msg, Command& cmd)
             array.pop_front();
         }
         cmd.command.append(array[0]);
-        std::cout << "COMMAND = " << cmd.command << std::endl;
-        array.pop_front();
-        while (array.size() > 0) {
-            cmd.arguments.push_back(array[0]);
-            array.pop_front();
-        }
+//        std::cout << "COMMAND = " << cmd.command << std::endl;
+//        array.pop_front();
+//        while (array.size() > 0) {
+//            cmd.arguments.push_back(array[0]);
+//            array.pop_front();
+//        }
+		std::cout << "COMMAND = " << cmd.command << std::endl;
+		array.pop_front();
+		while (!array.empty()) {
+			if (array[0][0] == ':')
+				break;
+			cmd.arguments.push_back(array[0]);
+			array.pop_front();
+		}
+		s.clear();
+		while (!array.empty())
+		{
+			if (!s.empty())
+				s.append(" ");
+			s.append(array[0]);
+			array.pop_front();
+		}
+		if (!s.empty())
+			cmd.arguments.push_back(s);
         std::vector<std::string>::iterator itr = cmd.arguments.begin();
         std::cout << "ARGUMENTS = ";
         while (itr != cmd.arguments.end()) {
