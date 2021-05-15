@@ -1,6 +1,7 @@
 #include <sstream>
 #include "parser.hpp"
 #include "utils.hpp"
+#include <cstring>
 
 void 	parse_msg(const std::string& msg, Command& cmd)
 {

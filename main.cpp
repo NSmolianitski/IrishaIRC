@@ -26,7 +26,7 @@ int	main(int argc, char *argv[])
     int port;
     std::string password;
 
-    parse_argv(argc, argv, host, port_network, password_network, port, password);
+    //parse_argv(argc, argv, host, port_network, password_network, port, password);
     std::cout << GREEN "HOST             = " CLR<< host << std::endl;
     std::cout << GREEN "PORT NETWORK     = " CLR<< port_network << std::endl;
     std::cout << GREEN "PASSWORD NETWORK = " CLR<< password_network << std::endl;

@@ -3,7 +3,7 @@
 //
 
 #include <fstream>
-
+#include <cstring>
 /**
  * @description	The remove_comment() function removes comment
  * 				(which starts with '#' or ';') from the string
@@ -95,7 +95,7 @@ void	check_config(const std::string& path)
  */
 bool is_a_valid_nick(const std::string& nick)
 {
-	if (nick.empty() || nick.size() > 9 || isnumber(nick.front()))
+	if (nick.empty() || nick.size() > 9 || isdigit(nick.front()))
 		return false;
 	if (nick.find_first_not_of("abcdefghijklmnopqrstuvwxyz"
 							   "ABCDEFGHIJKLMNOPQRSTUVWXYZ"

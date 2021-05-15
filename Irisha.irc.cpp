@@ -58,11 +58,9 @@ void Irisha::JOIN(const Command& cmd, const int sock)
         if (arr_channel[i][0] == '#' || arr_channel[i][0] == '&'){
             //send_msg(sock, "", ":localhost 332 Dmitriy " + arr_channel[i] +" :Hello");
             Channel* channel = new Channel(arr_channel[i]);
-            std::cout << arr_channel[i] << std::endl;
-            send_msg(sock, "", ":Dmitriy JOIN " + arr_channel[i]);
-            send_msg(sock, domain_, "353 Dmitriy = " + arr_channel[i] +" :@Dmitriy");
-            send_msg(sock, domain_, "366 Dmitriy " + arr_channel[i] +" :End of NAMES list");
+            send_msg(sock, "", ":Guest52 JOIN " + arr_channel[i]);
+            send_msg(sock, domain_, "353 Guest52 = " + arr_channel[i] +" :@Guest52");
+            send_msg(sock, domain_, "366 Guest52 " + arr_channel[i] +" :End of NAMES list");
         }
     }
-
 }

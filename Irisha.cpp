@@ -6,7 +6,8 @@
 #include "User.hpp"
 #include "utils.hpp"
 #include "parser.hpp"
-
+#include <stdio.h>
+#include <string.h>
 #include <thread>     //! TODO: REMOVE ///////////////////////////////////////////////////////////////////////////////////////////
 #include <list>
 
@@ -52,10 +53,9 @@ Irisha::Irisha(const std::string& host_name, int network_port, const std::string
 	struct hostent	*host = gethostbyname(host_name.c_str());
 	if (host == nullptr) throw std::runtime_error("No such host");
 
-	bcopy(static_cast<char *>(host->h_addr)
-			, reinterpret_cast<char *>(&server_address.sin_addr.s_addr)
+	memcpy(reinterpret_cast<char *>(&server_address.sin_addr.s_addr)
+			, static_cast<char *>(host->h_addr)
 			, host->h_length);
-
 	int c = ::connect(speaker, reinterpret_cast<struct sockaddr *>(&server_address), sizeof(server_address));
 	if (c < 0) throw std::runtime_error("Connection error");
 	std::cout << "Connection established! " << "🔥" << "\n" << std::endl;
@@ -158,7 +158,7 @@ void Irisha::loop()
 	std::list<Irisha::RegForm> reg_expect;	//not registered connections
     std::deque<std::string> arr_msg;		// array messages, not /r/n
 
-	signal(SIGPIPE, SIG_IGN);
+//	signal(SIGPIPE, SIG_IGN);
 	std::thread	sender(sending_loop, this); //! TODO: REMOVE ////////////////////////////////////////////////////////////////////////////////////////////
 	while (true)
 	{
