@@ -149,7 +149,7 @@ void Server::loop()
 	std::string	client_msg;
     std::deque<std::string> arr_msg;
 
-	signal(SIGPIPE, SIG_IGN);
+	//signal(SIGPIPE, SIG_IGN);
 	std::thread	sender(sending_loop, this); //! TODO: REMOVE ////////////////////////////////////////////////////////////////////////////////////////////
 	while (true)
 	{
@@ -172,10 +172,10 @@ void Server::loop()
                         parse_msg(arr_msg[0], &this->msg_struct_);
                         arr_msg.pop_front();
                     }
-                    if (client_msg.find("NICK") == 0)
-                    {
-                        send_msg(4, ":127.0.0.1 001 Goodluck :⭐ Welcome to Irisha server! ⭐");
-                    }
+                    // if (client_msg.find("NICK") == 0)
+                    // {
+                    //     send_msg(4, ":127.0.0.1 001 Goodluck :⭐ Welcome to Irisha server! ⭐");
+                    // }
 					if (client_msg != "\n")
 						std::cout << "[" BLUE "Client №" << i << CLR "] " + client_msg << std::flush;
 				}

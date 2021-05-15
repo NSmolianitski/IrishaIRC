@@ -1,4 +1,5 @@
 //#include "Server.hpp"
+#include <cstring>
 #include "parser.hpp"
 #include "utils.hpp"
 
@@ -22,10 +23,22 @@ void 	parse_msg(const std::string& msg, t_msg *msgStruct)
      	msgStruct->command.append(array[0]);
      	std::cout << "COMMAND = " << msgStruct->command << std::endl;
      	array.pop_front();
-     	while (array.size() > 0) {
+     	while (!array.empty()) {
+     		if (array[0][0] == ':')
+     			break;
      		msgStruct->param.push_back(array[0]);
      		array.pop_front();
      	}
+     	s.clear();
+     	while (!array.empty())
+		{
+     		if (!s.empty())
+     			s.append(" ");
+     		s.append(array[0]);
+			array.pop_front();
+		}
+     	if (!s.empty())
+			msgStruct->param.push_back(s);
      	std::vector<std::string>::iterator itr = msgStruct->param.begin();
      	std::cout << "PARAMS = ";
      	while (itr != msgStruct->param.end()) {
@@ -40,7 +53,6 @@ void parse_arr_msg(std::deque<std::string> *arr_msg, const std::string& client_m
 {
     std::string s;
     std::istringstream is(client_msg);
-
 
     while (std::getline(is, s, '\r'))
         arr_msg->push_back(s);
