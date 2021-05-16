@@ -19,7 +19,7 @@ Irisha::Irisha(int port)
 	init(port);
 	launch();
 	print_info();
-	std::cout << BOLD WHITE "\n⭐ Server started. Waiting for the client connection. ⭐\n" CLR << std::endl;
+	std::cout << BOLD BWHITE "\n⭐ Server started. Waiting for the client connection. ⭐\n" CLR << std::endl;
 }
 
 Irisha::Irisha(int port, const std::string& password)
@@ -28,7 +28,7 @@ Irisha::Irisha(int port, const std::string& password)
 	password_ = password;
 	launch();
 	print_info();
-	std::cout << BOLD WHITE "\n⭐ Server started. Waiting for the client connection. ⭐\n" CLR << std::endl;
+	std::cout << BOLD BWHITE "\n⭐ Server started. Waiting for the client connection. ⭐\n" CLR << std::endl;
 }
 
 Irisha::Irisha(const std::string& host_name, int network_port, const std::string& network_password,
@@ -61,7 +61,7 @@ Irisha::Irisha(const std::string& host_name, int network_port, const std::string
 	if (c < 0) throw std::runtime_error("Connection error");
 	std::cout << "Connection established! " << "🔥" << "\n" << std::endl;
 	print_info();
-	std::cout << BOLD WHITE "\n⭐ Server started. Waiting for the client connection. ⭐\n" CLR << std::endl;
+	std::cout << BOLD BWHITE "\n⭐ Server started. Waiting for the client connection. ⭐\n" CLR << std::endl;
 
 	//registration
 	send_msg(speaker, NO_PREFIX, createPASSmsg(network_password));
@@ -185,19 +185,19 @@ void Irisha::loop()
                     while (!arr_msg.empty())
                     {
                         parse_msg(arr_msg[0], cmd_);
-						std::cout << "[" BLUE "Client №" << i << CLR "] " + arr_msg[0] << std::endl;
+						print_cmd(PM_LINE, i);
 						arr_msg.pop_front();
-						std::list<RegForm*>::iterator it = expecting_registration(i, reg_expect);	//is this connection waiting for registration?
-						if (it != reg_expect.end())														//yes, register it
-						{
-							if (register_connection(it) == CMD_SUCCESS)
-							{
-								RegForm* rf = *it;
-								reg_expect.erase(it);
-								delete rf;
-							}
-						}
-						else
+//						std::list<RegForm*>::iterator it = expecting_registration(i, reg_expect);	//is this connection waiting for registration?
+//						if (it != reg_expect.end())														//yes, register it
+//						{
+//							if (register_connection(it) == CMD_SUCCESS)
+//							{
+//								RegForm* rf = *it;
+//								reg_expect.erase(it);
+//								delete rf;
+//							}
+//						}
+//						else
 							handle_command(i);															//no, handle not registration command
                     }
 				}

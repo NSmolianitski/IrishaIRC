@@ -118,12 +118,23 @@ public:
 		   int port, const std::string& password);
 	~Irisha();
 
-	void		loop		();
+	void	loop();
 
-	friend void	sending_loop(const Irisha* server); //! TODO: REMOVE //////////////////////////////////////
+	/// ‼️ ⚠️ DEVELOPMENT UTILS (REMOVE OR COMMENT WHEN PROJECT IS READY) ⚠️ ‼️ //! TODO: DEV -> REMOVE ///
+	enum PrintMode
+	{
+		PM_LINE,
+		PM_LIST,
+		PM_ALL
+	};
+
+	friend void	sending_loop(const Irisha* server);
+	void		print_cmd	(PrintMode mode, const int sock) const;
+	/// ‼️ ⚠️ END OF DEVELOPMENT UTILS ⚠️ ‼️ //! TODO: DEV -> REMOVE //////////////////////////////////////
 };
 
-void sending_loop(const Irisha* server); //! TODO: REMOVE //////////////////////////////////////
-
+/// ‼️ ⚠️ DEVELOPMENT UTILS (REMOVE OR COMMENT WHEN PROJECT IS READY) ⚠️ ‼️ //! TODO: DEV -> REMOVE ///////
+void sending_loop(const Irisha* server);
+/// ‼️ ⚠️ END OF DEVELOPMENT UTILS ⚠️ ‼️ //! TODO: DEV -> REMOVE //////////////////////////////////////////
 
 #endif //FT_IRC_IRISHA_HPP

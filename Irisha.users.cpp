@@ -4,6 +4,7 @@
 
 #include "Irisha.hpp"
 #include "User.hpp"
+#include "utils.hpp"
 
 /**
  * @description	Adds user
@@ -56,7 +57,7 @@ void Irisha::print_user_list()
 		if (it->second->type() == T_CLIENT)
 		{
 			user = static_cast<User*>(it->second);
-			std::cout << "Connected users:\n" << user->nick() << std::endl;
+			std::cout << "[" PURPLE "CONNECTED USERS" CLR "] " BWHITE ITALIC << user->nick() << " " CLR << std::endl;
 		}
 	}
 }

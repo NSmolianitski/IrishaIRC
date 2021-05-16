@@ -51,27 +51,6 @@ void Irisha::send_msg(int sock, const std::string& prefix, const std::string& ms
 }
 
 /**
- * @description	Sends a message from input
- * @param		sock: receiver socket
- */
-void Irisha::send_input_msg(int sock) const
-{
-	std::string input;
-	getline(std::cin, input);
-	if (input == "/exit" || input == "/EXIT")
-	{
-		std::cout << ITALIC PURPLE "Server shutdown." CLR << std::endl;
-		exit(0);
-	}
-
-	std::string message = ":" + domain_ + " " + input;
-	message.append("\r\n");
-
-	ssize_t n = send(sock, message.c_str(), message.length(), 0);
-	if (n == -1) throw std::runtime_error("Send error");
-}
-
-/**
  * @description	Calls IRC command if it exists
  * @param		sock
  */
@@ -84,8 +63,13 @@ void Irisha::handle_command(int sock)
 		send_msg(sock, domain_, ":No such command, my friend"); //! TODO: change to error reply (421, "<command> :Unknown command")
 }
 
+/// ‼️ ⚠️ DEVELOPMENT UTILS (REMOVE OR COMMENT WHEN PROJECT IS READY) ⚠️ ‼️ //! TODO: DEV -> REMOVE /////////////////////
 #define GUEST52 "Guest52" //! TODO: REMOVE
-void sending_loop(const Irisha* server) //! TODO: REMOVE ///////////////////thread loop///////////////////////////////////////////////////////////////
+/**
+ * @description	Thread loop for sending custom messages for all connections
+ * @param		server: current server
+ */
+void sending_loop(const Irisha* server)
 {
 	std::string serv_prefix = ":" + server->domain_ + " ";
 	std::string input, message;
@@ -118,4 +102,53 @@ void sending_loop(const Irisha* server) //! TODO: REMOVE ///////////////////thre
 		}
 	}
 }
-//! TODO: REMOVE //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * @description	Prints command structure (has three modes: PM_LINE, PM_LIST and PM_ALL(both))
+ */
+void Irisha::print_cmd(PrintMode mode, const int sock) const
+{
+	if (mode == PM_ALL)
+	{
+		print_cmd(PM_LINE, sock);
+		print_cmd(PM_LIST, sock);
+		return;
+	}
+	if (mode == PM_LIST)
+		std::cout << BWHITE "COMMAND: " YELLOW ITALIC + cmd_.command_ << CLR "\n";
+	else
+	{
+		std::cout << "[" BLUE "Client №" << sock << CLR "] ";
+		std::cout << YELLOW ITALIC << cmd_.command_ << CLR " ";
+	}
+
+	if (mode == PM_LIST)
+		std::cout << BWHITE "ARGUMENTS: ";
+	std::cout << CYAN ITALIC;
+
+	for (int i = 0; i < cmd_.arguments_.size(); ++i)
+		std::cout << cmd_.arguments_[i] << " ";
+	std::cout << CLR << std::endl;
+}
+
+/** (unused)
+ * @description	Sends a message from input
+ * @param		sock: receiver socket
+ */
+void Irisha::send_input_msg(int sock) const
+{
+	std::string input;
+	getline(std::cin, input);
+	if (input == "/exit" || input == "/EXIT")
+	{
+		std::cout << ITALIC PURPLE "Server shutdown." CLR << std::endl;
+		exit(0);
+	}
+
+	std::string message = ":" + domain_ + " " + input;
+	message.append("\r\n");
+
+	ssize_t n = send(sock, message.c_str(), message.length(), 0);
+	if (n == -1) throw std::runtime_error("Send error");
+}
+/// ‼️ ⚠️ END OF DEVELOPMENT UTILS ⚠️ ‼️ //! TODO: DEV -> REMOVE //////////////////////////////////////////
