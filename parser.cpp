@@ -11,30 +11,30 @@ void 	parse_msg(const std::string& msg, Command& cmd)
     std::istringstream is(msg);
     std::string s;
 
-    cmd.prefix.clear();
-    cmd.command.clear();
-    cmd.arguments.clear();
+    cmd.prefix_.clear();
+    cmd.command_.clear();
+    cmd.arguments_.clear();
     while (std::getline(is, s, ' '))
         array.push_back(s);
     if (!array.empty()) {
         if (array[0][0] == ':') {
-            cmd.prefix.append(array[0].erase(0, 1));
-            std::cout << "PREFIX = " << cmd.prefix << std::endl;
+            cmd.prefix_.append(array[0].erase(0, 1));
+            std::cout << "PREFIX = " << cmd.prefix_ << std::endl;
             array.pop_front();
         }
-        cmd.command.append(array[0]);
+        cmd.command_.append(array[0]);
 //        std::cout << "COMMAND = " << cmd.command << std::endl;
 //        array.pop_front();
 //        while (array.size() > 0) {
 //            cmd.arguments.push_back(array[0]);
 //            array.pop_front();
 //        }
-		std::cout << "COMMAND = " << cmd.command << std::endl;
+		std::cout << "COMMAND = " << cmd.command_ << std::endl;
 		array.pop_front();
 		while (!array.empty()) {
 			if (array[0][0] == ':')
 				break;
-			cmd.arguments.push_back(array[0]);
+			cmd.arguments_.push_back(array[0]);
 			array.pop_front();
 		}
 		s.clear();
@@ -46,10 +46,10 @@ void 	parse_msg(const std::string& msg, Command& cmd)
 			array.pop_front();
 		}
 		if (!s.empty())
-			cmd.arguments.push_back(s);
-        std::vector<std::string>::iterator itr = cmd.arguments.begin();
+			cmd.arguments_.push_back(s);
+        std::vector<std::string>::iterator itr = cmd.arguments_.begin();
         std::cout << "ARGUMENTS = ";
-        while (itr != cmd.arguments.end()) {
+        while (itr != cmd.arguments_.end()) {
             std::cout << *itr << ITALIC PURPLE " | " CLR;
             itr++;
         }

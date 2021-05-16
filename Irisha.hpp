@@ -11,20 +11,20 @@
 #include <map>
 #include <vector>
 #include <deque>
+#include <list>
 
 #include <unistd.h>
 #include <netinet/in.h>
-#include <list>
-
-struct Command
-{
-	std::string					prefix;
-	std::string					command;
-	std::vector<std::string>	arguments;
-};
 
 #define CONFIG_PATH "irisha.conf"
 #define NO_PREFIX	""
+
+struct Command
+{
+	std::string					prefix_;
+	std::string					command_;
+	std::vector<std::string>	arguments_;
+};
 
 enum CmdResult
 {
@@ -40,12 +40,12 @@ private:
 
 	struct RegForm
 	{
-		int		fd_;
+		int		socket_;
 		bool	pass_received_;
 
-		RegForm(int fd)
+		explicit RegForm(int sock)
 		{
-			fd_ = fd;
+			socket_ = sock;
 			pass_received_ = false;
 		}
 	};

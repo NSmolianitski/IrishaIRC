@@ -25,13 +25,13 @@ void	Irisha::prepare_commands()
  */
 CmdResult	Irisha::NICK(const int sock) //! TODO: handle hopcount
 {
-	if (cmd_.arguments.empty())	// NICK command without params
+	if (cmd_.arguments_.empty())	// NICK command without params
 	{
 		send_msg(sock, domain_, ":No nickname given"); //! TODO: change to error reply
 		return CMD_FAILURE;
 	}
 
-	std::string new_nick = cmd_.arguments[0];
+	std::string new_nick = cmd_.arguments_[0];
 	std::map<int, AConnection*>::iterator it = connections_.find(sock);
 	if (it == connections_.end())	// Add new user
 	{
@@ -44,7 +44,7 @@ CmdResult	Irisha::NICK(const int sock) //! TODO: handle hopcount
 		User* user = dynamic_cast<User *>(it->second);
 		if (user == nullptr)	// If user is NOT local
 		{
-			find_user(cmd_.prefix)->set_nick(new_nick);
+			find_user(cmd_.prefix_)->set_nick(new_nick);
 			// TODO: send message to next server
 		}
 		else					// If user is local
@@ -70,9 +70,9 @@ CmdResult	Irisha::NICK(const int sock) //! TODO: handle hopcount
  */
 CmdResult Irisha::PASS(const int sock)
 {
-	if (cmd_.arguments.empty())
+	if (cmd_.arguments_.empty())
 		return CMD_FAILURE;
-	else if (password_ == cmd_.arguments[0] || !cmd_.prefix.empty())
+	else if (password_ == cmd_.arguments_[0] || !cmd_.prefix_.empty())
 		return CMD_SUCCESS;
 	else
 		return CMD_FAILURE;
@@ -88,11 +88,11 @@ CmdResult Irisha::SERVER(const int sock)
 {
 	//validation+
 	std::string info = "";
-	for (int i = 0; i < cmd_.arguments.size(); i++)
+	for (int i = 0; i < cmd_.arguments_.size(); i++)
 	{
-		if (cmd_.arguments[i].find(":") != std::string::npos)
+		if (cmd_.arguments_[i].find(":") != std::string::npos)
 		{
-			info = cmd_.arguments[i];
+			info = cmd_.arguments_[i];
 			break ;
 		}
 	}
@@ -101,20 +101,20 @@ CmdResult Irisha::SERVER(const int sock)
 	//validation-
 
 	int hopcount;
-	if (cmd_.arguments.empty())
+	if (cmd_.arguments_.empty())
 		return CMD_FAILURE;
-	if (cmd_.arguments.size() == 1) //only server name sent
+	if (cmd_.arguments_.size() == 1) //only server name sent
 		hopcount = 1;
-	else if (cmd_.arguments.size() == 2 &&
-		(cmd_.arguments[0].find_first_not_of("0123456789") == std::string::npos)) //hopcount and server name sent
+	else if (cmd_.arguments_.size() == 2 &&
+		(cmd_.arguments_[0].find_first_not_of("0123456789") == std::string::npos)) //hopcount and server name sent
 	{
-		try	{ hopcount = std::stoi(cmd_.arguments[0]); }
+		try	{ hopcount = std::stoi(cmd_.arguments_[0]); }
 		catch(std::exception ex) { return CMD_FAILURE; }
 	}
 	else
-		hopcount = std::stoi(cmd_.arguments[0]); ///TODO: remove it
+		hopcount = std::stoi(cmd_.arguments_[0]); ///TODO: remove it
 
-	AConnection* server = new Server(cmd_.arguments[0], sock, hopcount);
+	AConnection* server = new Server(cmd_.arguments_[0], sock, hopcount);
 	connections_.insert(std::pair<int, AConnection*>(sock, server));
 	PING(sock);
 	std::cout << PURPLE "Server " << (static_cast<Server*>(server))->name() << " registered!" CLR << std::endl;
@@ -123,9 +123,9 @@ CmdResult Irisha::SERVER(const int sock)
 
 CmdResult Irisha::PONG(const int sock)
 {
-	if (cmd_.arguments.empty())
+	if (cmd_.arguments_.empty())
 		return CMD_FAILURE; ///TODO: send ERR_NOORIGIN
-	else if (cmd_.arguments.size() == 1)
+	else if (cmd_.arguments_.size() == 1)
 		send_msg(sock, domain_, "PONG " + domain_);
 	//else send to receiver
 	return CMD_SUCCESS;
@@ -133,9 +133,9 @@ CmdResult Irisha::PONG(const int sock)
 
 CmdResult Irisha::PING(const int sock)
 {
-	if (cmd_.arguments.empty())
+	if (cmd_.arguments_.empty())
 		return CMD_FAILURE; ///TODO: send ERR_NOORIGIN
-	else if (cmd_.arguments.size() == 1) // PINGing this server
+	else if (cmd_.arguments_.size() == 1) // PINGing this server
 		PONG(sock);
 	//else send to receiver
 	return CMD_SUCCESS;

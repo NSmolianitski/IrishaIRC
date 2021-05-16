@@ -238,7 +238,7 @@ std::list<Irisha::RegForm*>::iterator Irisha::expecting_registration(int i, std:
 	std::list<RegForm*>::iterator it;
 	for (it = reg_expect.begin(); it != reg_expect.end(); it++)
 	{
-		if ((*it)->fd_ == i)
+		if ((*it)->socket_ == i)
 			return it;
 	}
 	return (reg_expect.end());
@@ -250,13 +250,13 @@ int			Irisha::register_connection	(std::list<Irisha::RegForm*>::iterator rf)
 {
 	if ((*rf)->pass_received_ == false)
 	{
-		if (cmd_.command == "PASS" && (PASS((*rf)->fd_) == CMD_SUCCESS))
+		if (cmd_.command_ == "PASS" && (PASS((*rf)->socket_) == CMD_SUCCESS))
 			(*rf)->pass_received_ = true;
 		return CMD_FAILURE;
 	}
 	else
 	{
-		if (cmd_.command == "SERVER" && (SERVER((*rf)->fd_) == CMD_SUCCESS))
+		if (cmd_.command_ == "SERVER" && (SERVER((*rf)->socket_) == CMD_SUCCESS))
 			return CMD_SUCCESS;
 	}
 	return 1;

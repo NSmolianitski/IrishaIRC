@@ -77,7 +77,7 @@ void Irisha::send_input_msg(int sock) const
  */
 void Irisha::handle_command(int sock)
 {
-	std::map<std::string, func>::const_iterator it = commands_.find(cmd_.command);
+	std::map<std::string, func>::const_iterator it = commands_.find(cmd_.command_);
 	if (it != commands_.end())	// Execute command
 		((*this).*it->second)(sock);
 	else
