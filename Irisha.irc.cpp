@@ -20,9 +20,8 @@ void	Irisha::prepare_commands()
 }
 
 /**
- * @description	handles NICK command
- * @param cmd: Command structure
- * @param socket: command sender
+ * @description	Handles NICK command
+ * @param		sock: command sender socket
  */
 CmdResult	Irisha::NICK(const int sock) //! TODO: handle hopcount
 {
@@ -64,10 +63,10 @@ CmdResult	Irisha::NICK(const int sock) //! TODO: handle hopcount
 }
 
 /**
- * Handling PASS message
- * @param fd - socket
- * @param cmd - parsed message
- * @return 0 if password correct, else 1
+ * @description	Handling PASS message
+ * @param		sock: command sender socket
+ * @param		cmd: parsed message
+ * @return		CMD_SUCCESS if password correct, else CMD_FAILURE
  */
 CmdResult Irisha::PASS(const int sock)
 {
@@ -80,10 +79,10 @@ CmdResult Irisha::PASS(const int sock)
 }
 
 /**
- *Handling SERVER message
- * @param fd - socket
- * @param cmd - parsed message
- * @return 0 if registration successfully, else 1
+ * @description	Handling SERVER message
+ * @param		sock: command sender socket
+ * @param		cmd: parsed message
+ * @return		CMD_FAILURE if registration successfully, else CMD_FAILURE
  */
 CmdResult Irisha::SERVER(const int sock)
 {

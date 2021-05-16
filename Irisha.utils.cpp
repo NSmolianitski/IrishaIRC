@@ -7,16 +7,16 @@
 
 /**
  * @description	Receives a message from socket
- * @param		socket
+ * @param		socket: sender socket
  * @return		message received from socket
  */
-std::string Irisha::get_msg(int client_socket)
+std::string Irisha::get_msg(int sock)
 {
-	int read_bytes = recv(client_socket, &buff_, 510, 0);
+	int read_bytes = recv(sock, &buff_, 510, 0);
 	if (read_bytes < 0) throw std::runtime_error("Recv error in get_msg()");
 
 	if (read_bytes == 0)
-		handle_disconnection(client_socket);
+		handle_disconnection(sock);
 	buff_[read_bytes] = '\0';
 	return (buff_);
 }
@@ -33,7 +33,7 @@ void Irisha::print_info() const
 
 /**
  * @description	Sends a message to socket
- * @param		sock: socket
+ * @param		sock: receiver socket
  * @param		msg: message
  */
 void Irisha::send_msg(int sock, const std::string& prefix, const std::string& msg) const
@@ -52,7 +52,7 @@ void Irisha::send_msg(int sock, const std::string& prefix, const std::string& ms
 
 /**
  * @description	Sends a message from input
- * @param		sock: socket
+ * @param		sock: receiver socket
  */
 void Irisha::send_input_msg(int sock) const
 {
