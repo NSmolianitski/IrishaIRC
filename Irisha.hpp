@@ -6,6 +6,7 @@
 #define FT_IRC_IRISHA_HPP
 
 #include "AConnection.hpp"
+#include "User.hpp"
 
 #include <iostream>
 #include <map>
@@ -32,12 +33,9 @@ enum CmdResult
 	CMD_FAILURE
 };
 
-class User;
-
 class Irisha
 {
 private:
-
 	struct RegForm
 	{
 		int		socket_;
@@ -70,11 +68,16 @@ private:
 	std::list<Irisha::RegForm*>::iterator	expecting_registration(int i, std::list<RegForm*>& reg_expect);
 	int										register_connection	(std::list<RegForm*>::iterator rf);
 
+	/// Useful typedefs
+	typedef std::map<int, AConnection*>::iterator		con_it;
+	typedef std::map<int, AConnection*>::const_iterator	con_const_it;
+
 	/// Initialization
 	void		prepare_commands	();
 	void		launch				();
 	void 		init				(int port);
 	void		apply_config		(const std::string& path);
+	void		loop				();
 
 	/// Connections
 	int			accept_connection	();
@@ -85,6 +88,7 @@ private:
 	void		add_user			(int sock, const std::string& nick);
 	void		remove_user			(const std::string& nick);
 	User*		find_user			(const std::string& nick) const;
+	User*		find_user			(const int sock) const;
 	void		print_user_list		(); //! TODO: remove
 
 	/// Servers
@@ -96,15 +100,17 @@ private:
 	std::string get_msg				(int sock);
 	void		print_info			() const;
 
-	/// IRC Commands
+	/// IRC commands
 	CmdResult	NICK	(const int sock);
 	CmdResult	PASS	(const int sock);
 	CmdResult	SERVER	(const int sock);
 	CmdResult	PING	(const int sock);
 	CmdResult	PONG	(const int sock);
 
-	std::string	createPASSmsg		(std::string password);
-	std::string	createSERVERmsg		();
+	/// IRC commands utils
+	CmdResult	change_nick		(User* connection, const int sock, const std::string& new_nick);
+	std::string	createPASSmsg	(std::string password);
+	std::string	createSERVERmsg	();
 
 	/// Unused constructors
 	Irisha() {};
@@ -118,7 +124,6 @@ public:
 		   int port, const std::string& password);
 	~Irisha();
 
-	void	loop();
 
 	/// ‼️ ⚠️ DEVELOPMENT UTILS (REMOVE OR COMMENT WHEN PROJECT IS READY) ⚠️ ‼️ //! TODO: DEV -> REMOVE ///
 	enum PrintMode

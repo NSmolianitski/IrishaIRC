@@ -20,6 +20,43 @@ void	Irisha::prepare_commands()
 }
 
 /**
+ * @description	Changes user nick if it's not busy
+ * @param		connection: User or Server
+ * @param		sock: socket
+ * @param		new_nick: desired nickname
+ * @return		CMD_SUCCESS or CMD_FAILURE
+ */
+CmdResult	Irisha::change_nick(User* connection, const int sock, const std::string& new_nick)
+{
+	User*		user;
+	std::string	old_nick;
+	if (connection == nullptr)		// If user is NOT local
+	{
+		user = find_user(cmd_.prefix_);
+		old_nick = user->nick();
+		user->set_nick(new_nick);
+		// TODO: send message to next server
+	}
+	else						// If user is local
+	{
+		user = find_user(new_nick);
+		old_nick = connection->nick();
+		if (old_nick == new_nick)
+			return CMD_SUCCESS;
+		if (user)
+		{
+			send_msg(sock, domain_, new_nick + " :Nickname is already in use"); //! TODO: change to error reply
+			return CMD_FAILURE;
+		}
+		send_msg(sock, connection->nick(), "NICK " + new_nick); //! TODO: check prefix
+		connection->set_nick(new_nick);
+	}
+	std::cout << ITALIC PURPLE "User " BWHITE + old_nick + PURPLE " changed nick to " BWHITE
+				 + new_nick << " " E_GEAR CLR << std::endl;
+	return CMD_SUCCESS;
+}
+
+/**
  * @description	Handles NICK command
  * @param		sock: command sender socket
  */
@@ -30,33 +67,20 @@ CmdResult	Irisha::NICK(const int sock) //! TODO: handle hopcount
 		send_msg(sock, domain_, ":No nickname given"); //! TODO: change to error reply
 		return CMD_FAILURE;
 	}
-
 	std::string new_nick = cmd_.arguments_[0];
-	std::map<int, AConnection*>::iterator it = connections_.find(sock);
-	if (it == connections_.end())	// Add new user
+	if (!is_a_valid_nick(new_nick))
 	{
-		if (!is_a_valid_nick(new_nick))
-			send_msg(sock, domain_, new_nick + " :Erroneous nickname"); //! TODO: change to error reply
-		add_user(sock, new_nick);
+		send_msg(sock, domain_, "432 :" + new_nick + " :Erroneous nickname"); //! TODO: change to error reply
+		return CMD_FAILURE;
 	}
+
+	con_it it = connections_.find(sock);
+	if (it == connections_.end())	// Add new user
+		add_user(sock, new_nick);
 	else							// Change nickname
 	{
-		User* user = dynamic_cast<User *>(it->second);
-		if (user == nullptr)	// If user is NOT local
-		{
-			find_user(cmd_.prefix_)->set_nick(new_nick);
-			// TODO: send message to next server
-		}
-		else					// If user is local
-		{
-			if (find_user(new_nick))
-			{
-				send_msg(sock, domain_, new_nick + " :Nickname is already in use"); //! TODO: change to error reply
-				return CMD_FAILURE;
-			}
-			send_msg(sock, user->nick(), "NICK " + new_nick); //! TODO: check prefix
-			user->set_nick(new_nick);
-		}
+		User*	connection = dynamic_cast<User *>(it->second);
+		return change_nick(connection, sock, new_nick);
 	}
 	print_user_list(); //! TODO: remove
 	return CMD_SUCCESS;
@@ -90,7 +114,7 @@ CmdResult Irisha::SERVER(const int sock)
 	std::string info = "";
 	for (int i = 0; i < cmd_.arguments_.size(); i++)
 	{
-		if (cmd_.arguments_[i].find(":") != std::string::npos)
+		if (cmd_.arguments_[i].find(':') != std::string::npos)
 		{
 			info = cmd_.arguments_[i];
 			break ;

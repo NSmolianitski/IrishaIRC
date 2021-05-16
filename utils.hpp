@@ -29,6 +29,12 @@
 #define ITALIC	"\033[3m"
 #define UND		"\033[4m"
 
+/// Emojis
+#define E_SPEECH	"\U0001F4AC"
+#define E_MAN		"\U0001F468"
+#define E_PAGER		"\U0001F4DF"
+#define E_GEAR		"⚙"
+
 #define DOMAIN	"server-domain"
 //#define PASS	"server-password"
 

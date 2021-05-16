@@ -5,6 +5,8 @@
 #include "Irisha.hpp"
 #include "utils.hpp"
 
+#include <sstream>
+
 /**
  * @description	Receives a message from socket
  * @param		socket: sender socket
@@ -43,9 +45,10 @@ void Irisha::send_msg(int sock, const std::string& prefix, const std::string& ms
 		message = ":" + prefix + " " + msg;
 	else
 		message = msg;
+
+	std::cout << message + " " E_SPEECH PURPLE ITALIC " to socket №" << sock << CLR << std::endl;
 	message.append("\r\n");
 
-//	std::cout << message << std::endl;
 	ssize_t n = send(sock, message.c_str(), message.length(), 0);
 	if (n == -1) throw std::runtime_error("Send error");
 }
@@ -65,6 +68,7 @@ void Irisha::handle_command(int sock)
 
 /// ‼️ ⚠️ DEVELOPMENT UTILS (REMOVE OR COMMENT WHEN PROJECT IS READY) ⚠️ ‼️ //! TODO: DEV -> REMOVE /////////////////////
 #define GUEST52 "Guest52" //! TODO: REMOVE
+
 /**
  * @description	Thread loop for sending custom messages for all connections
  * @param		server: current server
@@ -72,10 +76,12 @@ void Irisha::handle_command(int sock)
 void sending_loop(const Irisha* server)
 {
 	std::string serv_prefix = ":" + server->domain_ + " ";
-	std::string input, message;
+	std::string input;
 	while (true)
 	{
 		getline(std::cin, input);
+		if (input == "/exit" || input == "/EXIT")
+			exit(0);
 		if (input[0] == '!' && input[1] == ' ') // Change ! to domain name
 			input = input.replace(0, 2, serv_prefix);
 		else if (input[0] == 'W' && input[1] == ' ')
@@ -87,18 +93,10 @@ void sending_loop(const Irisha* server)
 		{
 			input = serv_prefix + "001 " + GUEST52 + " ⭐ Welcome to Irisha server! ⭐";
 		}
-		input.append("\r\n");
-		message = input;
 		for (int i = 3; i < server->max_fd_ + 1; ++i)
 		{
 			if (FD_ISSET(i, &server->all_fds_) && i != server->listener_)
-			{
-				int send_bytes = send(i, message.c_str(), message.length(), 0);
-				if (send_bytes < 0) throw std::runtime_error("Send error in send_msg()");
-				message.pop_back();
-				message.pop_back();
-				std::cout << PURPLE ITALIC "Message \"" + message + "\" sent to socket №" << i << CLR << std::endl;
-			}
+				server->send_msg(i, NO_PREFIX, input);
 		}
 	}
 }
@@ -114,11 +112,18 @@ void Irisha::print_cmd(PrintMode mode, const int sock) const
 		print_cmd(PM_LIST, sock);
 		return;
 	}
+
+	std::stringstream	sender;
+	User*				user = find_user(sock);
+	if (user)	// If user exists
+		sender << user->nick();
+	else
+		sender << "Connection №" << sock;
 	if (mode == PM_LIST)
 		std::cout << BWHITE "COMMAND: " YELLOW ITALIC + cmd_.command_ << CLR "\n";
 	else
 	{
-		std::cout << "[" BLUE "Client №" << sock << CLR "] ";
+		std::cout << "[" BLUE << sender.str() << CLR "] ";
 		std::cout << YELLOW ITALIC << cmd_.command_ << CLR " ";
 	}
 

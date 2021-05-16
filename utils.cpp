@@ -95,11 +95,15 @@ void	check_config(const std::string& path)
  */
 bool is_a_valid_nick(const std::string& nick)
 {
-	if (nick.empty() || nick.size() > 9 || isnumber(nick.front()))
+	static const std::string letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	static const std::string numbers = "01234567890";
+	static const std::string special = "_[]\\`^{|}-";
+
+	if (nick.empty() || nick.size() > 9 || !isalpha(nick.front()))
 		return false;
-	if (nick.find_first_not_of("abcdefghijklmnopqrstuvwxyz"
-							   "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-							   "01234567890_[]\\`^{|}-") != std::string::npos)
+
+	std::string allowed_symbols = letters + numbers + special;
+	if (nick.find_first_not_of(allowed_symbols) != std::string::npos)
 		return false;
 	return true;
 }

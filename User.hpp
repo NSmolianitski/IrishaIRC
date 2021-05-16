@@ -6,7 +6,6 @@
 #define FT_IRC_USER_HPP
 
 #include "AConnection.hpp"
-#include "Irisha.hpp"
 
 #include <string>
 

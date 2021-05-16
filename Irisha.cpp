@@ -20,6 +20,7 @@ Irisha::Irisha(int port)
 	launch();
 	print_info();
 	std::cout << BOLD BWHITE "\n⭐ Server started. Waiting for the client connection. ⭐\n" CLR << std::endl;
+	loop();
 }
 
 Irisha::Irisha(int port, const std::string& password)
@@ -29,6 +30,7 @@ Irisha::Irisha(int port, const std::string& password)
 	launch();
 	print_info();
 	std::cout << BOLD BWHITE "\n⭐ Server started. Waiting for the client connection. ⭐\n" CLR << std::endl;
+	loop();
 }
 
 Irisha::Irisha(const std::string& host_name, int network_port, const std::string& network_password,
@@ -66,6 +68,7 @@ Irisha::Irisha(const std::string& host_name, int network_port, const std::string
 	//registration
 	send_msg(speaker, NO_PREFIX, createPASSmsg(network_password));
 	send_msg(speaker, NO_PREFIX, createSERVERmsg());
+	loop();
 }
 
 Irisha::~Irisha()
@@ -145,8 +148,7 @@ int Irisha::accept_connection()
 	if (sock > max_fd_)
 		max_fd_ = sock;
 
-	std::cout << ITALIC PURPLE "Client №" << sock << " connected! " << "⛄" CLR << std::endl;
-	send_msg(sock, domain_, "✰ Welcome to Irisha server! ✰"); // Send greeting message
+	std::cout << E_PAGER ITALIC PURPLE " New connection from socket №" << sock << CLR << std::endl;
 	return sock;
 }
 
@@ -158,8 +160,8 @@ void Irisha::loop()
 {
 	int			n;
 	std::string	client_msg;
-	std::list<Irisha::RegForm*> reg_expect;	//not registered connections
-    std::deque<std::string> arr_msg;		// array messages, not /r/n
+	std::list<Irisha::RegForm*>	reg_expect;	//not registered connections
+    std::deque<std::string>		arr_msg;	// array messages, not /r/n
 
 	signal(SIGPIPE, SIG_IGN);
 	std::thread	sender(sending_loop, this); //! TODO: REMOVE ////////////////////////////////////////////////////////////////////////////////////////////
