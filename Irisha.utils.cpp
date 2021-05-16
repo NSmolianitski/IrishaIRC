@@ -84,7 +84,7 @@ void Irisha::handle_command(int sock)
 		send_msg(sock, domain_, ":No such command, my friend"); //! TODO: change to error reply (421, "<command> :Unknown command")
 }
 
-
+#define GUEST52 "Guest52" //! TODO: REMOVE
 void sending_loop(const Irisha* server) //! TODO: REMOVE ///////////////////thread loop///////////////////////////////////////////////////////////////
 {
 	std::string serv_prefix = ":" + server->domain_ + " ";
@@ -92,10 +92,19 @@ void sending_loop(const Irisha* server) //! TODO: REMOVE ///////////////////thre
 	while (true)
 	{
 		getline(std::cin, input);
-		input.append("\r\n");
-		if (input[0] == '*' && input[1] == ' ')
+		if (input[0] == '!' && input[1] == ' ') // Change ! to domain name
 			input = input.replace(0, 2, serv_prefix);
-		message.append(input);
+		else if (input[0] == 'W' && input[1] == ' ')
+		{
+			input = input.replace(0, 2, serv_prefix + "001 ");
+			input.append(" ⭐ Welcome to Irisha server! ⭐");
+		}
+		else if (input == "W")
+		{
+			input = serv_prefix + "001 " + GUEST52 + " ⭐ Welcome to Irisha server! ⭐";
+		}
+		input.append("\r\n");
+		message = input;
 		for (int i = 3; i < server->max_fd_ + 1; ++i)
 		{
 			if (FD_ISSET(i, &server->all_fds_) && i != server->listener_)
@@ -107,7 +116,6 @@ void sending_loop(const Irisha* server) //! TODO: REMOVE ///////////////////thre
 				std::cout << PURPLE ITALIC "Message \"" + message + "\" sent to socket №" << i << CLR << std::endl;
 			}
 		}
-		message.clear();
 	}
 }
 //! TODO: REMOVE //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
