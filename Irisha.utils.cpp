@@ -193,8 +193,6 @@ void Irisha::print_user_list() const
 			user = static_cast<User*>(it->second);
 			std::cout << user->nick() << " ";
 		}
-		else
-			std::cout << "!" << user->type() << "!";
 	}
 	std::cout << CLR << std::endl;
 }
