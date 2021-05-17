@@ -39,6 +39,11 @@
 #define E_LAPTOP	"💻"
 #define E_ALIEN		"👽"
 
+enum eUtils
+{
+	U_EXTERNAL_USER = -1
+};
+
 #define DOMAIN	"server-domain"
 //#define PASS	"server-password"
 

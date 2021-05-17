@@ -58,7 +58,7 @@ void Irisha::send_msg(int sock, const std::string& prefix, const std::string& ms
  * @param		prefix: sender
  * @param		msg: message
  */
-void Irisha::send_msg_to_servers(const std::string& prefix, const std::string& msg) const
+void Irisha::send_servers(const std::string& prefix, const std::string& msg) const
 {
 	con_const_it	it = connections_.begin();
 	for (; it != connections_.end(); ++it)
@@ -73,7 +73,7 @@ void Irisha::send_msg_to_servers(const std::string& prefix, const std::string& m
  * @param		prefix: sender
  * @param		msg: message
  */
-void Irisha::send_msg_to_everyone(const std::string& prefix, const std::string& msg) const
+void Irisha::send_everyone(const std::string& prefix, const std::string& msg) const
 {
 	con_const_it	it = connections_.begin();
 	for (; it != connections_.end(); ++it)
@@ -136,7 +136,7 @@ void sending_loop(const Irisha* server)
 /**
  * @description	Prints command structure (has three modes: PM_LINE, PM_LIST and PM_ALL(both))
  */
-void Irisha::print_cmd(PrintMode mode, const int sock) const
+void Irisha::print_cmd(ePrintMode mode, const int sock) const
 {
 	if (mode == PM_ALL)
 	{

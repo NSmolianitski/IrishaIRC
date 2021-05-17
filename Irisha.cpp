@@ -192,17 +192,17 @@ void Irisha::loop()
 						std::list<RegForm*>::iterator it = expecting_registration(i, reg_expect);	//is this connection waiting for registration?
 						if (it != reg_expect.end())														//yes, register it
 						{
-							if (register_connection(it) == CMD_SUCCESS)
+							if (register_connection(it) == R_SUCCESS)
 							{
 								RegForm* rf = *it;
 								reg_expect.erase(it);
 								delete rf;
 							}
 							else
-								handle_command(i);														//no, handle not registration command
+								handle_command(i);														//no, handle not registration command TODO: handle_command two times? 🤔
 						}
 						else
-							handle_command(i);
+							handle_command(i);															//no, handle not registration command TODO: handle_command two times? 🤔
 					}
 				}
 			}
@@ -254,14 +254,14 @@ int			Irisha::register_connection	(std::list<Irisha::RegForm*>::iterator rf)
 {
 	if ((*rf)->pass_received_ == false)
 	{
-		if (cmd_.command_ == "PASS" && (PASS((*rf)->socket_) == CMD_SUCCESS))
+		if (cmd_.command_ == "PASS" && (PASS((*rf)->socket_) == R_SUCCESS))
 			(*rf)->pass_received_ = true;
-		return CMD_FAILURE;
+		return R_FAILURE;
 	}
 	else
 	{
-		if (cmd_.command_ == "SERVER" && (SERVER((*rf)->socket_) == CMD_SUCCESS))
-			return CMD_SUCCESS;
+		if (cmd_.command_ == "SERVER" && (SERVER((*rf)->socket_) == R_SUCCESS))
+			return R_SUCCESS;
 	}
 	return 1;
 }
