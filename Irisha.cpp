@@ -190,19 +190,21 @@ void Irisha::loop()
                         parse_msg(arr_msg[0], cmd_);
 						print_cmd(PM_LINE, i);
 						arr_msg.pop_front();
-//						std::list<RegForm*>::iterator it = expecting_registration(i, reg_expect);	//is this connection waiting for registration?
-//						if (it != reg_expect.end())														//yes, register it
-//						{
-//							if (register_connection(it) == CMD_SUCCESS)
-//							{
-//								RegForm* rf = *it;
-//								reg_expect.erase(it);
-//								delete rf;
-//							}
-//						}
-//						else
-							handle_command(i);															//no, handle not registration command
-                    }
+						std::list<RegForm*>::iterator it = expecting_registration(i, reg_expect);	//is this connection waiting for registration?
+						if (it != reg_expect.end())														//yes, register it
+						{
+							if (register_connection(it) == CMD_SUCCESS)
+							{
+								RegForm* rf = *it;
+								reg_expect.erase(it);
+								delete rf;
+							}
+							else
+								handle_command(i);														//no, handle not registration command
+						}
+						else
+							handle_command(i);
+					}
 				}
 			}
 		}
@@ -305,4 +307,7 @@ std::string Irisha::createSERVERmsg()	///TODO: choose servername smarter
  *
  * :amy PRIVMSG #channel :message
  * :amy PRIVMSG Guest52 Guest50 Guest51 #shell :message
+ *
+ * PASS secret 0210 Irisha|
+ * SERVER pig.irisha.net :Irisha server
  */
