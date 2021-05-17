@@ -6,7 +6,6 @@
 #define FT_IRC_USER_HPP
 
 #include "AConnection.hpp"
-#include "Irisha.hpp"
 
 #include <string>
 
@@ -29,7 +28,7 @@ private:
 	User& operator= (const User& other) { return *this; };
 
 public:
-	User(int socket, const std::string& server, const std::string& nick);
+	User(int sock, const std::string& server, const std::string& nick);
 	~User();
 
 	void	set_nick		(const std::string& nick);

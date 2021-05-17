@@ -5,6 +5,7 @@
 #include "Irisha.hpp"
 #include "User.hpp"
 #include "utils.hpp"
+#include "Server.hpp"
 #include "parser.hpp"
 #include <stdio.h>
 #include <string.h>
@@ -19,7 +20,8 @@ Irisha::Irisha(int port)
 	init(port);
 	launch();
 	print_info();
-	std::cout << BOLD WHITE "\n⭐ Server started. Waiting for the client connection. ⭐\n" CLR << std::endl;
+	std::cout << BOLD BWHITE "\n⭐ Server started. Waiting for the client connection. ⭐\n" CLR << std::endl;
+	loop();
 }
 
 Irisha::Irisha(int port, const std::string& password)
@@ -28,7 +30,8 @@ Irisha::Irisha(int port, const std::string& password)
 	password_ = password;
 	launch();
 	print_info();
-	std::cout << BOLD WHITE "\n⭐ Server started. Waiting for the client connection. ⭐\n" CLR << std::endl;
+	std::cout << BOLD BWHITE "\n⭐ Server started. Waiting for the client connection. ⭐\n" CLR << std::endl;
+	loop();
 }
 
 Irisha::Irisha(const std::string& host_name, int network_port, const std::string& network_password,
@@ -53,18 +56,20 @@ Irisha::Irisha(const std::string& host_name, int network_port, const std::string
 	struct hostent	*host = gethostbyname(host_name.c_str());
 	if (host == nullptr) throw std::runtime_error("No such host");
 
-	memcpy(reinterpret_cast<char *>(&server_address.sin_addr.s_addr)
-			, static_cast<char *>(host->h_addr)
+	bcopy(static_cast<char *>(host->h_addr)
+			, reinterpret_cast<char *>(&server_address.sin_addr.s_addr)
 			, host->h_length);
+
 	int c = ::connect(speaker, reinterpret_cast<struct sockaddr *>(&server_address), sizeof(server_address));
 	if (c < 0) throw std::runtime_error("Connection error");
 	std::cout << "Connection established! " << "🔥" << "\n" << std::endl;
 	print_info();
-	std::cout << BOLD WHITE "\n⭐ Server started. Waiting for the client connection. ⭐\n" CLR << std::endl;
+	std::cout << BOLD BWHITE "\n⭐ Server started. Waiting for the client connection. ⭐\n" CLR << std::endl;
 
 	//registration
 	send_msg(speaker, NO_PREFIX, createPASSmsg(network_password));
 	send_msg(speaker, NO_PREFIX, createSERVERmsg());
+	loop();
 }
 
 Irisha::~Irisha()
@@ -80,7 +85,7 @@ void Irisha::apply_config(const std::string& path)
 {
 	check_config(path);
 	domain_		= get_config_value(path, DOMAIN);
-	password_	= get_config_value(path, PASS);
+	//password_	= get_config_value(path, PASS);
 	int	dots	= 0;
 	for (size_t i = 0; i < domain_.length(); ++i)
 	{
@@ -93,7 +98,7 @@ void Irisha::apply_config(const std::string& path)
 	}
 	if (dots < 2)
 		throw std::runtime_error("Config error: server domain must contain at least two dots.");
-	if (domain_.empty() || password_.empty())
+	if (domain_.empty())
 		throw std::runtime_error("Config error: server domain and password must not be empty.");
 }
 
@@ -114,6 +119,7 @@ void Irisha::launch()
 void Irisha::init(int port)
 {
 	apply_config(CONFIG_PATH);
+	prepare_commands();
 	listener_ = socket(PF_INET, SOCK_STREAM, 0);
 	if (listener_ == -1) throw std::runtime_error("Socket creation failed!");
 
@@ -126,25 +132,25 @@ void Irisha::init(int port)
 	address_.sin_port = htons(port);
 	address_.sin_addr.s_addr = INADDR_ANY;
 }
+
 /**
  * @description	Accepts one connection (server or client) and
  * 				sends greeting message
- * @return		connection_socket
+ * @return		connection socket
  */
 int Irisha::accept_connection()
 {
-	int client_socket = accept(listener_, nullptr, nullptr);
-		if (client_socket == -1) throw std::runtime_error("Accepting failed");
+	int sock = accept(listener_, nullptr, nullptr);
+		if (sock == -1) throw std::runtime_error("Accepting failed");
 
-	fcntl(client_socket, F_SETFL, O_NONBLOCK);
+	fcntl(sock, F_SETFL, O_NONBLOCK);
 
-	FD_SET(client_socket, &all_fds_);
-	if (client_socket > max_fd_)
-		max_fd_ = client_socket;
+	FD_SET(sock, &all_fds_);
+	if (sock > max_fd_)
+		max_fd_ = sock;
 
-	std::cout << ITALIC PURPLE "Client №" << client_socket << " connected! " << "⛄" CLR << std::endl;
-	send_msg(client_socket, domain_, "✰ Welcome to Irisha server! ✰"); // Send greeting message
-	return client_socket;
+	std::cout << E_PAGER ITALIC PURPLE " New connection from socket №" << sock << CLR << std::endl;
+	return sock;
 }
 
 /**
@@ -155,10 +161,10 @@ void Irisha::loop()
 {
 	int			n;
 	std::string	client_msg;
-	std::list<Irisha::RegForm> reg_expect;	//not registered connections
-    std::deque<std::string> arr_msg;		// array messages, not /r/n
+	std::list<Irisha::RegForm*>	reg_expect;	//not registered connections
+    std::deque<std::string>		arr_msg;	// array messages, not /r/n
 
-//	signal(SIGPIPE, SIG_IGN);
+	signal(SIGPIPE, SIG_IGN);
 	std::thread	sender(sending_loop, this); //! TODO: REMOVE ////////////////////////////////////////////////////////////////////////////////////////////
 	while (true)
 	{
@@ -172,8 +178,8 @@ void Irisha::loop()
 			{
 				if (i == listener_)
 				{
-					accept_connection();
-					reg_expect.push_back(RegForm(i));
+					int connection_fd = accept_connection();
+					reg_expect.push_back(new RegForm(connection_fd));
 				}
 				else
 				{
@@ -181,22 +187,22 @@ void Irisha::loop()
                     parse_arr_msg(arr_msg, client_msg);
                     while (!arr_msg.empty())
                     {
-                        parse_msg(arr_msg[0], this->cmd_);
-						std::cout << "[" BLUE "Client №" << i << CLR "] " + arr_msg[0] << std::endl;
-                        arr_msg.pop_front();
+                        parse_msg(arr_msg[0], cmd_);
+						print_cmd(PM_LINE, i);
+						arr_msg.pop_front();
+//						std::list<RegForm*>::iterator it = expecting_registration(i, reg_expect);	//is this connection waiting for registration?
+//						if (it != reg_expect.end())														//yes, register it
+//						{
+//							if (register_connection(it) == CMD_SUCCESS)
+//							{
+//								RegForm* rf = *it;
+//								reg_expect.erase(it);
+//								delete rf;
+//							}
+//						}
+//						else
+							handle_command(i);															//no, handle not registration command
                     }
-                    if (cmd_.command == "JOIN")
-                        JOIN(cmd_, i);
-					Command cmd;
-					std::list<RegForm>::iterator it = RegForm::expecting_registration(i, reg_expect);	//is this connection registered?
-//					if (it != reg_expect.end())																//no, register it
-//					{
-//						int registered = register_connection(it, cmd);
-//						if (registered)
-//							reg_expect.erase(it);
-//					}
-					//else
-					//	handle_command(cmd, i);								//yes, handle not registration command
 				}
 			}
 		}
@@ -209,13 +215,54 @@ void Irisha::loop()
  * 				from the all_fds_ member
  * @param		client_socket
  */
-void Irisha::handle_disconnection(int client_socket)
+void Irisha::handle_disconnection(int sock)
 {
-	close(client_socket);
-	FD_CLR(client_socket, &all_fds_);
-	std::cout << ITALIC PURPLE "Client #" << client_socket << " closed connection. ☠" CLR << std::endl;
-	FD_CLR(client_socket, &all_fds_);
-	std::cout << ITALIC PURPLE "Client №" << client_socket << " closed connection. ☠" CLR << std::endl;
+	close(sock);
+	FD_CLR(sock, &all_fds_);
+	std::cout << ITALIC PURPLE "Client #" << sock << " closed connection. ☠" CLR << std::endl;
+	FD_CLR(sock, &all_fds_);
+	std::cout << ITALIC PURPLE "Client №" << sock << " closed connection. ☠" CLR << std::endl;
+}
+
+/// Commands+
+
+
+
+///Commands-
+
+/**
+ *
+ * @param i - socket to identify connection
+ * @param reg_expect - list of not registered connections
+ * @return	node iterator, if socket in list, else end iterator
+ */
+std::list<Irisha::RegForm*>::iterator Irisha::expecting_registration(int i, std::list<RegForm*>& reg_expect)
+{
+	std::list<RegForm*>::iterator it;
+	for (it = reg_expect.begin(); it != reg_expect.end(); it++)
+	{
+		if ((*it)->socket_ == i)
+			return it;
+	}
+	return (reg_expect.end());
+}
+
+
+///TODO: handle client connection
+int			Irisha::register_connection	(std::list<Irisha::RegForm*>::iterator rf)
+{
+	if ((*rf)->pass_received_ == false)
+	{
+		if (cmd_.command_ == "PASS" && (PASS((*rf)->socket_) == CMD_SUCCESS))
+			(*rf)->pass_received_ = true;
+		return CMD_FAILURE;
+	}
+	else
+	{
+		if (cmd_.command_ == "SERVER" && (SERVER((*rf)->socket_) == CMD_SUCCESS))
+			return CMD_SUCCESS;
+	}
+	return 1;
 }
 
 /***************Creating message strings***************/

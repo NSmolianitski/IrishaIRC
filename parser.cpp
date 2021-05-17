@@ -1,40 +1,50 @@
-#include <sstream>
-#include "parser.hpp"
-#include "utils.hpp"
-#include <cstring>
 
+#include "Irisha.hpp"
+#include "parser.hpp"
+
+#include <cstring>
+#include <sstream>
+
+/**
+ * @description	Parses command line to Command structure
+ * @param		msg: message
+ * @param		cmd: Command structure
+ */
 void 	parse_msg(const std::string& msg, Command& cmd)
 {
     std::deque<std::string> array;
     std::istringstream is(msg);
     std::string s;
 
-    cmd.prefix.clear();
-    cmd.command.clear();
-    cmd.arguments.clear();
+    cmd.prefix_.clear();
+    cmd.command_.clear();
+    cmd.arguments_.clear();
     while (std::getline(is, s, ' '))
         array.push_back(s);
     if (!array.empty()) {
         if (array[0][0] == ':') {
-            cmd.prefix.append(array[0].erase(0, 1));
-            std::cout << "PREFIX = " << cmd.prefix << std::endl;
+            cmd.prefix_.append(array[0].erase(0, 1));
             array.pop_front();
         }
-        cmd.command.append(array[0]);
-        std::cout << "COMMAND = " << cmd.command << std::endl;
-        array.pop_front();
-        while (array.size() > 0) {
-            cmd.arguments.push_back(array[0]);
-            array.pop_front();
-        }
-        std::vector<std::string>::iterator itr = cmd.arguments.begin();
-        std::cout << "ARGUMENTS = ";
-        while (itr != cmd.arguments.end()) {
-            std::cout << *itr << ITALIC PURPLE " | " CLR;
-            itr++;
-        }
+        cmd.command_.append(array[0]);
+		array.pop_front();
+		while (!array.empty()) {
+			if (array[0][0] == ':')
+				break;
+			cmd.arguments_.push_back(array[0]);
+			array.pop_front();
+		}
+		s.clear();
+		while (!array.empty())
+		{
+			if (!s.empty())
+				s.append(" ");
+			s.append(array[0]);
+			array.pop_front();
+		}
+		if (!s.empty())
+			cmd.arguments_.push_back(s);
     }
-    std::cout << std::endl;
 }
 
 void parse_arr_msg(std::deque<std::string>& arr_msg, const std::string& client_msg)

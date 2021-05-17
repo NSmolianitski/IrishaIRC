@@ -12,16 +12,31 @@
 #define GREEN	"\033[32m"
 #define YELLOW	"\033[33m"
 #define BLUE	"\033[34m"
-#define WHITE	"\033[97m"
 #define PURPLE	"\033[35m"
+#define CYAN	"\033[36m"
+#define WHITE	"\033[37m"
+
+#define BRED	"\033[91m"
+#define BGREEN	"\033[92m"
+#define BYELLOW	"\033[93m"
+#define BBLUE	"\033[94m"
+#define BPURPLE	"\033[95m"
+#define BCYAN	"\033[96m"
+#define BWHITE	"\033[97m"
 
 #define CLR		"\033[0m"
 #define BOLD	"\033[1m"
 #define ITALIC	"\033[3m"
 #define UND		"\033[4m"
 
+/// Emojis
+#define E_SPEECH	"\U0001F4AC"
+#define E_MAN		"\U0001F468"
+#define E_PAGER		"\U0001F4DF"
+#define E_GEAR		"⚙"
+
 #define DOMAIN	"server-domain"
-#define PASS	"server-password"
+//#define PASS	"server-password"
 
 /// Config
 void		remove_comment		(std::string& str);
