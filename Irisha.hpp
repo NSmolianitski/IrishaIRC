@@ -96,7 +96,8 @@ private:
 
 	/// Utils
 	void		send_msg			(int sock, const std::string& prefix, const std::string& msg) const;
-	void		send_input_msg		(int sock) const;
+	void		send_msg_to_servers	(const std::string& prefix, const std::string& msg) const;
+	void		send_msg_to_everyone(const std::string& prefix, const std::string& msg) const;
 	std::string get_msg				(int sock);
 	void		print_info			() const;
 
@@ -139,6 +140,7 @@ public:
 	void		print_cmd	(PrintMode mode, const int sock) const;
 	void		user_info	(const std::string& nick) const;
 	void		print_user_list		() const;
+	void		send_input_msg		(int sock) const;
 	/// ‼️ ⚠️ END OF DEVELOPMENT UTILS ⚠️ ‼️ //! TODO: DEV -> REMOVE //////////////////////////////////////
 };
 
