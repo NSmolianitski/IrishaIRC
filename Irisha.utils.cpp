@@ -54,6 +54,33 @@ void Irisha::send_msg(int sock, const std::string& prefix, const std::string& ms
 }
 
 /**
+ * @description	Sends a message to all servers
+ * @param		prefix: sender
+ * @param		msg: message
+ */
+void Irisha::send_msg_to_servers(const std::string& prefix, const std::string& msg) const
+{
+	con_const_it	it = connections_.begin();
+	for (; it != connections_.end(); ++it)
+	{
+		if (it->second->type() == T_SERVER)
+			send_msg(it->second->socket(), prefix, msg);
+	}
+}
+
+/**
+ * @description	Sends a message to all connections
+ * @param		prefix: sender
+ * @param		msg: message
+ */
+void Irisha::send_msg_to_everyone(const std::string& prefix, const std::string& msg) const
+{
+	con_const_it	it = connections_.begin();
+	for (; it != connections_.end(); ++it)
+		send_msg(it->second->socket(), prefix, msg);
+}
+
+/**
  * @description	Calls IRC command if it exists
  * @param		sock
  */
