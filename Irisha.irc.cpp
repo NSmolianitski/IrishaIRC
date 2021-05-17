@@ -255,6 +255,7 @@ CmdResult Irisha::JOIN(const int sock)
                     send_msg(sock, domain_, "332 " + find_user(sock)->nick() + " " + arr_channel[i] + " :" + itr->second->getTopic());
                 send_msg(sock, domain_, "353 " + find_user(sock)->nick() + " = " + arr_channel[i] +" :" + itr->second->getListUsers());
                 send_msg(sock, domain_, "366 " + find_user(sock)->nick() + " " + arr_channel[i] +" :End of NAMES list");
+                //sendChannel(sock);
             }
         }
     }

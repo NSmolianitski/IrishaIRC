@@ -1,9 +1,10 @@
 #pragma once
 #include <map>
 #include <vector>
-
+#include "Irisha.hpp"
 #include <string>
 #include "User.hpp"
+
 class Channel
 {
 private:
@@ -30,6 +31,8 @@ public:
     const std::map<char, int> &getMode() const;
     const std::vector<User*> &getUsers() const;
     const std::vector<User*> &getOperators() const;
+
+    void sendChannel(const int sock);
     std::string getListUsers();
     ~Channel();
 };

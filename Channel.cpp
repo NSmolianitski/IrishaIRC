@@ -135,3 +135,12 @@ std::string Channel::getListUsers() {
     list_users.erase(list_users.size() - 1);
     return list_users;
 }
+
+void Channel::sendChannel(const int sock) {
+    std::vector<User*>::iterator itr = operators_.begin();
+    std::vector<User*>::iterator ite = operators_.end();
+
+    while (itr != ite){
+
+    }
+}

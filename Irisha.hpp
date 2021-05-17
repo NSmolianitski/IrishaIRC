@@ -7,7 +7,6 @@
 
 #include "AConnection.hpp"
 #include "User.hpp"
-#include "Channel.hpp"
 #include <iostream>
 #include <sstream>
 #include <map>
@@ -20,7 +19,7 @@
 
 #define CONFIG_PATH "irisha.conf"
 #define NO_PREFIX	""
-
+class Channel;
 struct Command
 {
 	std::string					prefix_;
