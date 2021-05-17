@@ -136,6 +136,8 @@ CmdResult Irisha::USER(const int sock)
 		user->set_mode(0);
 	else
 		user->set_mode(str_to_int(cmd_.arguments_[1]));
+	send_msg(sock, domain_, "001 " + user->nick() + " :⭐ Welcome to Irisha server! ⭐"); //! TODO: change to RPL_WELCOME
+	//! TODO: send message to other servers
 	return CMD_SUCCESS;
 }
 
