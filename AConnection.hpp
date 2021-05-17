@@ -27,9 +27,10 @@ public:
 	AConnection(int socket, Type type, int hopcount);
 	virtual ~AConnection() = 0;
 
-	int socket	() const;
-	int type	() const;
-	int hopcount() const;
+	int 			socket	() const;
+	int 			type	() const;
+	int 			hopcount() const;
+	std::string&	buff	();
 };
 
 

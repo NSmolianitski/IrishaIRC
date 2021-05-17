@@ -7,15 +7,32 @@
 #include "utils.hpp"
 
 /**
- * @description	Adds user
+ * @description	Adds local user
  * @param		sock: user socket
  * @param		nick: user nick
  */
-void Irisha::add_user(int sock, const std::string& nick)
+void Irisha::add_user(const int sock, const std::string& nick)
 {
-	AConnection* user = new User(sock, domain_, nick);
+	User* user = new User(sock, domain_, nick);
 	connections_.insert(std::pair<int, AConnection*>(sock, user));
-	std::cout << E_MAN ITALIC PURPLE " New user registered from socket №" << sock << CLR << std::endl;
+
+	sys_msg(E_MAN, "New local user", nick, "registered!");
+}
+
+/**
+ * @description	Adds user by other server request
+ * @param		sock: user socket
+ */
+void Irisha::add_user(const int sock) // [0]<nick> [1]<hopcount> [2]<username> [3]<host> [4]<servertoken> [5]<umode> [6]<realname>
+{
+	User* user = new User(sock, cmd_.arguments_[3], str_to_int(cmd_.arguments_[1]));
+	user->set_nick(cmd_.arguments_[0]);
+	user->set_username(cmd_.arguments_[2]);
+//	user->set_mode(cmd_.arguments_[2]);	//! TODO: make mode parsing function
+	user->set_realname(cmd_.arguments_[2]);
+	connections_.insert(std::pair<int, AConnection*>(sock, user)); //! TODO: sock must be unique in map!!!!!
+
+	sys_msg(E_ALIEN, "New external user", cmd_.arguments_[0], "registered!");
 }
 
 /**
@@ -68,18 +85,4 @@ User* Irisha::find_user(const int sock) const
 		}
 	}
 	return nullptr;
-}
-
-void Irisha::print_user_list()
-{
-	User*	user;
-	std::map<int, AConnection*>::const_iterator it = connections_.begin();
-	for (; it != connections_.end(); ++it)
-	{
-		if (it->second->type() == T_CLIENT)
-		{
-			user = static_cast<User*>(it->second);
-			std::cout << "[" PURPLE "CONNECTED USERS" CLR "] " BWHITE ITALIC << user->nick() << " " CLR << std::endl;
-		}
-	}
 }

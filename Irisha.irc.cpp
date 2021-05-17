@@ -2,6 +2,7 @@
 // Created by Parfait Kentaurus on 5/14/21.
 //
 
+#include <sstream>
 #include "Irisha.hpp"
 #include "User.hpp"
 #include "Server.hpp"
@@ -12,8 +13,9 @@
  */
 void	Irisha::prepare_commands()
 {
-	commands_.insert(std::pair<std::string, func>("NICK", &Irisha::NICK));
 	commands_.insert(std::pair<std::string, func>("PASS", &Irisha::PASS));
+	commands_.insert(std::pair<std::string, func>("NICK", &Irisha::NICK));
+	commands_.insert(std::pair<std::string, func>("USER", &Irisha::USER));
 	commands_.insert(std::pair<std::string, func>("SERVER", &Irisha::SERVER));
 	commands_.insert(std::pair<std::string, func>("PING", &Irisha::PING));
 	commands_.insert(std::pair<std::string, func>("PONG", &Irisha::PONG));
@@ -26,33 +28,51 @@ void	Irisha::prepare_commands()
  * @param		new_nick: desired nickname
  * @return		CMD_SUCCESS or CMD_FAILURE
  */
-CmdResult	Irisha::change_nick(User* connection, const int sock, const std::string& new_nick)
+CmdResult	Irisha::NICK_user(User* const connection, const int sock, const std::string& new_nick)
 {
 	User*		user;
 	std::string	old_nick;
-	if (connection == nullptr)		// If user is NOT local
+
+	old_nick = connection->nick();
+	if (old_nick == new_nick)
+		return CMD_SUCCESS;
+	user = find_user(new_nick);
+	if (user)
 	{
-		user = find_user(cmd_.prefix_);
-		old_nick = user->nick();
-		user->set_nick(new_nick);
-		// TODO: send message to next server
+		send_msg(sock, domain_, new_nick + " :Nickname is already in use"); //! TODO: change to error reply
+		return CMD_FAILURE;
 	}
-	else						// If user is local
+	connection->set_nick(new_nick);
+	send_msg(sock, old_nick, "NICK " + new_nick); // Reply for user TODO: check prefix
+	// TODO: send message to next server
+
+	std::cout << ITALIC PURPLE E_GEAR " User " BWHITE + old_nick + PURPLE " changed nick to " BWHITE
+				 + new_nick << " " CLR << std::endl;
+	return CMD_SUCCESS;
+}
+
+/**
+ * @description	Handles request from other server (changes nick or adds new user)
+ * @param		new_nick: new nickname
+ * @return		CMD_SUCCESS
+ */
+CmdResult	Irisha::NICK_server(const std::string& new_nick)
+{
+	User*		user;
+	std::string	old_nick;
+
+	user = find_user(cmd_.prefix_);
+	if (user == nullptr)		// Add new external user
 	{
-		user = find_user(new_nick);
-		old_nick = connection->nick();
-		if (old_nick == new_nick)
-			return CMD_SUCCESS;
-		if (user)
-		{
-			send_msg(sock, domain_, new_nick + " :Nickname is already in use"); //! TODO: change to error reply
-			return CMD_FAILURE;
-		}
-		send_msg(sock, connection->nick(), "NICK " + new_nick); //! TODO: check prefix
-		connection->set_nick(new_nick);
+		add_user(-1);
+		return CMD_SUCCESS;
 	}
-	std::cout << ITALIC PURPLE "User " BWHITE + old_nick + PURPLE " changed nick to " BWHITE
-				 + new_nick << " " E_GEAR CLR << std::endl;
+	old_nick = user->nick();
+	user->set_nick(new_nick);	// Change nick for external user
+	// TODO: send message to next server
+
+	std::cout << ITALIC PURPLE E_GEAR "User " BWHITE + old_nick + PURPLE " changed nick to " BWHITE
+				 + new_nick << " " CLR << std::endl;
 	return CMD_SUCCESS;
 }
 
@@ -64,7 +84,7 @@ CmdResult	Irisha::NICK(const int sock) //! TODO: handle hopcount
 {
 	if (cmd_.arguments_.empty())	// NICK command without params
 	{
-		send_msg(sock, domain_, ":No nickname given"); //! TODO: change to error reply
+		send_msg(sock, domain_, "431 :No nickname given"); //! TODO: change to error reply
 		return CMD_FAILURE;
 	}
 	std::string new_nick = cmd_.arguments_[0];
@@ -75,21 +95,53 @@ CmdResult	Irisha::NICK(const int sock) //! TODO: handle hopcount
 	}
 
 	con_it it = connections_.find(sock);
-	if (it == connections_.end())	// Add new user
+	if (it == connections_.end())	// Add new local user
 		add_user(sock, new_nick);
-	else							// Change nickname
+	else
 	{
 		User*	connection = dynamic_cast<User *>(it->second);
-		return change_nick(connection, sock, new_nick);
+		if (connection == nullptr)	// Handle request from other server
+			return NICK_server(new_nick);
+		return NICK_user(connection, sock, new_nick); // Change local user nickname
 	}
 	print_user_list(); //! TODO: remove
 	return CMD_SUCCESS;
 }
 
 /**
+ * @description	Handles USER command
+ * @param		sock: command sender socket
+ */
+CmdResult Irisha::USER(const int sock)
+{
+	if (cmd_.arguments_.size() < 4)
+	{
+		send_msg(sock, domain_, "461 :USER :Not enough parameters"); //! TODO: change to error reply
+		return CMD_FAILURE;
+	}
+	User*	user = find_user(sock);
+	if (user == nullptr)	// Safeguard for invalid user
+	{
+		std::cout << RED BOLD "ALARM! WE DON'T HAVE USER WITH SOCKET №" BWHITE << sock << RED " IN OUR DATABASE!" CLR << std::endl;
+		return CMD_FAILURE;
+	}
+	if (!user->username().empty())
+	{
+		send_msg(sock, domain_, "462 :Unauthorized command (already registered)"); //! TODO: change to error reply
+		return CMD_FAILURE;
+	}
+	user->set_username(cmd_.arguments_[0]);
+
+	if (cmd_.arguments_[1].length() > 1) //! TODO: don't forget to handle modes
+		user->set_mode(0);
+	else
+		user->set_mode(str_to_int(cmd_.arguments_[1]));
+	return CMD_SUCCESS;
+}
+
+/**
  * @description	Handling PASS message
  * @param		sock: command sender socket
- * @param		cmd: parsed message
  * @return		CMD_SUCCESS if password correct, else CMD_FAILURE
  */
 CmdResult Irisha::PASS(const int sock)
@@ -105,7 +157,6 @@ CmdResult Irisha::PASS(const int sock)
 /**
  * @description	Handling SERVER message
  * @param		sock: command sender socket
- * @param		cmd: parsed message
  * @return		CMD_FAILURE if registration successfully, else CMD_FAILURE
  */
 CmdResult Irisha::SERVER(const int sock)
@@ -136,12 +187,12 @@ CmdResult Irisha::SERVER(const int sock)
 		catch(std::exception ex) { return CMD_FAILURE; }
 	}
 	else
-		hopcount = std::stoi(cmd_.arguments_[0]); ///TODO: remove it
+		hopcount = str_to_int(cmd_.arguments_[0]); ///TODO: remove it
 
 	AConnection* server = new Server(cmd_.arguments_[0], sock, hopcount);
 	connections_.insert(std::pair<int, AConnection*>(sock, server));
 	PING(sock);
-	std::cout << PURPLE "Server " << (static_cast<Server*>(server))->name() << " registered!" CLR << std::endl;
+	sys_msg(E_LAPTOP, "Server", (static_cast<Server*>(server))->name(), "registered!");
 	return CMD_SUCCESS;
 }
 

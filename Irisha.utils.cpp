@@ -90,13 +90,18 @@ void sending_loop(const Irisha* server)
 			input.append(" ⭐ Welcome to Irisha server! ⭐");
 		}
 		else if (input == "W")
-		{
 			input = serv_prefix + "001 " + GUEST52 + " ⭐ Welcome to Irisha server! ⭐";
-		}
-		for (int i = 3; i < server->max_fd_ + 1; ++i)
+		else if (input[0] == 'U' && input[1] == ' ')
+			server->user_info(input.substr(2));
+		else if (input[0] == 'U')
+			server->print_user_list();
+		else
 		{
-			if (FD_ISSET(i, &server->all_fds_) && i != server->listener_)
-				server->send_msg(i, NO_PREFIX, input);
+			for (int i = 3; i < server->max_fd_ + 1; ++i)
+			{
+				if (FD_ISSET(i, &server->all_fds_) && i != server->listener_)
+					server->send_msg(i, NO_PREFIX, input);
+			}
 		}
 	}
 }
@@ -112,27 +117,85 @@ void Irisha::print_cmd(PrintMode mode, const int sock) const
 		print_cmd(PM_LIST, sock);
 		return;
 	}
-
 	std::stringstream	sender;
 	User*				user = find_user(sock);
 	if (user)	// If user exists
 		sender << user->nick();
 	else
 		sender << "Connection №" << sock;
+	if (!cmd_.prefix_.empty())
+	{
+		if (mode == PM_LIST)
+			std::cout << BWHITE "PREFIX: " GREEN ITALIC + cmd_.prefix_ << CLR "\n";
+		else
+		{
+			std::cout << "[" BLUE << sender.str() << CLR "] ";
+			std::cout << GREEN ITALIC << cmd_.prefix_ << CLR " ";
+		}
+	}
+
 	if (mode == PM_LIST)
 		std::cout << BWHITE "COMMAND: " YELLOW ITALIC + cmd_.command_ << CLR "\n";
 	else
-	{
-		std::cout << "[" BLUE << sender.str() << CLR "] ";
 		std::cout << YELLOW ITALIC << cmd_.command_ << CLR " ";
-	}
 
 	if (mode == PM_LIST)
 		std::cout << BWHITE "ARGUMENTS: ";
 	std::cout << CYAN ITALIC;
 
 	for (int i = 0; i < cmd_.arguments_.size(); ++i)
-		std::cout << cmd_.arguments_[i] << " ";
+	{
+		if (cmd_.arguments_[i].empty())
+			std::cout << "<empty>" << " ";
+		else
+			std::cout << cmd_.arguments_[i] << " ";
+	}
+	std::cout << CLR << std::endl;
+}
+
+#include <iomanip>
+
+/**
+ * @description	Prints user information
+ * @param		nick
+ */
+void Irisha::user_info(const std::string& nick) const
+{
+	User*	user = find_user(nick);
+	if (user == nullptr)
+	{
+		std::cout << RED BOLD "User " BWHITE + nick + RED " not found!" CLR << std::endl;
+		return;
+	}
+	std::cout << "-----------[USER INFO]-----------" << std::endl;
+	std::cout << "| Nick: "		<< std::setw(23) << user->nick() << " |" << std::endl;
+	std::cout << "| Username: " << std::setw(19)	<< user->username() << " |" << std::endl;
+	std::cout << "| Realname: " << std::setw(19)	<< user->realname() << " |" << std::endl;
+	std::cout << "| Password: " << std::setw(19)	<< user->password() << " |" << std::endl;
+	std::cout << "| Mode: "		<< std::setw(23)	<< user->mode() << " |" << std::endl;
+	std::cout << "| Server: "	<< std::setw(21)	<< user->server() << " |" << std::endl;
+	std::cout << "| Hopcount: "	<< std::setw(19)	<< user->hopcount() << " |" << std::endl;
+	std::cout << "---------------------------------" << std::endl;
+}
+
+/**
+ * @description	Prints user list
+ */
+void Irisha::print_user_list() const
+{
+	User*	user;
+	con_const_it it = connections_.begin();
+	std::cout << "[" PURPLE "CONNECTED USERS" CLR "] " BWHITE ITALIC;
+	for (; it != connections_.end(); ++it)
+	{
+		if (it->second->type() == T_CLIENT)
+		{
+			user = static_cast<User*>(it->second);
+			std::cout << user->nick() << " ";
+		}
+		else
+			std::cout << "!" << user->type() << "!";
+	}
 	std::cout << CLR << std::endl;
 }
 

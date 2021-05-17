@@ -2,8 +2,12 @@
 // Created by Parfait Kentaurus on 5/13/21.
 //
 
-#include <fstream>
+#include "utils.hpp"
 
+#include <fstream>
+#include <sstream>
+
+///	Config
 /**
  * @description	The remove_comment() function removes comment
  * 				(which starts with '#' or ';') from the string
@@ -89,7 +93,7 @@ void	check_config(const std::string& path)
 }
 
 /**
- * @description	Checks nickname vilidity
+ * @description	Checks nickname validity
  * @param		nick
  * @return		true if nickname is valid or false if it's not
  */
@@ -106,4 +110,60 @@ bool is_a_valid_nick(const std::string& nick)
 	if (nick.find_first_not_of(allowed_symbols) != std::string::npos)
 		return false;
 	return true;
+}
+
+///	System messages
+/**
+ * @description	Sends message to STDOUT
+ * @param		emoji: emoji message prefix
+ * @param		str: purple message
+ */
+void		sys_msg(const std::string& emoji, const std::string& str)
+{
+	std::cout << emoji + " " << PURPLE ITALIC << str << CLR << std::endl;
+}
+
+/**
+ * @description	Sends message to STDOUT
+ * @param		emoji: emoji message prefix
+ * @param		str: purple message
+ * @param		white_str: string which would be white
+ */
+void		sys_msg(const std::string& emoji, const std::string& str
+				, const std::string& white_str)
+{
+	std::cout << emoji + " "
+			  << PURPLE ITALIC << str + " "
+			  << BWHITE << white_str << CLR << std::endl;
+}
+
+/**
+ * @description	Sends message to STDOUT
+ * @param		emoji: emoji message prefix
+ * @param		str: purple message
+ * @param		white_str: string which would be white
+ * @param		ending: purple ending
+ */
+void		sys_msg(const std::string& emoji, const std::string& str
+				, const std::string& white_str, const std::string& ending)
+{
+	std::cout << emoji + " "
+			  << PURPLE ITALIC << str + " "
+			  << BWHITE << white_str << " "
+			  << PURPLE << ending << CLR << std::endl;
+}
+
+///	Other
+/**
+ * @description	Turns string into int
+ * @param		str
+ * @return		converted integer
+ */
+int str_to_int(const std::string& str)
+{
+	std::istringstream convert(str);
+	int	number;
+
+	convert >> number;
+	return number;
 }

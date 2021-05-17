@@ -85,11 +85,11 @@ private:
 	void		handle_command		(int sock);
 
 	/// Users
-	void		add_user			(int sock, const std::string& nick);
+	void		add_user			(const int sock, const std::string& nick);
+	void		add_user			(const int sock);
 	void		remove_user			(const std::string& nick);
 	User*		find_user			(const std::string& nick) const;
 	User*		find_user			(const int sock) const;
-	void		print_user_list		(); //! TODO: remove
 
 	/// Servers
 //	Server*		find_server			(const std::string& nick) const;
@@ -102,13 +102,15 @@ private:
 
 	/// IRC commands
 	CmdResult	NICK	(const int sock);
+	CmdResult	USER	(const int sock);
 	CmdResult	PASS	(const int sock);
 	CmdResult	SERVER	(const int sock);
 	CmdResult	PING	(const int sock);
 	CmdResult	PONG	(const int sock);
 
 	/// IRC commands utils
-	CmdResult	change_nick		(User* connection, const int sock, const std::string& new_nick);
+	CmdResult	NICK_user		(User* const connection, const int sock, const std::string& new_nick);
+	CmdResult	NICK_server		(const std::string& new_nick);
 	std::string	createPASSmsg	(std::string password);
 	std::string	createSERVERmsg	();
 
@@ -135,6 +137,8 @@ public:
 
 	friend void	sending_loop(const Irisha* server);
 	void		print_cmd	(PrintMode mode, const int sock) const;
+	void		user_info	(const std::string& nick) const;
+	void		print_user_list		() const;
 	/// ‼️ ⚠️ END OF DEVELOPMENT UTILS ⚠️ ‼️ //! TODO: DEV -> REMOVE //////////////////////////////////////
 };
 

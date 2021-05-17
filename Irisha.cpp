@@ -304,4 +304,7 @@ std::string Irisha::createSERVERmsg()	///TODO: choose servername smarter
  *
  * :amy PRIVMSG #channel :message
  * :amy PRIVMSG Guest52 Guest50 Guest51 #shell :message
+ *
+ * PASS secret 0210 Irisha|
+ * SERVER pig.irisha.net :Irisha server
  */
