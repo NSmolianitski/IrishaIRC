@@ -4,7 +4,7 @@
 
 #include "Irisha.hpp"
 #include "utils.hpp"
-
+#include "Channel.hpp"
 #include <sstream>
 
 /**
@@ -91,6 +91,26 @@ void Irisha::handle_command(int sock)
 		((*this).*it->second)(sock);
 	else
 		send_msg(sock, domain_, ":No such command, my friend"); //! TODO: change to error reply (421, "<command> :Unknown command")
+}
+/// Send msg channel all users and operators
+void Irisha::send_channel(Channel *channel, std::string msg, std::string prefix)
+{
+    std::vector<User*>::const_iterator itr = channel->getUsers().begin();
+    std::vector<User*>::const_iterator ite = channel->getUsers().end();
+
+    while (itr != ite)
+    {
+        send_msg((*itr)->socket(), prefix, msg);
+        itr++;
+    }
+    itr = channel->getOperators().begin();
+    ite = channel->getOperators().end();
+    while (itr != ite)
+    {
+        send_msg((*itr)->socket(), prefix, msg);
+        itr++;
+    }
+    send_msg_to_servers(prefix, msg);
 }
 
 /// ‼️ ⚠️ DEVELOPMENT UTILS (REMOVE OR COMMENT WHEN PROJECT IS READY) ⚠️ ‼️ //! TODO: DEV -> REMOVE /////////////////////

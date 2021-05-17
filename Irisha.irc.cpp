@@ -230,24 +230,37 @@ CmdResult Irisha::MODE(const int sock)
 
 CmdResult Irisha::JOIN(const int sock)
 {
-    std::vector<std::string> arr_channel;
-    std::string users_channel;
-    std::string str_channels = cmd_.arguments_[0];
+    std::vector<std::string> arr_channel; // array channels
+    std::vector<std::string> arr_key; // arrray key for channels
+    std::string str_channels = cmd_.arguments_[0]; // string channels "#123,#321"
 
+    if (cmd_.arguments_.size() == 2){
+        std::string str_keys = cmd_.arguments_[1]; // string keys "hello,world"
+        parse_arr(arr_key, str_keys, ',');
+    }
     parse_arr(arr_channel, str_channels, ',');
     for (size_t i = 0; i < arr_channel.size(); ++i) {
-        if (arr_channel[i][0] == '#' || arr_channel[i][0] == '&'){
+        if ((arr_channel[i][0] == '#' || arr_channel[i][0] == '&' || arr_channel[i][0] == '+' || arr_channel[i][0] == '!') && arr_channel[i].size() < 51){
             send_msg(sock, "", ":" + find_user(sock)->nick() + " JOIN " + arr_channel[i]);
             std::map<std::string, Channel*>::iterator itr = channels_.find(arr_channel[i]);
             if (itr == channels_.end()){
                 Channel* channel = new Channel(arr_channel[i]);
                 channel->setType(arr_channel[i][0]);
                 channel->addOperators(find_user(sock));
+                if (!arr_key.empty())
+                    channel->setKey(arr_key[0]);
                 channels_.insert(std::pair<std::string, Channel*>(arr_channel[i], channel));
                 send_msg(sock, domain_, "353 " + find_user(sock)->nick() + " = " + arr_channel[i] +" :" + channel->getListUsers());
                 send_msg(sock, domain_, "366 " + find_user(sock)->nick() + " " + arr_channel[i] +" :End of NAMES list");
             }
             else{
+                if (!(*itr).second->getKey().empty()){
+                    if (arr_key.empty() || arr_key[0] != (*itr).second->getKey()) {
+                        send_msg(sock, domain_, "475 " + arr_channel[i] +
+                                                " :Cannot join channel (+k)");
+                        continue;
+                    }
+                }
                 itr->second->addUser(find_user(sock));
                 if (itr->second->getTopic().empty())
                     send_msg(sock, domain_, "331 " + find_user(sock)->nick() + " " + arr_channel[i] + " :No topic is set");
@@ -255,7 +268,7 @@ CmdResult Irisha::JOIN(const int sock)
                     send_msg(sock, domain_, "332 " + find_user(sock)->nick() + " " + arr_channel[i] + " :" + itr->second->getTopic());
                 send_msg(sock, domain_, "353 " + find_user(sock)->nick() + " = " + arr_channel[i] +" :" + itr->second->getListUsers());
                 send_msg(sock, domain_, "366 " + find_user(sock)->nick() + " " + arr_channel[i] +" :End of NAMES list");
-                //sendChannel(sock);
+                send_channel((*itr).second, "JOIN " + arr_channel[i], find_user(sock)->nick());
             }
         }
     }

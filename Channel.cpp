@@ -136,11 +136,7 @@ std::string Channel::getListUsers() {
     return list_users;
 }
 
-void Channel::sendChannel(const int sock) {
-    std::vector<User*>::iterator itr = operators_.begin();
-    std::vector<User*>::iterator ite = operators_.end();
-
-    while (itr != ite){
-
-    }
+const std::string &Channel::getKey() const {
+    return key_;
 }
+

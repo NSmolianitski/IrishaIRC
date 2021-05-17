@@ -12,7 +12,7 @@
  */
 void 	parse_msg(const std::string& msg, Command& cmd)
 {
-    std::deque<std::string> array;
+    std::list<std::string> array;
     std::istringstream is(msg);
     std::string s;
 
@@ -22,16 +22,16 @@ void 	parse_msg(const std::string& msg, Command& cmd)
     while (std::getline(is, s, ' '))
         array.push_back(s);
     if (!array.empty()) {
-        if (array[0][0] == ':') {
-            cmd.prefix_.append(array[0].erase(0, 1));
+        if (array.front()[0] == ':') {
+            cmd.prefix_.append(array.front().erase(0, 1));
             array.pop_front();
         }
-        cmd.command_.append(array[0]);
+        cmd.command_.append(array.front());
 		array.pop_front();
 		while (!array.empty()) {
-			if (array[0][0] == ':')
+			if (array.front()[0] == ':')
 				break;
-			cmd.arguments_.push_back(array[0]);
+			cmd.arguments_.push_back(array.front());
 			array.pop_front();
 		}
 		s.clear();
@@ -39,7 +39,7 @@ void 	parse_msg(const std::string& msg, Command& cmd)
 		{
 			if (!s.empty())
 				s.append(" ");
-			s.append(array[0]);
+			s.append(array.front());
 			array.pop_front();
 		}
 		if (!s.empty())
@@ -70,7 +70,7 @@ void parse_arr_msg(std::deque<std::string>& arr_msg, const std::string& client_m
 
 void parse_argv(int argc, char *argv[], std::string& host, int& port_network, std::string& password_network, int& port, std::string& password)
 {
-    std::deque<std::string> array;
+    std::list<std::string> array;
     std::string s;
     if (argc < 3 || argc > 4)
         throw std::runtime_error("Error size arguments");
@@ -92,17 +92,17 @@ void parse_argv(int argc, char *argv[], std::string& host, int& port_network, st
         }
         if (array.size() != 3)
             throw std::runtime_error("Error size arguments network");
-        host = array[0];
+        host = array.front();
         array.pop_front();
-        for (int i = 0; i < array[0].length(); ++i) {
-            if (isdigit(array[0][i]) == 0)
+        for (int i = 0; i < array.front().length(); ++i) {
+            if (isdigit(array.front()[i]) == 0)
                 throw std::runtime_error("Error: port network");
         }
-        if (array[0].length() > 5 || array[0].length() < 4)
+        if (array.front().length() > 5 || array.front().length() < 4)
             throw std::runtime_error("Error: size port network");
-        port_network = std::stoi(array[0]);
+        port_network = std::stoi(array.front());
         array.pop_front();
-        password_network = array[0];
+        password_network = array.front();
         array.pop_front();
         for (int i = 0; i < strlen(argv[2]); ++i) {
             if (isdigit(argv[2][i]) == 0)

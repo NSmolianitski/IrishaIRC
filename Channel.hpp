@@ -28,11 +28,11 @@ public:
     void delOperators(User* oper);
 
     const std::string &getTopic() const;
+    const std::string &getKey() const;
     const std::map<char, int> &getMode() const;
     const std::vector<User*> &getUsers() const;
     const std::vector<User*> &getOperators() const;
 
-    void sendChannel(const int sock);
     std::string getListUsers();
     ~Channel();
 };
