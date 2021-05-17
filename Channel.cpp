@@ -38,14 +38,100 @@ void Channel::setKey(const std::string &key_msg) {
     key_ = key_msg;
 }
 
-const std::set<std::string> &Channel::getUsers() const {
+const std::vector<User*> &Channel::getUsers() const {
     return users_;
 }
 
-void Channel::addUser(const std::string &nick_msg) {
-    users_.insert(nick_msg);
+void Channel::addUser(User* user) {
+    std::vector<User*>::iterator itr = users_.begin();
+    std::vector<User*>::iterator ite = users_.begin();
+
+    while (itr != ite){
+        if (*itr == user){
+            return;
+        }
+        itr++;
+    }
+    itr = operators_.begin();
+    ite = operators_.end();
+    while (itr != ite){
+        if (*itr == user){
+            return;
+        }
+        itr++;
+    }
+    users_.push_back(user);
 }
 
-void Channel::delUser(const std::string &nick_msg) {
-    users_.erase(nick_msg);
+void Channel::delUser(User* user) {
+    std::vector<User*>::iterator itr = users_.begin();
+    std::vector<User*>::iterator ite = users_.begin();
+
+    while (itr != ite){
+        if (*itr == user){
+            users_.erase(itr);
+            break;
+        }
+        itr++;
+    }
+}
+
+void Channel::setType(const char type) {
+    type_ = type;
+}
+
+void Channel::addOperators(User* oper) {
+    std::vector<User*>::iterator itr = users_.begin();
+    std::vector<User*>::iterator ite = users_.begin();
+
+    while (itr != ite){
+        if (*itr == oper){
+            return;
+        }
+        itr++;
+    }
+    itr = operators_.begin();
+    ite = operators_.end();
+    while (itr != ite){
+        if (*itr == oper){
+            return;
+        }
+        itr++;
+    }
+    operators_.push_back(oper);
+}
+
+void Channel::delOperators(User* oper) {
+    std::vector<User*>::iterator itr = operators_.begin();
+    std::vector<User*>::iterator ite = operators_.begin();
+
+    while (itr != ite){
+        if (*itr == oper){
+            operators_.erase(itr);
+            break;
+        }
+        itr++;
+    }
+}
+
+const std::vector<User *> &Channel::getOperators() const {
+    return operators_;
+}
+
+std::string Channel::getListUsers() {
+    std::string list_users;
+    std::vector<User*>::iterator itr = operators_.begin();
+    std::vector<User*>::iterator ite = operators_.end();
+    while (itr != ite){
+        list_users.append("@" + (*itr)->nick() + " ");
+        itr++;
+    }
+    itr = users_.begin();
+    ite = users_.end();
+    while (itr != ite){
+        list_users.append((*itr)->nick() + " ");
+        itr++;
+    }
+    list_users.erase(list_users.size() - 1);
+    return list_users;
 }

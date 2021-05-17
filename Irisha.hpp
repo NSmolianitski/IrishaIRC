@@ -7,7 +7,7 @@
 
 #include "AConnection.hpp"
 #include "User.hpp"
-
+#include "Channel.hpp"
 #include <iostream>
 #include <sstream>
 #include <map>
@@ -62,7 +62,7 @@ private:
     Command		cmd_;		// Struct for parsed command
 	std::string	host_name_;	// Host server. Need when this server connected to other.
 	std::string	password_;	// Password for clients and servers connection to connect this server
-
+	std::map<std::string ,Channel*>          channels_; // Map channels
 	std::map<int, AConnection*>	connections_;	// Server and client connections
 	std::map<std::string, func>	commands_;		// IRC commands
 
@@ -108,6 +108,7 @@ private:
 	CmdResult	PING	(const int sock);
 	CmdResult	PONG	(const int sock);
     CmdResult   JOIN    (const int sock);
+    CmdResult   MODE    (const int sock);
 
 	/// IRC commands utils
 	CmdResult	change_nick		(User* connection, const int sock, const std::string& new_nick);

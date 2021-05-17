@@ -1,25 +1,35 @@
 #pragma once
 #include <map>
-#include <set>
+#include <vector>
+
 #include <string>
+#include "User.hpp"
 class Channel
 {
 private:
-    std::map<char, int>         mode_;
-    char                        type_;
-    std::string                 topic_;
-    std::string                 name_;
-    std::string                 key_;
-    std::set<std::string>    users_;
+    std::map<char, int> mode_;
+    char                type_;
+    std::string         topic_;
+    std::string         name_;
+    std::string         key_;
+    std::vector<User*>  users_;
+    std::vector<User*>  operators_;
 public:
     Channel(const std::string &name);
-    const std::string &getTopic() const;
+
     void setTopic(const std::string &topic_msg);
-    const std::map<char, int> &getMode() const;
     void setMode(const std::string &mode_msg);
     void setKey(const std::string &key_msg);
-    const std::set<std::string> &getUsers() const;
-    void addUser(const std::string &nick_msg);
-    void delUser(const std::string &nick_msg);
+    void setType(const char type);
+    void addUser(User* user);
+    void delUser(User* user);
+    void addOperators(User* oper);
+    void delOperators(User* oper);
+
+    const std::string &getTopic() const;
+    const std::map<char, int> &getMode() const;
+    const std::vector<User*> &getUsers() const;
+    const std::vector<User*> &getOperators() const;
+    std::string getListUsers();
     ~Channel();
 };

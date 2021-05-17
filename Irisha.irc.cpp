@@ -19,6 +19,7 @@ void	Irisha::prepare_commands()
 	commands_.insert(std::pair<std::string, func>("PING", &Irisha::PING));
 	commands_.insert(std::pair<std::string, func>("PONG", &Irisha::PONG));
 	commands_.insert(std::pair<std::string, func>("JOIN", &Irisha::JOIN));
+	commands_.insert(std::pair<std::string, func>("MODE", &Irisha::MODE));
 }
 
 /**
@@ -167,19 +168,42 @@ CmdResult Irisha::PING(const int sock)
 	return CMD_SUCCESS;
 }
 
-void Irisha::JOIN(const Command& cmd, const int sock)
+CmdResult Irisha::MODE(const int sock)
+{
+    if (cmd_.arguments_.size() == 1) {
+        send_msg(sock, domain_, "324 " + find_user(sock)->nick() + " " + cmd_.arguments_[0] + " +");
+    }
+}
+
+CmdResult Irisha::JOIN(const int sock)
 {
     std::vector<std::string> arr_channel;
-    std::string str_channels = cmd.arguments[0];
+    std::string users_channel;
+    std::string str_channels = cmd_.arguments_[0];
 
     parse_arr(arr_channel, str_channels, ',');
     for (size_t i = 0; i < arr_channel.size(); ++i) {
         if (arr_channel[i][0] == '#' || arr_channel[i][0] == '&'){
-            //send_msg(sock, "", ":localhost 332 Dmitriy " + arr_channel[i] +" :Hello");
-            Channel* channel = new Channel(arr_channel[i]);
-            send_msg(sock, "", ":Guest52 JOIN " + arr_channel[i]);
-            send_msg(sock, domain_, "353 Guest52 = " + arr_channel[i] +" :@Guest52");
-            send_msg(sock, domain_, "366 Guest52 " + arr_channel[i] +" :End of NAMES list");
+            send_msg(sock, "", ":" + find_user(sock)->nick() + " JOIN " + arr_channel[i]);
+            std::map<std::string, Channel*>::iterator itr = channels_.find(arr_channel[i]);
+            if (itr == channels_.end()){
+                Channel* channel = new Channel(arr_channel[i]);
+                channel->setType(arr_channel[i][0]);
+                channel->addOperators(find_user(sock));
+                channels_.insert(std::pair<std::string, Channel*>(arr_channel[i], channel));
+                send_msg(sock, domain_, "353 " + find_user(sock)->nick() + " = " + arr_channel[i] +" :" + channel->getListUsers());
+                send_msg(sock, domain_, "366 " + find_user(sock)->nick() + " " + arr_channel[i] +" :End of NAMES list");
+            }
+            else{
+                itr->second->addUser(find_user(sock));
+                if (itr->second->getTopic().empty())
+                    send_msg(sock, domain_, "331 " + find_user(sock)->nick() + " " + arr_channel[i] + " :No topic is set");
+                else
+                    send_msg(sock, domain_, "332 " + find_user(sock)->nick() + " " + arr_channel[i] + " :" + itr->second->getTopic());
+                send_msg(sock, domain_, "353 " + find_user(sock)->nick() + " = " + arr_channel[i] +" :" + itr->second->getListUsers());
+                send_msg(sock, domain_, "366 " + find_user(sock)->nick() + " " + arr_channel[i] +" :End of NAMES list");
+            }
         }
     }
+    return CMD_SUCCESS;
 }
