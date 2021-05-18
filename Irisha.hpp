@@ -51,6 +51,7 @@ private:
 
 	typedef eResult (Irisha::*func)(const int sock);
 
+	std::string	welcome_;	// Welcome message
 	std::string	domain_;
 	int			listener_;
 	sockaddr_in	address_;

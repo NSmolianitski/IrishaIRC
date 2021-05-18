@@ -84,6 +84,7 @@ void Irisha::apply_config(const std::string& path)
 {
 	check_config(path);
 	domain_		= get_config_value(path, DOMAIN);
+	welcome_	= get_config_value(path, WELCOME);
 	//password_	= get_config_value(path, PASS);
 	int	dots	= 0;
 	for (size_t i = 0; i < domain_.length(); ++i)

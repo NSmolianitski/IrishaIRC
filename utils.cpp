@@ -4,8 +4,8 @@
 
 #include "utils.hpp"
 
-#include <fstream>
-#include <sstream>
+#include <fstream> //! TODO: remove fstream!
+#include <sstream> //! TODO: remove sstream!
 
 ///	Config
 /**
@@ -172,4 +172,30 @@ int str_to_int(const std::string& str)
 
 	convert >> number;
 	return number;
+}
+
+std::string	rpl_code_to_str(const eReply code)
+{
+	std::ostringstream rpl_code; //! TODO: change to other itoa thing
+	if (code < 100)
+	{
+		if (code < 10)
+			rpl_code << "0";
+		rpl_code << "0";
+	}
+	rpl_code << code;
+	return rpl_code.str();
+}
+
+std::string	rpl_code_to_str(const eError code)
+{
+	std::ostringstream rpl_code; //! TODO: change to other itoa thing
+	if (code < 100)
+	{
+		if (code < 10)
+			rpl_code << "0";
+		rpl_code << "0";
+	}
+	rpl_code << code;
+	return rpl_code.str();
 }
