@@ -110,9 +110,11 @@ private:
 	CmdResult	PONG	(const int sock);
     CmdResult   JOIN    (const int sock);
     CmdResult   MODE    (const int sock);
+    CmdResult   PART    (const int sock);
 
 	/// IRC commands utils
 	void        send_channel    (Channel *channel, std::string msg, std::string prefix);
+	int         check_mode_channel(const Channel* channel, const int sock, std::list<std::string>& arr_key, std::string& arr_channel);
 	CmdResult	NICK_user		(User* const connection, const int sock, const std::string& new_nick);
 	CmdResult	NICK_server		(const std::string& new_nick);
 	std::string	createPASSmsg	(std::string password);

@@ -103,13 +103,13 @@ void Irisha::send_channel(Channel *channel, std::string msg, std::string prefix)
         send_msg((*itr)->socket(), prefix, msg);
         itr++;
     }
-    itr = channel->getOperators().begin();
-    ite = channel->getOperators().end();
-    while (itr != ite)
-    {
-        send_msg((*itr)->socket(), prefix, msg);
-        itr++;
-    }
+//    itr = channel->getOperators().begin();
+//    ite = channel->getOperators().end();
+//    while (itr != ite)
+//    {
+//        send_msg((*itr)->socket(), prefix, msg);
+//        itr++;
+//    }
     send_msg_to_servers(prefix, msg);
 }
 

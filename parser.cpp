@@ -123,3 +123,12 @@ void    parse_arr(std::vector<std::string>& arr, std::string& str, char sep)
     while (std::getline(is, s, sep))
         arr.push_back(s);
 }
+
+void    parse_arr_list(std::list<std::string>& arr, std::string& str, char sep)
+{
+    std::string s;
+    std::istringstream is(str);
+
+    while (std::getline(is, s, sep))
+        arr.push_back(s);
+}

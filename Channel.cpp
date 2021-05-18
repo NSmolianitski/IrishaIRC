@@ -1,6 +1,6 @@
 #include "Channel.hpp"
 
-Channel::Channel(const std::string &name) : name_(name){
+Channel::Channel(const std::string &name) : name_(name), max_users_(0){
     mode_.insert(std::pair<char, int>('o', 0)); //give/take channel operator privileges
     mode_.insert(std::pair<char, int>('p', 0)); // private channel flag
     mode_.insert(std::pair<char, int>('s', 0)); // secret channel flag
@@ -43,17 +43,9 @@ const std::vector<User*> &Channel::getUsers() const {
 }
 
 void Channel::addUser(User* user) {
-    std::vector<User*>::iterator itr = users_.begin();
-    std::vector<User*>::iterator ite = users_.begin();
+    ITERATOR itr = users_.begin();
+    ITERATOR ite = users_.end();
 
-    while (itr != ite){
-        if (*itr == user){
-            return;
-        }
-        itr++;
-    }
-    itr = operators_.begin();
-    ite = operators_.end();
     while (itr != ite){
         if (*itr == user){
             return;
@@ -64,8 +56,8 @@ void Channel::addUser(User* user) {
 }
 
 void Channel::delUser(User* user) {
-    std::vector<User*>::iterator itr = users_.begin();
-    std::vector<User*>::iterator ite = users_.begin();
+    ITERATOR itr = users_.begin();
+    ITERATOR ite = users_.end();
 
     while (itr != ite){
         if (*itr == user){
@@ -81,17 +73,9 @@ void Channel::setType(const char type) {
 }
 
 void Channel::addOperators(User* oper) {
-    std::vector<User*>::iterator itr = users_.begin();
-    std::vector<User*>::iterator ite = users_.begin();
+    ITERATOR itr = operators_.begin();
+    ITERATOR ite = operators_.end();
 
-    while (itr != ite){
-        if (*itr == oper){
-            return;
-        }
-        itr++;
-    }
-    itr = operators_.begin();
-    ite = operators_.end();
     while (itr != ite){
         if (*itr == oper){
             return;
@@ -102,8 +86,8 @@ void Channel::addOperators(User* oper) {
 }
 
 void Channel::delOperators(User* oper) {
-    std::vector<User*>::iterator itr = operators_.begin();
-    std::vector<User*>::iterator ite = operators_.begin();
+    ITERATOR itr = operators_.begin();
+    ITERATOR ite = operators_.end();
 
     while (itr != ite){
         if (*itr == oper){
@@ -120,17 +104,25 @@ const std::vector<User *> &Channel::getOperators() const {
 
 std::string Channel::getListUsers() {
     std::string list_users;
-    std::vector<User*>::iterator itr = operators_.begin();
-    std::vector<User*>::iterator ite = operators_.end();
+    ITERATOR itr = operators_.begin();
+    ITERATOR ite = operators_.end();
     while (itr != ite){
         list_users.append("@" + (*itr)->nick() + " ");
         itr++;
     }
-    itr = users_.begin();
-    ite = users_.end();
-    while (itr != ite){
-        list_users.append((*itr)->nick() + " ");
-        itr++;
+    ITERATOR itr_u = users_.begin();
+    ITERATOR ite_u = users_.end();
+    while (itr_u != ite_u){
+        itr = operators_.begin();
+        ite = operators_.end();
+        while (itr != ite){
+            if ((*itr) == (*itr_u))
+                break;
+            itr++;
+        }
+        if (itr == ite)
+            list_users.append((*itr_u)->nick() + " ");
+        itr_u++;
     }
     list_users.erase(list_users.size() - 1);
     return list_users;
@@ -138,5 +130,77 @@ std::string Channel::getListUsers() {
 
 const std::string &Channel::getKey() const {
     return key_;
+}
+
+void Channel::addBanUser(User *user) {
+    ITERATOR itr = ban_users_.begin();
+    ITERATOR ite = ban_users_.end();
+
+    while (itr != ite){
+        if (*itr == user){
+            return;
+        }
+        itr++;
+    }
+    itr = users_.begin();
+    ite = users_.end();
+    while (itr != ite){
+        if (*itr == user){
+            users_.erase(itr);
+        }
+        itr++;
+    }
+    ban_users_.push_back(user);
+}
+
+void Channel::delBanUser(User *user) {
+    ITERATOR itr = ban_users_.begin();
+    ITERATOR ite = ban_users_.end();
+
+    while (itr != ite){
+        if (*itr == user){
+            users_.erase(itr);
+            break;
+        }
+        itr++;
+    }
+}
+
+const std::vector<User *> &Channel::getBanUsers() const {
+    return ban_users_;
+}
+
+void Channel::addInviteUser(User *user) {
+    ITERATOR itr = invite_users_.begin();
+    ITERATOR ite = invite_users_.end();
+
+    while (itr != ite){
+        if (*itr == user){
+            return;
+        }
+        itr++;
+    }
+    invite_users_.push_back(user);
+}
+
+void Channel::delInviteUser(User *user) {
+    ITERATOR itr = invite_users_.begin();
+    ITERATOR ite = invite_users_.end();
+
+    while (itr != ite){
+        if (*itr == user){
+            invite_users_.erase(itr);
+            break;
+        }
+        itr++;
+    }
+}
+
+const std::vector<User *> &Channel::getInviteUsers() const {
+    return invite_users_;
+}
+
+const int &Channel::getMaxUsers() const {
+    return max_users_;
 }
 
