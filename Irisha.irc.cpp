@@ -242,11 +242,13 @@ eResult Irisha::QUIT(const int sock) //! TODO: починить баг (при �
 		msg = cmd_.arguments_[0];
 
 	if (local)
+	{
 		send_servers(user->nick(), msg);
+		FD_CLR(sock, &all_fds_);
+		close(sock);
+	}
 	else
 		send_servers(user->nick(), msg, sock);
 	remove_user(user->nick());
-	FD_CLR(sock, &all_fds_);
-	close(sock);
 	return R_SUCCESS;
 }

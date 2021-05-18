@@ -14,7 +14,7 @@
  */
 std::string Irisha::get_msg(int sock)
 {
-	int read_bytes = recv(sock, &buff_, 510, 0);
+	int read_bytes = recv(sock, &buff_, 512, 0);
 	if (read_bytes < 0) throw std::runtime_error("Recv error in get_msg()");
 
 	if (read_bytes == 0)
