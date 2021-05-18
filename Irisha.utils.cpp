@@ -153,17 +153,25 @@ void Irisha::send_channel(Channel *channel, std::string msg, std::string prefix)
 
     while (itr != ite)
     {
-        send_msg((*itr)->socket(), prefix, msg);
+        if ((*itr)->socket() != U_EXTERNAL_USER)
+            send_msg((*itr)->socket(), prefix, msg);
         itr++;
     }
-//    itr = channel->getOperators().begin();
-//    ite = channel->getOperators().end();
-//    while (itr != ite)
-//    {
-//        send_msg((*itr)->socket(), prefix, msg);
-//        itr++;
-//    }
-    send_msg_to_servers(prefix, msg);
+    send_servers(prefix, msg);
+}
+
+void Irisha::send_channel(Channel *channel, std::string msg, std::string prefix, int sock)
+{
+    std::vector<User*>::const_iterator itr = channel->getUsers().begin();
+    std::vector<User*>::const_iterator ite = channel->getUsers().end();
+
+    while (itr != ite)
+    {
+        if ((*itr)->socket() != U_EXTERNAL_USER && (*itr)->socket() != sock)
+            send_msg((*itr)->socket(), prefix, msg);
+        itr++;
+    }
+    send_servers(prefix, msg);
 }
 
 /**

@@ -5,7 +5,7 @@ Channel::Channel(const std::string &name) : name_(name), max_users_(0){
     mode_.insert(std::pair<char, int>('p', 0)); // private channel flag
     mode_.insert(std::pair<char, int>('s', 0)); // secret channel flag
     mode_.insert(std::pair<char, int>('i', 0)); // invite-only channel flag
-    mode_.insert(std::pair<char, int>('t', 0)); // topic settable by channel operator only flag
+    mode_.insert(std::pair<char, int>('t', 1)); // topic settable by channel operator only flag
     mode_.insert(std::pair<char, int>('n', 0)); // no messages to channel from clients on the outside
     mode_.insert(std::pair<char, int>('m', 0)); // moderated channel
     mode_.insert(std::pair<char, int>('l', 0)); // set the user limit to channel
