@@ -183,7 +183,7 @@ void Irisha::loop()
 	std::list<Irisha::RegForm*>	reg_expect;	//not registered connections
     std::deque<std::string>		arr_msg;	// array messages, not /r/n
     timeval						timeout;	// select timeout
-    time_t						last_ping = 0;
+    time_t						last_ping = time(nullptr);	// Time of the last connection ping
 
 	timeout.tv_sec	= ping_timeout_;
 	timeout.tv_usec	= 0;
