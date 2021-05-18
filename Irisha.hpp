@@ -7,6 +7,8 @@
 
 #include "AConnection.hpp"
 #include "User.hpp"
+#include "Server.hpp"
+
 #include <iostream>
 #include <sstream>
 #include <map>
@@ -27,10 +29,10 @@ struct Command
 	std::vector<std::string>	arguments_;
 };
 
-enum CmdResult
+enum eResult
 {
-	CMD_SUCCESS,
-	CMD_FAILURE
+	R_SUCCESS,
+	R_FAILURE
 };
 
 class Irisha
@@ -48,7 +50,7 @@ private:
 		}
 	};
 
-	typedef CmdResult (Irisha::*func)(const int sock);
+	typedef eResult (Irisha::*func)(const int sock);
 
 	std::string	domain_;
 	int			listener_;
@@ -61,80 +63,83 @@ private:
     Command		cmd_;		// Struct for parsed command
 	std::string	host_name_;	// Host server. Need when this server connected to other.
 	std::string	password_;	// Password for clients and servers connection to connect this server
-	std::map<std::string ,Channel*>          channels_; // Map channels
-	std::map<int, AConnection*>	connections_;	// Server and client connections
-	std::map<std::string, func>	commands_;		// IRC commands
 
+	std::map<std::string, AConnection*>		connections_;	// Server and client connections
+	std::map<std::string, func>				commands_;		// IRC commands
+    std::map<std::string ,Channel*>          channels_;
 	std::list<Irisha::RegForm*>::iterator	expecting_registration(int i, std::list<RegForm*>& reg_expect);
 	int										register_connection	(std::list<RegForm*>::iterator rf);
 
 	/// Useful typedefs
-	typedef std::map<int, AConnection*>::iterator		con_it;
-	typedef std::map<int, AConnection*>::const_iterator	con_const_it;
+	typedef std::map<std::string, AConnection*>::iterator		con_it;
+	typedef std::map<std::string, AConnection*>::const_iterator	con_const_it;
 
 	/// Initialization
-	void		prepare_commands	();
-	void		launch				();
-	void 		init				(int port);
-	void		apply_config		(const std::string& path);
-	void		loop				();
+	void			prepare_commands	();
+	void			launch				();
+	void 			init				(int port);
+	void			apply_config		(const std::string& path);
+	void			loop				();
 
 	/// Connections
-	int			accept_connection	();
-	void		handle_disconnection(int sock);
-	void		handle_command		(int sock);
+	int				accept_connection	();
+	void			handle_disconnection(const int sock);
+	void			handle_command		(const int sock);
+	AConnection*	find_connection		(const int sock) const;
 
 	/// Users
-	void		add_user			(const int sock, const std::string& nick);
-	void		add_user			(const int sock);
-	void		remove_user			(const std::string& nick);
-	User*		find_user			(const std::string& nick) const;
-	User*		find_user			(const int sock) const;
+	void			add_user			(const int sock, const std::string& nick);
+	void			add_user			();
+	void			remove_user			(const std::string& nick);
+	User*			find_user			(const std::string& nick) const;
+	User*			find_user			(const int sock) const;
 
 	/// Servers
-//	Server*		find_server			(const std::string& nick) const;
+	Server*			find_server			(const int sock) const;
 
 	/// Utils
-	void		send_msg			(int sock, const std::string& prefix, const std::string& msg) const;
-	void		send_msg_to_servers	(const std::string& prefix, const std::string& msg) const;
-	void		send_msg_to_everyone(const std::string& prefix, const std::string& msg) const;
-	std::string get_msg				(int sock);
-	void		print_info			() const;
+	void			send_msg			(int sock, const std::string& prefix, const std::string& msg) const;
+	void			send_servers		(const std::string& prefix, const std::string& msg) const;
+	void			send_servers		(const std::string& prefix, const std::string& msg, const int sock) const;
+	void			send_everyone		(const std::string& prefix, const std::string& msg) const;
+	std::string 	get_msg				(int sock);
+	void			print_info			() const;
+	std::string		connection_name		(const int sock) const;
 
 	/// IRC commands
-	CmdResult	NICK	(const int sock);
-	CmdResult	USER	(const int sock);
-	CmdResult	PASS	(const int sock);
-	CmdResult	SERVER	(const int sock);
-	CmdResult	PING	(const int sock);
-	CmdResult	PONG	(const int sock);
-    CmdResult   JOIN    (const int sock);
-    CmdResult   MODE    (const int sock);
-    CmdResult   PART    (const int sock);
-
+	eResult			NICK				(const int sock);
+	eResult			USER				(const int sock);
+	eResult			PASS				(const int sock);
+	eResult			SERVER				(const int sock);
+	eResult			PING				(const int sock);
+	eResult			PONG				(const int sock);
+	eResult			QUIT				(const int sock);
+    eResult         JOIN                (const int sock);
+    eResult         MODE                (const int sock);
+    eResult         PART                (const int sock);
 	/// IRC commands utils
 	void        send_channel    (Channel *channel, std::string msg, std::string prefix);
 	int         check_mode_channel(const Channel* channel, const int sock, std::list<std::string>& arr_key, std::string& arr_channel);
-	CmdResult	NICK_user		(User* const connection, const int sock, const std::string& new_nick);
-	CmdResult	NICK_server		(const std::string& new_nick);
-	std::string	createPASSmsg	(std::string password);
-	std::string	createSERVERmsg	();
+	eResult			NICK_user			(User* const connection, const int sock, const std::string& new_nick);
+	eResult			NICK_server			(const std::string& new_nick);
+	std::string		createPASSmsg		(std::string password);
+	std::string		createSERVERmsg		();
 
 	/// Unused constructors
-	Irisha() {};
-	Irisha(const Irisha& other) {};
-	Irisha& operator= (const Irisha& other) { return *this; };
+	Irisha				() {};
+	Irisha				(const Irisha& other) {};
+	Irisha& operator=	(const Irisha& other) { return *this; };
 
 public:
-	explicit Irisha(int port);
-	Irisha(int port, const std::string& password);
-	Irisha(const std::string& host_name, int network_port, const std::string& network_password,
-		   int port, const std::string& password);
-	~Irisha();
+	explicit Irisha	(int port);
+	Irisha			(int port, const std::string& password);
+	Irisha			(const std::string& host_name, int network_port, const std::string& network_password
+		   						, int port, const std::string& password);
+	~Irisha			();
 
 
 	/// ‼️ ⚠️ DEVELOPMENT UTILS (REMOVE OR COMMENT WHEN PROJECT IS READY) ⚠️ ‼️ //! TODO: DEV -> REMOVE ///
-	enum PrintMode
+	enum ePrintMode
 	{
 		PM_LINE,
 		PM_LIST,
@@ -142,7 +147,7 @@ public:
 	};
 
 	friend void	sending_loop(const Irisha* server);
-	void		print_cmd	(PrintMode mode, const int sock) const;
+	void		print_cmd	(ePrintMode mode, const int sock) const;
 	void		user_info	(const std::string& nick) const;
 	void		print_user_list		() const;
 	void		send_input_msg		(int sock) const;

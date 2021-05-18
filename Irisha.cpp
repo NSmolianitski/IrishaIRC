@@ -62,9 +62,9 @@ Irisha::Irisha(const std::string& host_name, int network_port, const std::string
 
 	int c = ::connect(speaker, reinterpret_cast<struct sockaddr *>(&server_address), sizeof(server_address));
 	if (c < 0) throw std::runtime_error("Connection error");
-	std::cout << "Connection established! " << "🔥" << "\n" << std::endl;
+	std::cout << "Connection established! " E_FIRE "\n" << std::endl;
 	print_info();
-	std::cout << BOLD BWHITE "\n⭐ Server started. Waiting for the client connection. ⭐\n" CLR << std::endl;
+	std::cout << BOLD BWHITE "\n" E_STAR " Server started. Waiting for the client connection. " E_STAR "\n" CLR << std::endl;
 
 	//registration
 	send_msg(speaker, NO_PREFIX, createPASSmsg(network_password));
@@ -193,17 +193,17 @@ void Irisha::loop()
 						std::list<RegForm*>::iterator it = expecting_registration(i, reg_expect);	//is this connection waiting for registration?
 						if (it != reg_expect.end())														//yes, register it
 						{
-							if (register_connection(it) == CMD_SUCCESS)
+							if (register_connection(it) == R_SUCCESS)
 							{
 								RegForm* rf = *it;
 								reg_expect.erase(it);
 								delete rf;
 							}
 							else
-								handle_command(i);														//no, handle not registration command
+								handle_command(i);														//no, handle not registration command TODO: handle_command two times? 🤔
 						}
 						else
-							handle_command(i);
+							handle_command(i);															//no, handle not registration command TODO: handle_command two times? 🤔
 					}
 				}
 			}
@@ -217,13 +217,20 @@ void Irisha::loop()
  * 				from the all_fds_ member
  * @param		client_socket
  */
-void Irisha::handle_disconnection(int sock)
+void Irisha::handle_disconnection(const int sock)
 {
+	User*	user = find_user(sock);
+
+	if (user == nullptr)
+	{
+		Server*	server = find_server(sock);
+		sys_msg(E_BOOM, "Server", server->name(), "disconnected!");
+	}
+	else
+		sys_msg(E_SCULL, "User", user->nick(), "disconnected!");
+
+	FD_CLR(sock, &all_fds_);
 	close(sock);
-	FD_CLR(sock, &all_fds_);
-	std::cout << ITALIC PURPLE "Client #" << sock << " closed connection. ☠" CLR << std::endl;
-	FD_CLR(sock, &all_fds_);
-	std::cout << ITALIC PURPLE "Client №" << sock << " closed connection. ☠" CLR << std::endl;
 }
 
 /// Commands+
@@ -255,14 +262,14 @@ int			Irisha::register_connection	(std::list<Irisha::RegForm*>::iterator rf)
 {
 	if ((*rf)->pass_received_ == false)
 	{
-		if (cmd_.command_ == "PASS" && (PASS((*rf)->socket_) == CMD_SUCCESS))
+		if (cmd_.command_ == "PASS" && (PASS((*rf)->socket_) == R_SUCCESS))
 			(*rf)->pass_received_ = true;
-		return CMD_FAILURE;
+		return R_FAILURE;
 	}
 	else
 	{
-		if (cmd_.command_ == "SERVER" && (SERVER((*rf)->socket_) == CMD_SUCCESS))
-			return CMD_SUCCESS;
+		if (cmd_.command_ == "SERVER" && (SERVER((*rf)->socket_) == R_SUCCESS))
+			return R_SUCCESS;
 	}
 	return 1;
 }
