@@ -83,9 +83,27 @@ Irisha::~Irisha()
 void Irisha::apply_config(const std::string& path)
 {
 	check_config(path);
-	domain_		= get_config_value(path, DOMAIN);
-	welcome_	= get_config_value(path, WELCOME);
-	//password_	= get_config_value(path, PASS);
+	domain_			= get_config_value(path, DOMAIN);
+	welcome_		= get_config_value(path, WELCOME);
+	ping_timeout_	= str_to_int(get_config_value(path, PING_T));
+	conn_timeout_	= str_to_int(get_config_value(path, CONN_T));
+	if (ping_timeout_ < 1 || ping_timeout_ > 10000)
+	{
+		ping_timeout_ = 20;
+		std::cout << RED "Ping timeout is wrong - server will use default setting (20 sec)" CLR << std::endl;
+	}
+	if (conn_timeout_ < 1 || conn_timeout_ > 10000)
+	{
+		conn_timeout_ = 120;
+		std::cout << RED "Connection timeout is wrong - server will use default setting (120 sec)" CLR << std::endl;
+	}
+	if (ping_timeout_ > conn_timeout_)
+	{
+		ping_timeout_ = 20;
+		conn_timeout_ = 120;
+		std::cout << RED "Ping timeout can't be greater than connection timeout - server will use default settings" CLR << std::endl;
+	}
+	//password_		= get_config_value(path, PASS);
 	int	dots	= 0;
 	for (size_t i = 0; i < domain_.length(); ++i)
 	{
@@ -114,6 +132,7 @@ void Irisha::launch()
 	if (b == -1) throw std::runtime_error("Binding failed!");
 
 	listen(listener_, 5);
+	launch_time_ = time(nullptr);
 }
 
 void Irisha::init(int port)
@@ -159,18 +178,24 @@ int Irisha::accept_connection()
  */
 void Irisha::loop()
 {
-	int			n;
-	std::string	client_msg;
+	int							n;
+	std::string					client_msg;
 	std::list<Irisha::RegForm*>	reg_expect;	//not registered connections
     std::deque<std::string>		arr_msg;	// array messages, not /r/n
+    timeval						timeout;	// select timeout
+    time_t						last_ping = 0;
 
+	timeout.tv_sec	= ping_timeout_;
+	timeout.tv_usec	= 0;
 	signal(SIGPIPE, SIG_IGN);
 	std::thread	sender(sending_loop, this); //! TODO: REMOVE ////////////////////////////////////////////////////////////////////////////////////////////
 	while (true)
 	{
 		read_fds_ = all_fds_;
-		n = select(max_fd_ + 1, &read_fds_, nullptr, nullptr, nullptr);
+		n = select(max_fd_ + 1, &read_fds_, nullptr, nullptr, &timeout);
 		if (n == -1) throw std::runtime_error("Select error");
+		if (difftime(time(nullptr), last_ping) >= ping_timeout_)
+			ping_connections(last_ping);
 
 		for (int i = 3; i < max_fd_ + 1; ++i)
 		{

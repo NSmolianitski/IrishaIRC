@@ -184,6 +184,8 @@ enum eReply
 
 #define DOMAIN	"server-domain"
 #define WELCOME	"welcome-message"
+#define PING_T	"ping-timeout"
+#define CONN_T	"connection-timeout"
 //#define PASS	"server-password"
 
 /// Config

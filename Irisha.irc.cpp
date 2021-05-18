@@ -128,7 +128,7 @@ eResult Irisha::USER(const int sock)
 	User*	user = find_user(sock);
 	if (user == nullptr)	// Safeguard for invalid user
 	{
-		std::cout << RED BOLD "ALARM! WE DON'T HAVE USER WITH SOCKET №" BWHITE << sock << RED " IN OUR DATABASE!" CLR << std::endl;
+		std::cout << RED BOLD "ALARM! WE DON'T HAVE USER WITH SOCKET" BWHITE " №" << sock << RED " IN OUR DATABASE!" CLR << std::endl;
 		return R_FAILURE;
 	}
 	if (!user->username().empty())

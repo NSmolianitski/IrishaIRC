@@ -51,8 +51,6 @@ private:
 
 	typedef eResult (Irisha::*func)(const int sock);
 
-	std::string	welcome_;	// Welcome message
-	std::string	domain_;
 	int			listener_;
 	sockaddr_in	address_;
 	char		buff_[512];
@@ -60,12 +58,19 @@ private:
 	fd_set		read_fds_;
 	fd_set		serv_fds_;
 	int			max_fd_;
-    Command		cmd_;		// Struct for parsed command
-	std::string	host_name_;	// Host server. Need when this server connected to other.
-	std::string	password_;	// Password for clients and servers connection to connect this server
+    Command		cmd_;			// Struct for parsed command
+	std::string	host_name_;		// Host server. Need when this server connected to other.
+	std::string	password_;		// Password for clients and servers connection to connect this server
+	time_t		launch_time_;	// Server launch time
 
 	std::map<std::string, AConnection*>		connections_;	// Server and client connections
 	std::map<std::string, func>				commands_;		// IRC commands
+
+	/// Configuration members
+	std::string	domain_;        // Server name
+	std::string	welcome_;       // Welcome message
+	int			ping_timeout_;  // How often server sends PING command
+	int			conn_timeout_;	// Seconds without respond until disconnection
 
 	std::list<Irisha::RegForm*>::iterator	expecting_registration(int i, std::list<RegForm*>& reg_expect);
 	int										register_connection	(std::list<RegForm*>::iterator rf);
@@ -86,6 +91,7 @@ private:
 	void			handle_disconnection(const int sock);
 	void			handle_command		(const int sock);
 	AConnection*	find_connection		(const int sock) const;
+	void			ping_connections	(time_t& last_ping);
 
 	/// Users
 	void			add_user			(const int sock, const std::string& nick);

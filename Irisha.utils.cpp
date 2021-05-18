@@ -19,7 +19,11 @@ std::string Irisha::get_msg(int sock)
 
 	if (read_bytes == 0)
 		handle_disconnection(sock);
+
 	buff_[read_bytes] = '\0';
+	AConnection*	sender = find_connection(sock);
+	if (sender != nullptr)
+		sender->update_time();
 	return (buff_);
 }
 
@@ -166,6 +170,25 @@ std::string Irisha::connection_name(const int sock) const
 	else
 		name = user->nick();
 	return name;
+}
+
+void Irisha::ping_connections(time_t& last_ping)
+{
+	std::cout << PURPLE ITALIC << "Ping connections!" CLR << std::endl;
+
+	AConnection*	connection;
+	for (con_it it = connections_.begin(); it != connections_.end(); ++it)
+	{
+		connection = it->second;
+		int time = static_cast<int>(connection->last_msg_time());
+		if (connection->socket() != U_EXTERNAL_USER && time >= ping_timeout_)
+		{
+//			if (connection->last_msg_time() > conn_timeout_)	TODO: close connection if no respond too long
+//				close_connection();
+			send_msg(it->second->socket(), domain_, "PING " + domain_); // Send PING message
+		}
+	}
+	last_ping = time(nullptr);
 }
 
 /// ‼️ ⚠️ DEVELOPMENT UTILS (REMOVE OR COMMENT WHEN PROJECT IS READY) ⚠️ ‼️ //! TODO: DEV -> REMOVE /////////////////////
