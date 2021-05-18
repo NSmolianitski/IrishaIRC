@@ -142,6 +142,7 @@ void Irisha::init(int port)
 	listener_ = socket(PF_INET, SOCK_STREAM, 0);
 	if (listener_ == -1) throw std::runtime_error("Socket creation failed!");
 
+	signal(SIGPIPE, SIG_IGN);
 	FD_ZERO(&all_fds_);
 	FD_SET(listener_, &all_fds_);
 
@@ -180,14 +181,13 @@ void Irisha::loop()
 {
 	int							n;
 	std::string					client_msg;
-	std::list<Irisha::RegForm*>	reg_expect;	//not registered connections
-    std::deque<std::string>		arr_msg;	// array messages, not /r/n
-    timeval						timeout;	// select timeout
+	std::list<Irisha::RegForm*>	reg_expect;	// Not registered connections
+    std::deque<std::string>		arr_msg;	// Array messages, not /r/n
+    timeval						timeout;	// Select timeout
     time_t						last_ping = time(nullptr);	// Time of the last connection ping
 
 	timeout.tv_sec	= ping_timeout_;
 	timeout.tv_usec	= 0;
-	signal(SIGPIPE, SIG_IGN);
 	std::thread	sender(sending_loop, this); //! TODO: REMOVE ////////////////////////////////////////////////////////////////////////////////////////////
 	while (true)
 	{
@@ -215,8 +215,8 @@ void Irisha::loop()
                         parse_msg(arr_msg[0], cmd_);
 						print_cmd(PM_LINE, i);
 						arr_msg.pop_front();
-						std::list<RegForm*>::iterator it = expecting_registration(i, reg_expect);	//is this connection waiting for registration?
-						if (it != reg_expect.end())														//yes, register it
+						std::list<RegForm*>::iterator it = expecting_registration(i, reg_expect);	// Is this connection waiting for registration? TODO: add timeout handling to registration
+						if (it != reg_expect.end())														// Yes, register it
 						{
 							if (register_connection(it) == R_SUCCESS)
 							{
@@ -225,10 +225,10 @@ void Irisha::loop()
 								delete rf;
 							}
 							else
-								handle_command(i);														//no, handle not registration command TODO: handle_command two times? 🤔
+								handle_command(i);														// No, handle not registration command TODO: do we need handle_command two times? 🤔
 						}
 						else
-							handle_command(i);															//no, handle not registration command TODO: handle_command two times? 🤔
+							handle_command(i);															// No, handle not registration command TODO: do we need handle_command two times? 🤔
 					}
 				}
 			}
@@ -244,16 +244,21 @@ void Irisha::loop()
  */
 void Irisha::handle_disconnection(const int sock)
 {
-	User*	user = find_user(sock);
+	User*		user = find_user(sock);
+	std::string msg;
 
 	if (user == nullptr)
 	{
 		Server*	server = find_server(sock);
 		sys_msg(E_BOOM, "Server", server->name(), "disconnected!");
+		send_servers(server->name(), msg);
 	}
 	else
-		sys_msg(E_SCULL, "User", user->nick(), "disconnected!");
-
+	{
+		msg = sys_msg(E_SCULL, "User", user->nick(), "disconnected!");
+		send_servers(user->nick(), msg);
+		remove_user(user->nick());
+	}
 	FD_CLR(sock, &all_fds_);
 	close(sock);
 }

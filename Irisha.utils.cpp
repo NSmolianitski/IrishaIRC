@@ -183,8 +183,12 @@ void Irisha::ping_connections(time_t& last_ping)
 		int time = static_cast<int>(connection->last_msg_time());
 		if (connection->socket() != U_EXTERNAL_USER && time >= ping_timeout_)
 		{
-//			if (connection->last_msg_time() > conn_timeout_)	TODO: close connection if no respond too long
-//				close_connection();
+			if (connection->last_msg_time() >= conn_timeout_)
+			{
+				--it;
+				handle_disconnection(connection->socket());
+				continue;
+			}
 			send_msg(it->second->socket(), domain_, "PING " + domain_); // Send PING message
 		}
 	}

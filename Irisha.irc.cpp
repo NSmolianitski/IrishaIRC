@@ -144,6 +144,7 @@ eResult Irisha::USER(const int sock)
 		user->set_mode(str_to_int(cmd_.arguments_[1]));
 	send_msg(sock, domain_, "001 " + user->nick() + " " + welcome_); //! TODO: change to RPL_WELCOME
 
+	sys_msg(E_MAN, "New local user", user->nick(), "registered!");
 	// NICK <nickname> <hopcount> <username> <host> <servertoken> <umode> <realname>
 	send_servers(domain_, "NICK " + user->nick() + " 1 " + user->username() + " " + user->server() + " 2 + " + user->username()); //! TODO: add server token, user modes, fix realname
 	return R_SUCCESS;
