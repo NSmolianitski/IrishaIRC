@@ -7,7 +7,7 @@
 
 #include <string>
 
-enum Type
+enum eType
 {
 	T_SERVER,
 	T_CLIENT
@@ -17,18 +17,18 @@ class AConnection
 {
 private:
 	int			socket_;
-	Type		type_;
+	eType		type_;
 	int			hopcount_;
 	std::string	buff_;
 
 	/// Unused constructors
 	AConnection();
 public:
-	AConnection(int socket, Type type, int hopcount);
+	AConnection(int socket, eType type, int hopcount);
 	virtual ~AConnection() = 0;
 
 	int 			socket	() const;
-	int 			type	() const;
+	eType 			type	() const;
 	int 			hopcount() const;
 	std::string&	buff	();
 };

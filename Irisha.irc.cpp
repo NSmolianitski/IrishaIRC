@@ -19,6 +19,7 @@ void	Irisha::prepare_commands()
 	commands_.insert(std::pair<std::string, func>("SERVER", &Irisha::SERVER));
 	commands_.insert(std::pair<std::string, func>("PING", &Irisha::PING));
 	commands_.insert(std::pair<std::string, func>("PONG", &Irisha::PONG));
+	commands_.insert(std::pair<std::string, func>("QUIT", &Irisha::QUIT));
 }
 
 /**
@@ -220,5 +221,32 @@ eResult Irisha::PING(const int sock)
 	else if (cmd_.arguments_.size() == 1) // PINGing this server
 		PONG(sock);
 	//else send to receiver
+	return R_SUCCESS;
+}
+
+eResult Irisha::QUIT(const int sock) //! TODO: починить баг (при повторном подключении юзера ничего не происходит)
+{
+	User*	user;
+	bool	local = true;
+	if (cmd_.prefix_.empty())
+		user = find_user(sock);
+	else
+	{
+		user = find_user(cmd_.prefix_);
+		local = false;
+	}
+
+	std::string	msg;
+	msg = sys_msg(E_SCULL, "User", user->nick(), "disconnected!");
+	if (!cmd_.arguments_.empty())
+		msg = cmd_.arguments_[0];
+
+	if (local)
+		send_servers(user->nick(), msg);
+	else
+		send_servers(user->nick(), msg, sock);
+	remove_user(user->nick());
+	FD_CLR(sock, &all_fds_);
+	close(sock);
 	return R_SUCCESS;
 }

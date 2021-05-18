@@ -7,6 +7,7 @@
 
 #include "AConnection.hpp"
 #include "User.hpp"
+#include "Server.hpp"
 
 #include <iostream>
 #include <map>
@@ -62,8 +63,8 @@ private:
 	std::string	host_name_;	// Host server. Need when this server connected to other.
 	std::string	password_;	// Password for clients and servers connection to connect this server
 
-	std::map<std::string, AConnection*>	connections_;	// Server and client connections
-	std::map<std::string, func>	commands_;		// IRC commands
+	std::map<std::string, AConnection*>		connections_;	// Server and client connections
+	std::map<std::string, func>				commands_;		// IRC commands
 
 	std::list<Irisha::RegForm*>::iterator	expecting_registration(int i, std::list<RegForm*>& reg_expect);
 	int										register_connection	(std::list<RegForm*>::iterator rf);
@@ -73,59 +74,63 @@ private:
 	typedef std::map<std::string, AConnection*>::const_iterator	con_const_it;
 
 	/// Initialization
-	void		prepare_commands	();
-	void		launch				();
-	void 		init				(int port);
-	void		apply_config		(const std::string& path);
-	void		loop				();
+	void			prepare_commands	();
+	void			launch				();
+	void 			init				(int port);
+	void			apply_config		(const std::string& path);
+	void			loop				();
 
 	/// Connections
-	int			accept_connection	();
-	void		handle_disconnection(int sock);
-	void		handle_command		(int sock);
+	int				accept_connection	();
+	void			handle_disconnection(const int sock);
+	void			handle_command		(const int sock);
+	AConnection*	find_connection		(const int sock) const;
 
 	/// Users
-	void		add_user			(const int sock, const std::string& nick);
-	void		add_user			();
-	void		remove_user			(const std::string& nick);
-	User*		find_user			(const std::string& nick) const;
-	User*		find_user			(const int sock) const;
+	void			add_user			(const int sock, const std::string& nick);
+	void			add_user			();
+	void			remove_user			(const std::string& nick);
+	User*			find_user			(const std::string& nick) const;
+	User*			find_user			(const int sock) const;
 
 	/// Servers
-//	Server*		find_server			(const std::string& nick) const;
+	Server*			find_server			(const int sock) const;
 
 	/// Utils
-	void		send_msg		(int sock, const std::string& prefix, const std::string& msg) const;
-	void		send_servers	(const std::string& prefix, const std::string& msg) const;
-	void		send_everyone	(const std::string& prefix, const std::string& msg) const;
-	std::string get_msg			(int sock);
-	void		print_info		() const;
+	void			send_msg			(int sock, const std::string& prefix, const std::string& msg) const;
+	void			send_servers		(const std::string& prefix, const std::string& msg) const;
+	void			send_servers		(const std::string& prefix, const std::string& msg, const int sock) const;
+	void			send_everyone		(const std::string& prefix, const std::string& msg) const;
+	std::string 	get_msg				(int sock);
+	void			print_info			() const;
+	std::string		connection_name		(const int sock) const;
 
 	/// IRC commands
-	eResult		NICK			(const int sock);
-	eResult		USER			(const int sock);
-	eResult		PASS			(const int sock);
-	eResult		SERVER			(const int sock);
-	eResult		PING			(const int sock);
-	eResult		PONG			(const int sock);
+	eResult			NICK				(const int sock);
+	eResult			USER				(const int sock);
+	eResult			PASS				(const int sock);
+	eResult			SERVER				(const int sock);
+	eResult			PING				(const int sock);
+	eResult			PONG				(const int sock);
+	eResult			QUIT				(const int sock);
 
 	/// IRC commands utils
-	eResult		NICK_user		(User* const connection, const int sock, const std::string& new_nick);
-	eResult		NICK_server		(const std::string& new_nick);
-	std::string	createPASSmsg	(std::string password);
-	std::string	createSERVERmsg	();
+	eResult			NICK_user			(User* const connection, const int sock, const std::string& new_nick);
+	eResult			NICK_server			(const std::string& new_nick);
+	std::string		createPASSmsg		(std::string password);
+	std::string		createSERVERmsg		();
 
 	/// Unused constructors
-	Irisha() {};
-	Irisha(const Irisha& other) {};
-	Irisha& operator= (const Irisha& other) { return *this; };
+	Irisha				() {};
+	Irisha				(const Irisha& other) {};
+	Irisha& operator=	(const Irisha& other) { return *this; };
 
 public:
-	explicit Irisha(int port);
-	Irisha(int port, const std::string& password);
-	Irisha(const std::string& host_name, int network_port, const std::string& network_password,
-		   int port, const std::string& password);
-	~Irisha();
+	explicit Irisha	(int port);
+	Irisha			(int port, const std::string& password);
+	Irisha			(const std::string& host_name, int network_port, const std::string& network_password
+		   						, int port, const std::string& password);
+	~Irisha			();
 
 
 	/// ‼️ ⚠️ DEVELOPMENT UTILS (REMOVE OR COMMENT WHEN PROJECT IS READY) ⚠️ ‼️ //! TODO: DEV -> REMOVE ///

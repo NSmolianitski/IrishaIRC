@@ -38,6 +38,10 @@
 #define E_CHAIN		"🔗"
 #define E_LAPTOP	"💻"
 #define E_ALIEN		"👽"
+#define E_FIRE		"🔥"
+#define E_STAR		"⭐"
+#define E_SCULL		"☠"
+#define E_BOOM		"🧨"
 
 enum eUtils
 {
@@ -54,10 +58,10 @@ std::string	get_config_value	(const std::string& path, const std::string& settin
 void		check_config		(const std::string& path);
 
 ///	System messages
-void		sys_msg(const std::string& emoji, const std::string& str);
-void		sys_msg(const std::string& emoji, const std::string& str
+std::string	sys_msg(const std::string& emoji, const std::string& str);
+std::string	sys_msg(const std::string& emoji, const std::string& str
 				, const std::string& white_str);
-void		sys_msg(const std::string& emoji, const std::string& str
+std::string	sys_msg(const std::string& emoji, const std::string& str
 				, const std::string& white_str, const std::string& ending);
 
 /// Other

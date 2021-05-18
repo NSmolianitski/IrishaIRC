@@ -24,6 +24,42 @@ std::string Irisha::get_msg(int sock)
 }
 
 /**
+ * @description	Finds connection by socket
+ * @param		sock: socket
+ * @return		Returns connection pointer or nullptr
+ */
+AConnection* Irisha::find_connection(const int sock) const
+{
+	for (con_const_it it = connections_.begin(); it != connections_.end(); ++it)
+	{
+		if (it->second->socket() == sock)
+			return it->second;
+	}
+	return nullptr;
+}
+
+/**
+ * @description	Finds server by socket
+ * @param		sock: socket
+ * @return		server pointer or nullptr
+ */
+Server* Irisha::find_server(const int sock) const
+{
+	Server*			server;
+	con_const_it	it = connections_.begin();
+	for (; it != connections_.end(); ++it)
+	{
+		if (it->second->type() == T_SERVER)
+		{
+			server = static_cast<Server*>(it->second);
+			if (server->socket() == sock)
+				return server;
+		}
+	}
+	return nullptr;
+}
+
+/**
  * @description	Prints server information
  */
 void Irisha::print_info() const
@@ -46,7 +82,7 @@ void Irisha::send_msg(int sock, const std::string& prefix, const std::string& ms
 	else
 		message = msg;
 
-	std::cout << message + " " E_SPEECH PURPLE ITALIC " to socket №" << sock << CLR << std::endl;
+	std::cout << message + " " E_SPEECH PURPLE ITALIC " to " + connection_name(sock) << CLR << std::endl;
 	message.append("\r\n");
 
 	ssize_t n = send(sock, message.c_str(), message.length(), 0);
@@ -69,6 +105,23 @@ void Irisha::send_servers(const std::string& prefix, const std::string& msg) con
 }
 
 /**
+ * @description	Sends a message to all servers except one with socket
+ * @param		prefix: sender
+ * @param		msg: message
+ * @param		sock: exception socket
+ */
+void Irisha::send_servers(const std::string& prefix, const std::string& msg, const int sock) const
+{
+	con_const_it	it = connections_.begin();
+	for (; it != connections_.end(); ++it)
+	{
+		if (it->second->type() == T_SERVER)
+			if (it->second->socket() != sock)
+				send_msg(it->second->socket(), prefix, msg);
+	}
+}
+
+/**
  * @description	Sends a message to all connections
  * @param		prefix: sender
  * @param		msg: message
@@ -84,13 +137,35 @@ void Irisha::send_everyone(const std::string& prefix, const std::string& msg) co
  * @description	Calls IRC command if it exists
  * @param		sock
  */
-void Irisha::handle_command(int sock)
+void Irisha::handle_command(const int sock)
 {
 	std::map<std::string, func>::const_iterator it = commands_.find(cmd_.command_);
 	if (it != commands_.end())	// Execute command
 		((*this).*it->second)(sock);
 	else
 		send_msg(sock, domain_, ":No such command, my friend"); //! TODO: change to error reply (421, "<command> :Unknown command")
+}
+
+/**
+ * @description	Gets connection name by socket
+ * @param		sock
+ * @return		connection name
+ */
+std::string Irisha::connection_name(const int sock) const
+{
+	User*	user = find_user(sock);
+
+	std::string name;
+	if (user == nullptr)
+	{
+		Server*	server = find_server(sock);
+		if (server == nullptr)
+			return "unknown";
+		name = server->name();
+	}
+	else
+		name = user->nick();
+	return name;
 }
 
 /// ‼️ ⚠️ DEVELOPMENT UTILS (REMOVE OR COMMENT WHEN PROJECT IS READY) ⚠️ ‼️ //! TODO: DEV -> REMOVE /////////////////////
@@ -145,20 +220,14 @@ void Irisha::print_cmd(ePrintMode mode, const int sock) const
 		return;
 	}
 	std::stringstream	sender;
-	User*				user = find_user(sock);
-	if (user)	// If user exists
-		sender << user->nick();
-	else
-		sender << "Connection №" << sock;
+	sender << connection_name(sock);
+	std::cout << "[" BLUE << sender.str() << CLR "] ";
 	if (!cmd_.prefix_.empty())
 	{
 		if (mode == PM_LIST)
 			std::cout << BWHITE "PREFIX: " GREEN ITALIC + cmd_.prefix_ << CLR "\n";
 		else
-		{
-			std::cout << "[" BLUE << sender.str() << CLR "] ";
 			std::cout << GREEN ITALIC << cmd_.prefix_ << CLR " ";
-		}
 	}
 
 	if (mode == PM_LIST)

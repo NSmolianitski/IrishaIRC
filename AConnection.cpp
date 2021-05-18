@@ -5,10 +5,10 @@
 #include "AConnection.hpp"
 
 AConnection::AConnection() {}
-AConnection::AConnection(int socket, Type type, int hopcount) : socket_(socket), type_(type), hopcount_(hopcount) {}
+AConnection::AConnection(int socket, eType type, int hopcount) : socket_(socket), type_(type), hopcount_(hopcount) {}
 AConnection::~AConnection() {}
 
 int				AConnection::socket		() const {	return socket_; }
-int				AConnection::type		() const {	return type_; }
+eType			AConnection::type		() const {	return type_; }
 int				AConnection::hopcount	() const { return hopcount_; }
 std::string&	AConnection::buff		() { return buff_; }

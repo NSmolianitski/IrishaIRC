@@ -117,10 +117,13 @@ bool is_a_valid_nick(const std::string& nick)
  * @description	Sends message to STDOUT
  * @param		emoji: emoji message prefix
  * @param		str: purple message
+ * @return		sent string
  */
-void		sys_msg(const std::string& emoji, const std::string& str)
+std::string	sys_msg(const std::string& emoji, const std::string& str)
 {
-	std::cout << emoji + " " << PURPLE ITALIC << str << CLR << std::endl;
+	std::string msg = emoji + " " PURPLE ITALIC + str + CLR;
+	std::cout << msg << std::endl;
+	return msg;
 }
 
 /**
@@ -128,13 +131,15 @@ void		sys_msg(const std::string& emoji, const std::string& str)
  * @param		emoji: emoji message prefix
  * @param		str: purple message
  * @param		white_str: string which would be white
+ * @return		sent string
  */
-void		sys_msg(const std::string& emoji, const std::string& str
+std::string	sys_msg(const std::string& emoji, const std::string& str
 				, const std::string& white_str)
 {
-	std::cout << emoji + " "
-			  << PURPLE ITALIC << str + " "
-			  << BWHITE << white_str << CLR << std::endl;
+	std::string msg =  emoji + " " PURPLE ITALIC + str
+					   + " " BWHITE + white_str + CLR;
+	std::cout << msg << std::endl;
+	return msg;
 }
 
 /**
@@ -143,14 +148,15 @@ void		sys_msg(const std::string& emoji, const std::string& str
  * @param		str: purple message
  * @param		white_str: string which would be white
  * @param		ending: purple ending
+ * @return		sent string
  */
-void		sys_msg(const std::string& emoji, const std::string& str
+std::string	sys_msg(const std::string& emoji, const std::string& str
 				, const std::string& white_str, const std::string& ending)
 {
-	std::cout << emoji + " "
-			  << PURPLE ITALIC << str + " "
-			  << BWHITE << white_str << " "
-			  << PURPLE << ending << CLR << std::endl;
+	std::string msg =  emoji + " " PURPLE ITALIC + str
+			+ " " BWHITE + white_str + " " + PURPLE + ending + CLR;
+	std::cout << msg << std::endl;
+	return msg;
 }
 
 ///	Other

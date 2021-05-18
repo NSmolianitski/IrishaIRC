@@ -7,12 +7,12 @@ void server_cycle(const std::string& host, int port_network, const std::string& 
 {
 	try
 	{
-//		Irisha server("localhost", 6667, "secret", 6668, "secret");
-		Irisha server(6667, "secret");
+		Irisha server("localhost", 6667, "secret", 6668, "secret");
+//		Irisha server(6667, "secret");
 	}
 	catch (std::exception& e)
 	{
-		std::cerr << RED BOLD "☠ " << "ALARM! " << e.what() << " ☠" CLR << std::endl;
+		std::cerr << RED BOLD E_SCULL " ALARM! " << e.what() << " " E_SCULL CLR << std::endl;
 		exit(1);
 	}
 }
