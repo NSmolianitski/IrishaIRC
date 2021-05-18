@@ -224,7 +224,7 @@ eResult Irisha::PING(const int sock)
 	return R_SUCCESS;
 }
 
-eResult Irisha::QUIT(const int sock) //! TODO: починить баг (при повторном подключении юзера ничего не происходит)
+eResult Irisha::QUIT(const int sock)
 {
 	User*	user;
 	bool	local = true;
