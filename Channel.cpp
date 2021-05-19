@@ -204,3 +204,34 @@ const int &Channel::getMaxUsers() const {
     return max_users_;
 }
 
+void Channel::addModeratorUser(User *user) {
+    ITERATOR itr = moderator_users_.begin();
+    ITERATOR ite = moderator_users_.end();
+
+    while (itr != ite){
+        if (*itr == user){
+            return;
+        }
+        itr++;
+    }
+    moderator_users_.push_back(user);
+}
+
+void Channel::delModeratorUser(User *user) {
+    ITERATOR itr = moderator_users_.begin();
+    ITERATOR ite = moderator_users_.end();
+
+    while (itr != ite){
+        if (*itr == user){
+            moderator_users_.erase(itr);
+            break;
+        }
+        itr++;
+    }
+}
+
+const std::vector<User *> &Channel::getModerators() const {
+    return moderator_users_;
+}
+
+

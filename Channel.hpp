@@ -19,6 +19,7 @@ private:
     std::vector<User*>  users_;
     std::vector<User*>  operators_;
     std::vector<User*>  ban_users_;
+    std::vector<User*>  moderator_users_;
     std::vector<User*>  invite_users_;
 public:
     Channel(const std::string &name);
@@ -35,6 +36,8 @@ public:
     void delOperators(User* oper);
     void addInviteUser(User* user);
     void delInviteUser(User* user);
+    void addModeratorUser(User* user);
+    void delModeratorUser(User* user);
 
     const std::string &getTopic() const;
     const std::string &getKey() const;
@@ -43,6 +46,7 @@ public:
     const std::vector<User*> &getOperators() const;
     const std::vector<User*> &getBanUsers() const;
     const std::vector<User*> &getInviteUsers() const;
+    const std::vector<User*> &getModerators() const;
     const int &getMaxUsers() const;
     std::string getListUsers();
     ~Channel();

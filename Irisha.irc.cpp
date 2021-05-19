@@ -445,13 +445,68 @@ eResult Irisha::TOPIC(const int sock)
 
 eResult Irisha::PRIVMSG(const int sock)
 {
-    User* user = find_user(cmd_.arguments_[0]);
-    if ((cmd_.arguments_[0][0] == '#' || cmd_.arguments_[0][0] == '&' || cmd_.arguments_[0][0] == '+' || cmd_.arguments_[0][0] == '!')){
-        std::map<std::string, Channel*>::iterator itr = channels_.find(cmd_.arguments_[0]);
-        send_channel((*itr).second, "PRIVMSG " + cmd_.arguments_[0] + " " + cmd_.arguments_[1], find_user(sock)->nick(), sock);
-    } else {
-        if (user != nullptr)
-            send_msg(user->socket(), find_user(sock)->nick(), "PRIVMSG " + cmd_.arguments_[0] + " " + cmd_.arguments_[1]);
+    if (cmd_.arguments_.size() == 0){
+        send_msg(sock, domain_, "411 " + find_user(sock)->nick() + " " + " :No recipient given (PRIVMSG)");
+        return R_SUCCESS;
+    }
+    if (cmd_.arguments_.size() == 1){
+        send_msg(sock, domain_, "412 " + find_user(sock)->nick() + " " + " :No text to send");
+        return R_SUCCESS;
+    }
+
+    std::list<std::string> arr_receiver;
+    std::string str_receiver = cmd_.arguments_[0];
+    User* user;
+
+    parse_arr_list(arr_receiver, str_receiver, ',');
+    arr_receiver.sort();
+    arr_receiver.unique();
+    while (!arr_receiver.empty()){
+        if ((arr_receiver.front()[0] == '#' || arr_receiver.front()[0] == '&' || arr_receiver.front()[0] == '+' || arr_receiver.front()[0] == '!')){
+            std::map<std::string, Channel*>::iterator itr = channels_.find(arr_receiver.front());
+            if (itr == channels_.end()){
+                send_msg(sock, domain_, "401 " + find_user(sock)->nick() + " " + arr_receiver.front() + " :No such nick/channel");
+                arr_receiver.pop_front();
+                continue;
+            }
+            CITERATOR itr_u = (*itr).second->getUsers().begin();
+            CITERATOR ite_u = (*itr).second->getUsers().end();
+            while (itr_u != ite_u){
+                if (*itr_u == find_user(sock))
+                    break;
+                itr_u++;
+            }
+            if (itr_u == ite_u && (*itr).second->getMode().find('n')->second == 1){
+                send_msg(sock, domain_, "404 " + find_user(sock)->nick() + " " + arr_receiver.front() + " :Cannot send to channel");
+                arr_receiver.pop_front();
+                continue;
+            }
+            itr_u = (*itr).second->getModerators().begin();
+            ite_u = (*itr).second->getModerators().end();
+            while (itr_u != ite_u){
+                if (*itr_u == find_user(sock))
+                    break;
+                itr_u++;
+            }
+            if (itr_u == ite_u && (*itr).second->getMode().find('m')->second == 1){
+                send_msg(sock, domain_, "404 " + find_user(sock)->nick() + " " + arr_receiver.front() + " :Cannot send to channel");
+                arr_receiver.pop_front();
+                continue;
+            }
+            send_channel((*itr).second, "PRIVMSG " + arr_receiver.front() + " " + cmd_.arguments_[1], find_user(sock)->nick(), sock);
+        } else {
+            user = find_user(arr_receiver.front());
+            if (user != nullptr){
+                send_msg(sock, domain_, "401 " + find_user(sock)->nick() + " " + arr_receiver.front() + " :No such nick/channel");
+                arr_receiver.pop_front();
+                continue;
+            }
+            send_msg(sock, find_user(sock)->nick(), "PRIVMSG " + arr_receiver.front() + " " + cmd_.arguments_[1]);
+        }
+        arr_receiver.pop_front();
     }
     return R_SUCCESS;
 }
+
+//ERR_CANNOTSENDTOCHAN            ERR_NOTOPLEVEL
+//ERR_WILDTOPLEVEL
