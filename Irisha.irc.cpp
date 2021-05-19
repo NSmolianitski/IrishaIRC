@@ -174,43 +174,61 @@ eResult Irisha::PASS(const int sock)
 eResult Irisha::SERVER(const int sock)
 {
 	//validation+
-	std::string info = "";
-	for (int i = 0; i < cmd_.arguments_.size(); i++)
-	{
-		if (cmd_.arguments_[i].find(':') != std::string::npos)
-		{
-			info = cmd_.arguments_[i];
-			break ;
-		}
-	}
-	if (info.empty())
+	if (cmd_.arguments_.empty())
 		return R_FAILURE;
+	if (cmd_.arguments_[cmd_.arguments_.size() - 1].find(':') == std::string::npos)
+		return R_FAILURE;
+
 	//validation-
 
 	int hopcount;
-	if (cmd_.arguments_.empty())
-		return R_FAILURE;
-	if (cmd_.arguments_.size() == 1) //only server name sent
-		hopcount = 1;
-	else if (cmd_.arguments_.size() == 2 &&
-		(cmd_.arguments_[0].find_first_not_of("0123456789") == std::string::npos)) //hopcount and server name sent
+	int token;
+	//only server name sent
+	if (cmd_.arguments_.size() == 2)
 	{
-		try	{ hopcount = std::stoi(cmd_.arguments_[0]); }
+		hopcount = 1;
+		token = next_token();
+	}
+	//token and server name sent
+	else if (cmd_.arguments_.size() == 3 &&
+		(cmd_.arguments_[1].find_first_not_of("0123456789") == std::string::npos))
+	{
+		hopcount = 1;
+		try
+		{
+			token = std::stoi(cmd_.arguments_[1]);
+		}
 		catch(std::exception ex) { return R_FAILURE; }
 	}
-	else
-		hopcount = str_to_int(cmd_.arguments_[0]); ///TODO: remove it
-
-	if (find_server(sock) == nullptr)	//new connection to rhis server
+	//servername, hopcount, token sent
+	else if (cmd_.arguments_.size() == 4
+				&& (cmd_.arguments_[1].find_first_not_of("0123456789") == std::string::npos)
+				&& (cmd_.arguments_[2].find_first_not_of("0123456789") == std::string::npos))
 	{
-		AConnection* server = new Server(cmd_.arguments_[0], sock, hopcount);
+		try
+		{
+			hopcount = std::stoi(cmd_.arguments_[1]);
+			token = std::stoi(cmd_.arguments_[2]);
+		}
+		catch(std::exception ex) { return R_FAILURE; }
+	}
+
+	if (find_server(sock) == nullptr)	//new connection to this server
+	{
+		AConnection* server = new Server(cmd_.arguments_[0], sock, hopcount, token);
 		connections_.insert(std::pair<std::string, AConnection*>(cmd_.arguments_[0], server));
+		if (sock != parent_fd_)
+		{
+			send_msg(sock, NO_PREFIX, createPASSmsg(password_));
+			send_msg(sock, NO_PREFIX, createSERVERmsg());
+		}
+
 		PING(sock);
 	}
 	else
 	{
-//		AConnection* server = new Server(cmd_.arguments_[0], , hopcount);
-//		connections_.insert(std::pair<std::string, AConnection*>(cmd_.arguments_[0], server));
+		AConnection* server = new Server(cmd_.arguments_[0], U_EXTERNAL_CONNECTION, hopcount, token);
+		connections_.insert(std::pair<std::string, AConnection*>(cmd_.arguments_[0], server));
 	}
 
 	sys_msg(E_LAPTOP, "Server", cmd_.arguments_[0], "registered!");
@@ -233,7 +251,8 @@ eResult Irisha::PING(const int sock)
 		return R_FAILURE; ///TODO: send ERR_NOORIGIN
 	else if (cmd_.arguments_.size() == 1) // PINGing this server
 		PONG(sock);
-	//else send to receiver
+	else if (cmd_.command_ == "SERVER")
+		send_msg(sock, domain_,"PING :" + domain_);
 	return R_SUCCESS;
 }
 

@@ -17,6 +17,7 @@
 Irisha::Irisha(int port)
 {
 	init(port);
+	parent_fd_ = -1;
 	launch();
 	print_info();
 	std::cout << BOLD BWHITE "\n⭐ Server started. Waiting for the client connection. ⭐\n" CLR << std::endl;
@@ -26,6 +27,7 @@ Irisha::Irisha(int port)
 Irisha::Irisha(int port, const std::string& password)
 {
 	init(port);
+	parent_fd_ = -1;
 	password_ = password;
 	launch();
 	print_info();
@@ -41,13 +43,14 @@ Irisha::Irisha(const std::string& host_name, int network_port, const std::string
 	init(port);
 	launch();
 	password_ = password;
+	host_name_ = host_name;
 
-	int speaker = socket(PF_INET, SOCK_STREAM, 0); //socket to connect with parent server
-	if (speaker < 0) throw std::runtime_error("Socket opening error");
+	parent_fd_ = socket(PF_INET, SOCK_STREAM, 0); //socket to connect with parent server
+	if (parent_fd_ < 0) throw std::runtime_error("Socket opening error");
 
-	FD_SET(speaker, &all_fds_);
-	if (speaker > max_fd_)
-		max_fd_ = speaker;
+	FD_SET(parent_fd_, &all_fds_);
+	if (parent_fd_ > max_fd_)
+		max_fd_ = parent_fd_;
 
 	server_address.sin_family = AF_INET;
 	server_address.sin_port = htons(network_port);
@@ -59,15 +62,15 @@ Irisha::Irisha(const std::string& host_name, int network_port, const std::string
 			, reinterpret_cast<char *>(&server_address.sin_addr.s_addr)
 			, host->h_length);
 
-	int c = ::connect(speaker, reinterpret_cast<struct sockaddr *>(&server_address), sizeof(server_address));
+	int c = ::connect(parent_fd_, reinterpret_cast<struct sockaddr *>(&server_address), sizeof(server_address));
 	if (c < 0) throw std::runtime_error("Connection error");
 	std::cout << "Connection established! " E_FIRE "\n" << std::endl;
 	print_info();
 	std::cout << BOLD BWHITE "\n" E_STAR " Server started. Waiting for the client connection. " E_STAR "\n" CLR << std::endl;
 
 	//registration
-	send_msg(speaker, NO_PREFIX, createPASSmsg(network_password));
-	send_msg(speaker, NO_PREFIX, createSERVERmsg());
+	send_msg(parent_fd_, NO_PREFIX, createPASSmsg(network_password));
+	send_msg(parent_fd_, NO_PREFIX, createSERVERmsg());
 	loop();
 }
 
@@ -313,7 +316,7 @@ std::string Irisha::createPASSmsg(std::string password)
 {
 	std::string msg = "PASS ";
 	msg.append(password);
-	msg.append(" 0210 Irisha| ");
+	msg.append(" 0210 IRC| ");
 	return msg;
 }
 

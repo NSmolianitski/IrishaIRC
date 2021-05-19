@@ -11,12 +11,14 @@
 class Server	:public AConnection
 {
 public:
-	Server(std::string name, int socket, int hopcount);
+	Server(std::string name, int socket, int hopcount, int token);
 	~Server();
 
-	const std::string& name();
+	const std::string&	name();
+	int 				token();
 private:
 	std::string name_;
+	int 		token_;
 
 	Server();
 	Server(const Server& server);

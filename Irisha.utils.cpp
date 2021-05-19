@@ -8,6 +8,27 @@
 #include <sstream>
 
 /**
+ * find biggest token and return it + 1
+ * @return token for new server connection
+ */
+int 			Irisha::next_token()
+{
+	int max = 0;
+
+	std::map<std::string, AConnection*>::iterator it = connections_.begin();
+	for (; it != connections_.end(); it++)
+	{
+		if (it->second->type() == T_SERVER)
+		{
+			Server *server = dynamic_cast<Server*>(it->second);
+			if (server != 0)
+				max = (server->token() > max) ? server->token() : max;
+		}
+	}
+	return (max + 1);
+}
+
+/**
  * @description	Receives a message from socket
  * @param		socket: sender socket
  * @return		message received from socket
@@ -124,10 +145,12 @@ void Irisha::send_servers(const std::string& prefix, const std::string& msg) con
 	con_const_it	it = connections_.begin();
 	for (; it != connections_.end(); ++it)
 	{
-		if (it->second->type() == T_SERVER)
+		if (it->second->type() == T_SERVER && it->second->socket() != U_EXTERNAL_CONNECTION)
 			send_msg(it->second->socket(), prefix, msg);
 	}
 }
+
+//:pig.irisha.net NICK Guest84 1 textual pig.irisha.net 4 + textual
 
 /**
  * @description	Sends a message to all servers except one with socket
