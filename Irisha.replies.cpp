@@ -34,7 +34,19 @@ void			Irisha::send_rpl_msg		(int sock, eError rpl, const std::string& target, c
 void Irisha::err_nosuchserver(const int sock, const std::string& server_name)
 {
 	std::string	receiver = connection_name(sock);
-	send_rpl_msg(sock, ERR_NOSUCHSERVER, receiver, server_name + " " + ":No such server");
+	send_rpl_msg(sock, ERR_NOSUCHSERVER, receiver, server_name + " :No such server");
+}
+
+void Irisha::err_nosuchnick(const int sock, const std::string& nick)
+{
+	std::string	receiver = connection_name(sock);
+	send_rpl_msg(sock, ERR_NOSUCHNICK, receiver, nick + " :No such nick/channel");
+}
+
+void Irisha::err_nosuchchannel(const int sock, const std::string& channel_name)
+{
+	std::string	receiver = connection_name(sock);
+	send_rpl_msg(sock, ERR_NOSUCHNICK, receiver, channel_name + " :No such channel");
 }
 
 /// Common replies

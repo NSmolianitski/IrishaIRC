@@ -134,6 +134,8 @@ private:
 
 	/// Error replies
 	void			err_nosuchserver	(const int sock, const std::string& server_name);
+	void			err_nosuchnick		(const int sock, const std::string& nick);
+	void			err_nosuchchannel	(const int sock, const std::string& nick);
 
 	/// Common Replies
 	void			rpl_time			(const int sock, const std::string& server, const std::string& local_time);
