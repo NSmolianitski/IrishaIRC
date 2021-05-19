@@ -300,6 +300,7 @@ int			Irisha::register_connection	(std::list<Irisha::RegForm*>::iterator rf)
 	else
 	{
 		if (cmd_.command_ == "SERVER" && (SERVER((*rf)->socket_) == R_SUCCESS))
+			///TODO: send SERVER info about other servers
 			return R_SUCCESS;
 	}
 	return 1;

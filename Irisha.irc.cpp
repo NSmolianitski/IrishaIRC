@@ -171,7 +171,7 @@ eResult Irisha::PASS(const int sock)
  * @param		sock: command sender socket
  * @return		R_FAILURE if registration successfully, else R_FAILURE
  */
-eResult Irisha::SERVER(const int sock)
+eResult Irisha::SERVER(const int sock) ///TODO: test server tokens!
 {
 	//validation+
 	if (cmd_.arguments_.empty())
