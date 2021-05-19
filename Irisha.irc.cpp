@@ -201,9 +201,18 @@ eResult Irisha::SERVER(const int sock)
 	else
 		hopcount = str_to_int(cmd_.arguments_[0]); ///TODO: remove it
 
-	AConnection* server = new Server(cmd_.arguments_[0], sock, hopcount);
-	connections_.insert(std::pair<std::string, AConnection*>(cmd_.arguments_[0], server));
-	PING(sock);
+	if (find_server(sock) == nullptr)	//new connection to rhis server
+	{
+		AConnection* server = new Server(cmd_.arguments_[0], sock, hopcount);
+		connections_.insert(std::pair<std::string, AConnection*>(cmd_.arguments_[0], server));
+		PING(sock);
+	}
+	else
+	{
+//		AConnection* server = new Server(cmd_.arguments_[0], , hopcount);
+//		connections_.insert(std::pair<std::string, AConnection*>(cmd_.arguments_[0], server));
+	}
+
 	sys_msg(E_LAPTOP, "Server", cmd_.arguments_[0], "registered!");
 	return R_SUCCESS;
 }
