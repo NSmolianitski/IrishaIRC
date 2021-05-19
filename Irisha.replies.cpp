@@ -34,7 +34,7 @@ void			Irisha::send_rpl_msg		(int sock, eError rpl, const std::string& target, c
 void Irisha::err_nosuchserver(const int sock, const std::string& server_name)
 {
 	std::string	receiver = connection_name(sock);
-	send_rpl_msg(sock, ERR_NOSUCHSERVER, receiver, ":No such server");
+	send_rpl_msg(sock, ERR_NOSUCHSERVER, receiver, server_name + " " + ":No such server");
 }
 
 /// Common replies
