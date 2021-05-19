@@ -46,7 +46,7 @@ void Irisha::err_nosuchnick(const int sock, const std::string& nick)
 void Irisha::err_nosuchchannel(const int sock, const std::string& channel_name)
 {
 	std::string	receiver = connection_name(sock);
-	send_rpl_msg(sock, ERR_NOSUCHNICK, receiver, channel_name + " :No such channel");
+	send_rpl_msg(sock, ERR_NOSUCHCHANNEL, receiver, channel_name + " :No such channel");
 }
 
 /// Common replies

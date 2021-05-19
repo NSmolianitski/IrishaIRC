@@ -1,17 +1,23 @@
 #include "Channel.hpp"
 
 Channel::Channel(const std::string &name) : name_(name), max_users_(0){
+//    mode_.insert(std::pair<char, int>('O', 0)); //give "channel creator" status
     mode_.insert(std::pair<char, int>('o', 0)); //give/take channel operator privileges
-    mode_.insert(std::pair<char, int>('p', 0)); // private channel flag
-    mode_.insert(std::pair<char, int>('s', 0)); // secret channel flag
-    mode_.insert(std::pair<char, int>('i', 0)); // invite-only channel flag
-    mode_.insert(std::pair<char, int>('t', 1)); // topic settable by channel operator only flag
-    mode_.insert(std::pair<char, int>('n', 0)); // no messages to channel from clients on the outside
-    mode_.insert(std::pair<char, int>('m', 0)); // moderated channel
-    mode_.insert(std::pair<char, int>('l', 0)); // set the user limit to channel
-    mode_.insert(std::pair<char, int>('b', 0)); // set a ban mask to keep users out
-    mode_.insert(std::pair<char, int>('v', 0)); // give/take the ability to speak on a moderated channel
-    mode_.insert(std::pair<char, int>('k', 0)); // set a channel key (password)
+    mode_.insert(std::pair<char, int>('v', 0)); //give/take the voice privilege
+//    mode_.insert(std::pair<char, int>('a', 0)); //toggle the anonymous channel flag
+    mode_.insert(std::pair<char, int>('i', 0)); //toggle the invite-only channel flag
+    mode_.insert(std::pair<char, int>('m', 0)); //toggle the moderated channel
+    mode_.insert(std::pair<char, int>('n', 0)); //toggle the no messages to channel from clients on the outside
+    mode_.insert(std::pair<char, int>('q', 0)); //toggle the quiet channel flag
+//    mode_.insert(std::pair<char, int>('p', 0)); //toggle the private channel flag
+    mode_.insert(std::pair<char, int>('s', 0)); //toggle the secret channel flag
+    mode_.insert(std::pair<char, int>('r', 0)); //toggle the server reop channel flag
+    mode_.insert(std::pair<char, int>('t', 1)); //toggle the topic settable by channel operator only flag
+    mode_.insert(std::pair<char, int>('k', 0)); //set/remove the channel key (password)
+    mode_.insert(std::pair<char, int>('l', 0)); //set/remove the user limit to channel
+    mode_.insert(std::pair<char, int>('b', 0)); //set/remove ban mask to keep users out
+    mode_.insert(std::pair<char, int>('e', 0)); //set/remove an exception mask to override a ban mask
+    mode_.insert(std::pair<char, int>('I', 0)); //set/remove an invitation mask to automatically override the invite-only flag
 }
 
 Channel::~Channel() {
@@ -30,8 +36,8 @@ const std::map<char, int> &Channel::getMode() const {
     return mode_;
 }
 
-void Channel::setMode(const std::string &mode_msg) {
-
+void Channel::setMode(const char c, int mode) {
+    mode_.find(c)->second = mode;
 }
 
 void Channel::setKey(const std::string &key_msg) {
@@ -108,6 +114,12 @@ std::string Channel::getListUsers() {
     ITERATOR ite = operators_.end();
     while (itr != ite){
         list_users.append("@" + (*itr)->nick() + " ");
+        itr++;
+    }
+    itr = moderator_users_.begin();
+    ite = moderator_users_.end();
+    while (itr != ite){
+        list_users.append("+" + (*itr)->nick() + " ");
         itr++;
     }
     ITERATOR itr_u = users_.begin();
@@ -234,4 +246,41 @@ const std::vector<User *> &Channel::getModerators() const {
     return moderator_users_;
 }
 
+std::string Channel::getListMode() {
+    std::string list_mode;
+    std::map<char, int>::iterator itr = mode_.begin();
+    std::map<char, int>::iterator ite = mode_.end();
 
+    while (itr != ite){
+        if (itr->second == 1)
+            list_mode.push_back(itr->first);
+        itr++;
+    }
+    if (mode_.find('l')->second == 1)
+        list_mode.append(" " + int_to_str(max_users_));
+    return list_mode;
+}
+
+bool Channel::isOperator(User *user) {
+    ITERATOR itr = operators_.begin();
+    ITERATOR ite = operators_.end();
+
+    while (itr != ite){
+        if (*itr == user)
+            return true;
+        itr++;
+    }
+    return false;
+}
+
+bool Channel::isUser(User *user) {
+    ITERATOR itr = users_.begin();
+    ITERATOR ite = users_.end();
+
+    while (itr != ite){
+        if (*itr == user)
+            return true;
+        itr++;
+    }
+    return false;
+}

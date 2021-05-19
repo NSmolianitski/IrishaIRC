@@ -204,6 +204,7 @@ std::string	sys_msg				(const std::string& emoji, const std::string& str
 /// Other
 bool		is_a_valid_nick		(const std::string& nick);
 int			str_to_int			(const std::string& str);
+std::string int_to_str          (int num);
 std::string	rpl_code_to_str		(const eReply code);
 std::string	rpl_code_to_str		(const eError code);
 

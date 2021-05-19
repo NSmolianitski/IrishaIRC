@@ -174,6 +174,14 @@ int str_to_int(const std::string& str)
 	return number;
 }
 
+std::string int_to_str(int num)
+{
+    std::ostringstream str; //! TODO: change to other itoa thing
+
+    str << num;
+    return str.str();
+}
+
 std::string	rpl_code_to_str(const eReply code)
 {
 	std::ostringstream rpl_code; //! TODO: change to other itoa thing

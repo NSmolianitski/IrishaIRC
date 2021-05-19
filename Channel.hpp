@@ -25,7 +25,7 @@ public:
     Channel(const std::string &name);
 
     void setTopic(const std::string &topic_msg);
-    void setMode(const std::string &mode_msg);
+    void setMode(const char c, int mode);
     void setKey(const std::string &key_msg);
     void setType(const char type);
     void addBanUser(User* user);
@@ -49,5 +49,8 @@ public:
     const std::vector<User*> &getModerators() const;
     const int &getMaxUsers() const;
     std::string getListUsers();
+    std::string getListMode();
+    bool isOperator(User* user);
+    bool isUser(User* user);
     ~Channel();
 };
