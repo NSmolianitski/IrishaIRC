@@ -200,6 +200,9 @@ std::string	sys_msg				(const std::string& emoji, const std::string& str
 									, const std::string& white_str);
 std::string	sys_msg				(const std::string& emoji, const std::string& str
 									, const std::string& white_str, const std::string& ending);
+std::string	sys_msg				(const std::string& emoji, const std::string& str
+									, const std::string& white_str, const std::string& str2
+									, const std::string& ending);
 
 /// Other
 bool		is_a_valid_nick		(const std::string& nick);

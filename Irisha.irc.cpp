@@ -41,15 +41,14 @@ eResult	Irisha::NICK_user(User* const connection, const int sock, const std::str
 	user = find_user(new_nick);
 	if (user)
 	{
-		send_msg(sock, domain_, new_nick + " :Nickname is already in use"); //! TODO: change to error reply
+		err_nicknameinuse(sock, new_nick);
 		return R_FAILURE;
 	}
+	send_msg(sock, old_nick, "NICK " + new_nick); // Reply for user about nick changing success
 	connection->set_nick(new_nick);
-	send_msg(sock, old_nick, "NICK " + new_nick); // Reply for user TODO: check prefix
 	// TODO: send message to next server
 
-	std::cout << ITALIC PURPLE E_GEAR " User " BWHITE + old_nick + PURPLE " changed nick to " BWHITE
-				 + new_nick << " " CLR << std::endl;
+	sys_msg(E_GEAR, "User", old_nick, "changed nick to", new_nick);
 	return R_SUCCESS;
 }
 
@@ -71,10 +70,9 @@ eResult	Irisha::NICK_server(const std::string& new_nick)
 	}
 	old_nick = user->nick();
 	user->set_nick(new_nick);	// Change nick for external user
+	sys_msg(E_GEAR, "User", old_nick, "changed nick to", new_nick);
 	// TODO: send message to next server
 
-	std::cout << ITALIC PURPLE E_GEAR "User " BWHITE + old_nick + PURPLE " changed nick to " BWHITE
-				 + new_nick << " " CLR << std::endl;
 	return R_SUCCESS;
 }
 
