@@ -133,12 +133,20 @@ private:
 	std::string		createSERVERmsg		();
 
 	/// Error replies
-	void			err_nosuchserver	(const int sock, const std::string& server_name);
-	void			err_nosuchnick		(const int sock, const std::string& nick);
-	void			err_nosuchchannel	(const int sock, const std::string& nick);
+	void			err_nosuchserver		(const int sock, const std::string& server_name) const;
+	void			err_nosuchnick			(const int sock, const std::string& nick) const;
+	void			err_nonicknamegiven		(const int sock) const;
+	void			err_nicknameinuse		(const int sock, const std::string& nick) const;
+	void			err_nickcollision		(const int sock, const std::string& nick) const;
+	void			err_erroneusnickname	(const int sock, const std::string& nick) const;
+	void			err_nosuchchannel		(const int sock, const std::string& channel_name) const;
+	void			err_needmoreparams		(const int sock, const std::string& command) const;
+	void			err_alreadyregistered	(const int sock) const;
 
 	/// Common Replies
-	void			rpl_time			(const int sock, const std::string& server, const std::string& local_time);
+	void			rpl_welcome				(const int sock) const;
+	void			rpl_youreoper			(const int sock) const;
+	void			rpl_time				(const int sock, const std::string& server, const std::string& local_time) const;
 
 	/// Unused constructors
 	Irisha				() {};

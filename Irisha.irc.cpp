@@ -86,13 +86,13 @@ eResult	Irisha::NICK(const int sock) //! TODO: handle hopcount
 {
 	if (cmd_.arguments_.empty())	// NICK command without params
 	{
-		send_msg(sock, domain_, "431 :No nickname given"); //! TODO: change to error reply
+		err_nonicknamegiven(sock);
 		return R_FAILURE;
 	}
 	std::string new_nick = cmd_.arguments_[0];
 	if (!is_a_valid_nick(new_nick))
 	{
-		send_msg(sock, domain_, "432 :" + new_nick + " :Erroneous nickname"); //! TODO: change to error reply
+		err_erroneusnickname(sock, new_nick);
 		return R_FAILURE;
 	}
 
@@ -123,6 +123,7 @@ eResult Irisha::USER(const int sock)
 {
 	if (cmd_.arguments_.size() < 4)
 	{
+		err_needmoreparams(sock, "USER");
 		send_msg(sock, domain_, "461 :USER :Not enough parameters"); //! TODO: change to error reply
 		return R_FAILURE;
 	}
