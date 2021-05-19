@@ -166,14 +166,14 @@ enum eReply
 	RPL_ENDOFLINK		= 365,
 	RPL_ENDOFNAME		= 366,
 	RPL_BANLIST			= 367,
-	RPL_ENDOFBANLIS		= 368,
+	RPL_ENDOFBANLIST	= 368,
 	RPL_ENDOFWHOWAS		= 369,
 	RPL_INFO 		 	= 371,
 	RPL_MOTD 		 	= 372,
-	RPL_ENDOFINF		= 374,
-	RPL_MOTDSTAR		= 375,
-	RPL_ENDOFMOT		= 376,
-	RPL_YOUREOPE		= 381,
+	RPL_ENDOFINFO		= 374,
+	RPL_MOTDSTART		= 375,
+	RPL_ENDOFMOTD		= 376,
+	RPL_YOUREOPER		= 381,
 	RPL_REHASHIN		= 382,
 	RPL_TIME 		 	= 391,
 	RPL_USERSSTAR		= 392,
@@ -200,6 +200,9 @@ std::string	sys_msg				(const std::string& emoji, const std::string& str
 									, const std::string& white_str);
 std::string	sys_msg				(const std::string& emoji, const std::string& str
 									, const std::string& white_str, const std::string& ending);
+std::string	sys_msg				(const std::string& emoji, const std::string& str
+									, const std::string& white_str, const std::string& str2
+									, const std::string& ending);
 
 /// Other
 bool		is_a_valid_nick		(const std::string& nick);

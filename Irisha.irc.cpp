@@ -41,15 +41,14 @@ eResult	Irisha::NICK_user(User* const connection, const int sock, const std::str
 	user = find_user(new_nick);
 	if (user)
 	{
-		send_msg(sock, domain_, new_nick + " :Nickname is already in use"); //! TODO: change to error reply
+		err_nicknameinuse(sock, new_nick);
 		return R_FAILURE;
 	}
+	send_msg(sock, old_nick, "NICK " + new_nick); // Reply for user about nick changing success
 	connection->set_nick(new_nick);
-	send_msg(sock, old_nick, "NICK " + new_nick); // Reply for user TODO: check prefix
 	// TODO: send message to next server
 
-	std::cout << ITALIC PURPLE E_GEAR " User " BWHITE + old_nick + PURPLE " changed nick to " BWHITE
-				 + new_nick << " " CLR << std::endl;
+	sys_msg(E_GEAR, "User", old_nick, "changed nick to", new_nick);
 	return R_SUCCESS;
 }
 
@@ -71,10 +70,9 @@ eResult	Irisha::NICK_server(const std::string& new_nick)
 	}
 	old_nick = user->nick();
 	user->set_nick(new_nick);	// Change nick for external user
+	sys_msg(E_GEAR, "User", old_nick, "changed nick to", new_nick);
 	// TODO: send message to next server
 
-	std::cout << ITALIC PURPLE E_GEAR "User " BWHITE + old_nick + PURPLE " changed nick to " BWHITE
-				 + new_nick << " " CLR << std::endl;
 	return R_SUCCESS;
 }
 
@@ -86,13 +84,13 @@ eResult	Irisha::NICK(const int sock) //! TODO: handle hopcount
 {
 	if (cmd_.arguments_.empty())	// NICK command without params
 	{
-		send_msg(sock, domain_, "431 :No nickname given"); //! TODO: change to error reply
+		err_nonicknamegiven(sock);
 		return R_FAILURE;
 	}
 	std::string new_nick = cmd_.arguments_[0];
 	if (!is_a_valid_nick(new_nick))
 	{
-		send_msg(sock, domain_, "432 :" + new_nick + " :Erroneous nickname"); //! TODO: change to error reply
+		err_erroneusnickname(sock, new_nick);
 		return R_FAILURE;
 	}
 
@@ -123,7 +121,7 @@ eResult Irisha::USER(const int sock)
 {
 	if (cmd_.arguments_.size() < 4)
 	{
-		send_msg(sock, domain_, "461 :USER :Not enough parameters"); //! TODO: change to error reply
+		err_needmoreparams(sock, "USER");
 		return R_FAILURE;
 	}
 	User*	user = find_user(sock);
@@ -134,7 +132,7 @@ eResult Irisha::USER(const int sock)
 	}
 	if (!user->username().empty())
 	{
-		send_msg(sock, domain_, "462 :Unauthorized command (already registered)"); //! TODO: change to error reply
+		err_alreadyregistered(sock);
 		return R_FAILURE;
 	}
 	user->set_username(cmd_.arguments_[0]);
@@ -143,7 +141,7 @@ eResult Irisha::USER(const int sock)
 		user->set_mode(0);
 	else
 		user->set_mode(str_to_int(cmd_.arguments_[1]));
-	send_msg(sock, domain_, "001 " + user->nick() + " " + welcome_); //! TODO: change to RPL_WELCOME
+	rpl_welcome(sock);
 
 	sys_msg(E_MAN, "New local user", user->nick(), "registered!");
 	// NICK <nickname> <hopcount> <username> <host> <servertoken> <umode> <realname>
@@ -238,7 +236,10 @@ eResult Irisha::SERVER(const int sock) ///TODO: test server tokens!
 eResult Irisha::PONG(const int sock)
 {
 	if (cmd_.arguments_.empty())
-		return R_FAILURE; ///TODO: send ERR_NOORIGIN
+	{
+		err_noorigin(sock);
+		return R_FAILURE;
+	}
 	else if (cmd_.arguments_.size() == 1)
 		send_msg(sock, domain_, "PONG " + domain_);
 	//else send to receiver
@@ -248,7 +249,10 @@ eResult Irisha::PONG(const int sock)
 eResult Irisha::PING(const int sock)
 {
 	if (cmd_.arguments_.empty())
-		return R_FAILURE; ///TODO: send ERR_NOORIGIN
+	{
+		err_noorigin(sock);
+		return R_FAILURE;
+	}
 	else if (cmd_.arguments_.size() == 1) // PINGing this server
 		PONG(sock);
 	else if (cmd_.command_ == "SERVER")

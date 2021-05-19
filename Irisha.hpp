@@ -108,8 +108,8 @@ private:
 
 	/// Utils
 	void			send_msg			(int sock, const std::string& prefix, const std::string& msg) const;
-	void			send_rpl_msg		(int sock, eReply rpl, const std::string& prefix, const std::string& msg) const;
-	void			send_rpl_msg		(int sock, eError rpl, const std::string& prefix, const std::string& msg) const;
+	void			send_rpl_msg		(int sock, eReply rpl, const std::string& msg) const;
+	void			send_rpl_msg		(int sock, eError rpl, const std::string& msg) const;
 	void			send_servers		(const std::string& prefix, const std::string& msg) const;
 	void			send_servers		(const std::string& prefix, const std::string& msg, const int sock) const;
 	void			send_everyone		(const std::string& prefix, const std::string& msg) const;
@@ -135,12 +135,55 @@ private:
 	std::string		createSERVERmsg		();
 
 	/// Error replies
-	void			err_nosuchserver	(const int sock, const std::string& server_name);
-	void			err_nosuchnick		(const int sock, const std::string& nick);
-	void			err_nosuchchannel	(const int sock, const std::string& nick);
+	void			err_nosuchserver		(const int sock, const std::string& server) const;
+	void			err_nosuchnick			(const int sock, const std::string& nick) const;
+	void			err_nonicknamegiven		(const int sock) const;
+	void			err_nicknameinuse		(const int sock, const std::string& nick) const;
+	void			err_nickcollision		(const int sock, const std::string& nick) const;
+	void			err_erroneusnickname	(const int sock, const std::string& nick) const;
+	void			err_nosuchchannel		(const int sock, const std::string& channel) const;
+	void			err_needmoreparams		(const int sock, const std::string& command) const;
+	void			err_alreadyregistered	(const int sock) const;
+	void			err_noorigin			(const int sock) const;
+	void			err_norecipient			(const int sock, const std::string& command) const;
+	void			err_notexttosend		(const int sock) const;
+	void			err_notoplevel			(const int sock, const std::string& mask) const;
+	void			err_wildtoplevel		(const int sock, const std::string& mask) const;
+	void			err_cannotsendtochan	(const int sock, const std::string& channel) const;
+	void			err_toomanytargets		(const int sock, const std::string& target) const;
+	void			err_unknowncommand		(const int sock, const std::string& command) const;
+	void			err_chanoprivsneeded	(const int sock, const std::string& channel) const;
+	void			err_notochannel			(const int sock, const std::string& channel) const;
+	void			err_keyset				(const int sock, const std::string& channel) const;
+	void			err_unknownmode			(const int sock, const std::string& mode_char) const;
+	void			err_usersdontmatch		(const int sock) const;
+	void			err_umodeunknownflag	(const int sock) const;
+	void			err_bannedfromchan		(const int sock, const std::string& channel) const;
+	void			err_initeonlychan		(const int sock, const std::string& channel) const;
+	void			err_channelisfull		(const int sock, const std::string& channel) const;
+	void			err_toomanychannels		(const int sock, const std::string& channel) const;
+	void			err_noprivileges		(const int sock) const;
+	void			err_useronchannel		(const int sock, const std::string& user, const std::string& channel) const;
 
 	/// Common Replies
-	void			rpl_time			(const int sock, const std::string& server, const std::string& local_time);
+	void			rpl_welcome				(const int sock) const;
+	void			rpl_youreoper			(const int sock) const;
+	void			rpl_time				(const int sock, const std::string& server, const std::string& local_time) const;
+	void			rpl_away				(const int sock, const std::string& nick, const std::string& away_msg) const;
+	void			rpl_channelmodeis		(const int sock, const std::string& mode, const std::string& mode_params) const;
+	void			rpl_banlist				(const int sock, const std::string& channel, const std::string& ban_id) const;
+	void			rpl_endofbanlist		(const int sock, const std::string& channel) const;
+	void			rpl_info				(const int sock, const std::string& info) const;
+	void			rpl_endofinfo			(const int sock) const;
+	void			rpl_motdstart			(const int sock, const std::string& server) const;
+	void			rpl_motd				(const int sock, const std::string& text) const;
+	void			rpl_endofmotd			(const int sock) const;
+	void			rpl_umodeis				(const int sock, const std::string& mode_string) const;
+	void			rpl_topic				(const int sock, const std::string& channel, const std::string& topic) const;
+	void			rpl_notopic				(const int sock, const std::string& channel) const;
+	void			rpl_inviting			(const int sock, const std::string& channe, const std::string& nick) const;
+	void			rpl_version				(const int sock, const std::string& version, const std::string& debug_lvl
+												, const std::string& server, const std::string& comments) const;
 
 	/// Unused constructors
 	Irisha				() {};

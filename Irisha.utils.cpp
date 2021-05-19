@@ -170,7 +170,7 @@ void Irisha::send_servers(const std::string& prefix, const std::string& msg, con
 }
 
 /**
- * @description	Sends a message to all connections
+ * @description	Sends a message to all local connections
  * @param		prefix: sender
  * @param		msg: message
  */
@@ -178,7 +178,10 @@ void Irisha::send_everyone(const std::string& prefix, const std::string& msg) co
 {
 	con_const_it	it = connections_.begin();
 	for (; it != connections_.end(); ++it)
-		send_msg(it->second->socket(), prefix, msg);
+	{
+		if (it->second->socket() != U_EXTERNAL_CONNECTION)
+			send_msg(it->second->socket(), prefix, msg);
+	}
 }
 
 /**
@@ -191,7 +194,7 @@ void Irisha::handle_command(const int sock)
 	if (it != commands_.end())	// Execute command
 		((*this).*it->second)(sock);
 	else
-		send_msg(sock, domain_, ":No such command, my friend"); //! TODO: change to error reply (421, "<command> :Unknown command")
+		err_unknowncommand(sock, cmd_.command_);
 }
 
 /**

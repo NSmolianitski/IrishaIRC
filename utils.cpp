@@ -159,6 +159,25 @@ std::string	sys_msg(const std::string& emoji, const std::string& str
 	return msg;
 }
 
+/**
+ * @description	Sends message to STDOUT
+ * @param		emoji: emoji message prefix
+ * @param		str: purple message
+ * @param		white_str: string which would be white
+ * @param		str2: second purple string
+ * @param		ending: white ending
+ * @return		sent string
+ */
+std::string	sys_msg(const std::string& emoji, const std::string& str
+		, const std::string& white_str, const std::string& str2, const std::string& ending)
+{
+	std::string msg =  emoji + " " PURPLE ITALIC + str
+					   + " " BWHITE + white_str + " " + PURPLE + str2
+					   + " " BWHITE + ending + CLR;
+	std::cout << msg << std::endl;
+	return msg;
+}
+
 ///	Other
 /**
  * @description	Turns string into int
