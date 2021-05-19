@@ -202,7 +202,7 @@ void Irisha::ping_connections(time_t& last_ping)
 	{
 		connection = it->second;
 		int time = static_cast<int>(connection->last_msg_time());
-		if (connection->socket() != U_EXTERNAL_USER && time >= ping_timeout_)
+		if (connection->socket() != U_EXTERNAL_CONNECTION && time >= ping_timeout_)
 		{
 			if (connection->last_msg_time() >= conn_timeout_)
 			{

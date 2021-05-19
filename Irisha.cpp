@@ -223,12 +223,10 @@ void Irisha::loop()
 								RegForm* rf = *it;
 								reg_expect.erase(it);
 								delete rf;
+								continue;
 							}
-							else
-								handle_command(i);														// No, handle not registration command TODO: do we need handle_command two times? 🤔
 						}
-						else
-							handle_command(i);															// No, handle not registration command TODO: do we need handle_command two times? 🤔
+						handle_command(i);															// No, handle not registration command
 					}
 				}
 			}
