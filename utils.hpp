@@ -45,7 +45,7 @@
 
 enum eUtils
 {
-	U_EXTERNAL_USER = -1
+	U_EXTERNAL_CONNECTION = -1
 };
 
 enum eError

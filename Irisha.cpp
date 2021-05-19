@@ -194,8 +194,8 @@ void Irisha::loop()
 		read_fds_ = all_fds_;
 		n = select(max_fd_ + 1, &read_fds_, nullptr, nullptr, nullptr); //! TODO: change last nullptr to &timeout (nullptr is for debugging)
 		if (n == -1) throw std::runtime_error("Select error");
-		if (difftime(time(nullptr), last_ping) >= ping_timeout_)
-			ping_connections(last_ping);
+//		if (difftime(time(nullptr), last_ping) >= ping_timeout_)
+//			ping_connections(last_ping);
 
 		for (int i = 3; i < max_fd_ + 1; ++i)
 		{
@@ -223,12 +223,10 @@ void Irisha::loop()
 								RegForm* rf = *it;
 								reg_expect.erase(it);
 								delete rf;
+								continue;
 							}
-							else
-								handle_command(i);														// No, handle not registration command TODO: do we need handle_command two times? 🤔
 						}
-						else
-							handle_command(i);															// No, handle not registration command TODO: do we need handle_command two times? 🤔
+						handle_command(i);															// No, handle not registration command
 					}
 				}
 			}
