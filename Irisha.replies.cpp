@@ -11,8 +11,9 @@
  * @param		target: receiver
  * @param		msg: reply message
  */
-void			Irisha::send_rpl_msg		(int sock, eReply rpl, const std::string& target, const std::string& msg) const
+void			Irisha::send_rpl_msg		(int sock, eReply rpl, const std::string& msg) const
 {
+	std::string	target = connection_name(sock);
 	std::string message = rpl_code_to_str(rpl) + " " + target + " " + msg;
 	send_msg(sock, domain_, message);
 }
@@ -24,82 +25,242 @@ void			Irisha::send_rpl_msg		(int sock, eReply rpl, const std::string& target, c
  * @param		target: receiver
  * @param		msg: reply message
  */
-void			Irisha::send_rpl_msg		(int sock, eError rpl, const std::string& target, const std::string& msg) const
+void			Irisha::send_rpl_msg		(int sock, eError rpl, const std::string& msg) const
 {
+	std::string	target = connection_name(sock);
 	std::string message = rpl_code_to_str(rpl) + " " + target + " " + msg;
 	send_msg(sock, domain_, message);
 }
 
 /// Error replies
-void Irisha::err_nosuchserver(const int sock, const std::string& server_name) const
+void Irisha::err_nosuchserver(const int sock, const std::string& server) const
 {
-	std::string	receiver = connection_name(sock);
-	send_rpl_msg(sock, ERR_NOSUCHSERVER, receiver, server_name + " :No such server");
+	send_rpl_msg(sock, ERR_NOSUCHSERVER, server + " :No such server");
 }
 
 void Irisha::err_nonicknamegiven(const int sock) const
 {
-	std::string	receiver = connection_name(sock);
-	send_rpl_msg(sock, ERR_NONICKNAMEGIVEN, receiver, ":No nickname given");
+	send_rpl_msg(sock, ERR_NONICKNAMEGIVEN, ":No nickname given");
 }
 
 void Irisha::err_nosuchnick(const int sock, const std::string& nick) const
 {
-	std::string	receiver = connection_name(sock);
-	send_rpl_msg(sock, ERR_NOSUCHNICK, receiver, nick + " :No such nick/channel");
+	send_rpl_msg(sock, ERR_NOSUCHNICK, nick + " :No such nick/channel");
 }
 
 void Irisha::err_erroneusnickname(const int sock, const std::string& nick) const
 {
-	std::string	receiver = connection_name(sock);
-	send_rpl_msg(sock, ERR_ERRONEUSNICKNAME, receiver, nick + " :Erroneus nickname");
+	send_rpl_msg(sock, ERR_ERRONEUSNICKNAME, nick + " :Erroneus nickname");
 }
 
 void Irisha::err_nicknameinuse(const int sock, const std::string& nick) const
 {
-	std::string	receiver = connection_name(sock);
-	send_rpl_msg(sock, ERR_NICKNAMEINUSE, receiver, nick + " :Nickname is already in use");
+	send_rpl_msg(sock, ERR_NICKNAMEINUSE, nick + " :Nickname is already in use");
 }
 
 void Irisha::err_nickcollision(const int sock, const std::string& nick) const
 {
-	std::string	receiver = connection_name(sock);
-	send_rpl_msg(sock, ERR_NICKCOLLISION, receiver, nick + " :Nickname collision KILL");
+	send_rpl_msg(sock, ERR_NICKCOLLISION, nick + " :Nickname collision KILL");
 }
 
-void Irisha::err_nosuchchannel(const int sock, const std::string& channel_name) const
+void Irisha::err_nosuchchannel(const int sock, const std::string& channel) const
 {
-	std::string	receiver = connection_name(sock);
-	send_rpl_msg(sock, ERR_NOSUCHCHANNEL, receiver, channel_name + " :No such channel");
+	send_rpl_msg(sock, ERR_NOSUCHCHANNEL, channel + " :No such channel");
 }
 
 void Irisha::err_needmoreparams(const int sock, const std::string& command) const
 {
-	std::string	receiver = connection_name(sock);
-	send_rpl_msg(sock, ERR_NEEDMOREPARAMS, receiver, command + " :Not enough parameters");
+	send_rpl_msg(sock, ERR_NEEDMOREPARAMS, command + " :Not enough parameters");
 }
 
 void Irisha::err_alreadyregistered(const int sock) const
 {
-	std::string	receiver = connection_name(sock);
-	send_rpl_msg(sock, ERR_ALREADYREGISTRED, receiver, ":You may not reregister");
+	send_rpl_msg(sock, ERR_ALREADYREGISTRED, ":You may not reregister");
+}
+
+void Irisha::err_noorigin(const int sock) const
+{
+	send_rpl_msg(sock, ERR_NOORIGIN, ":No origin specified");
+}
+
+void Irisha::err_norecipient(const int sock, const std::string& command) const
+{
+	send_rpl_msg(sock, ERR_NORECIPIENT, ":No recipient given (" + command + ")");
+}
+
+void Irisha::err_notexttosend(const int sock) const
+{
+	send_rpl_msg(sock, ERR_NOTEXTTOSEND, ":No text to send");
+}
+
+void Irisha::err_notoplevel(const int sock, const std::string& mask) const
+{
+	send_rpl_msg(sock, ERR_NOTOPLEVEL, ":No toplevel domain specified");
+}
+
+void Irisha::err_wildtoplevel(const int sock, const std::string& mask) const
+{
+	send_rpl_msg(sock, ERR_WILDTOPLEVEL, mask + " :Wildcard in toplevel domain");
+}
+
+void Irisha::err_cannotsendtochan(const int sock, const std::string& channel) const
+{
+	send_rpl_msg(sock, ERR_CANNOTSENDTOCHAN, channel + " :Cannot send to channel");
+}
+
+void Irisha::err_toomanytargets(const int sock, const std::string& target) const
+{
+	send_rpl_msg(sock, ERR_TOOMANYTARGETS, target + " :Duplicate recipients. No message delivered");
+}
+
+void Irisha::err_unknowncommand(const int sock, const std::string& command) const
+{
+	send_rpl_msg(sock, ERR_UNKNOWNCOMMAND, command + " :Unknown command");
+}
+
+void Irisha::err_chanoprivsneeded(const int sock, const std::string& channel) const
+{
+	send_rpl_msg(sock, ERR_CHANOPRIVSNEEDED, channel + " :You're not channel operator");
+}
+
+void Irisha::err_notochannel(const int sock, const std::string& channel) const
+{
+	send_rpl_msg(sock, ERR_NOTONCHANNEL, channel + " :You're not on that channel");
+}
+
+void Irisha::err_keyset(const int sock, const std::string& channel) const
+{
+	send_rpl_msg(sock, ERR_KEYSET, channel + " :Channel key already set");
+}
+
+void Irisha::err_unknownmode(const int sock, const std::string& mode_char) const
+{
+	send_rpl_msg(sock, ERR_UNKNOWNMODE, mode_char + " :is unknown mode char to me");
+}
+
+void Irisha::err_usersdontmatch(const int sock) const
+{
+	send_rpl_msg(sock, ERR_USERSDONTMATCH, ":Cant change mode for other users");
+}
+
+void Irisha::err_umodeunknownflag(const int sock) const
+{
+	send_rpl_msg(sock, ERR_UMODEUNKNOWNFLAG, ":Unknown MODE flag");
+}
+
+void Irisha::err_bannedfromchan(const int sock, const std::string& channel) const
+{
+	send_rpl_msg(sock, ERR_BANNEDFROMCHAN, channel + " :Cannot join channel (+b)");
+}
+
+void Irisha::err_initeonlychan(const int sock, const std::string& channel) const
+{
+	send_rpl_msg(sock, ERR_INVITEONLYCHAN, channel + " :Cannot join channel (+i)");
+}
+
+void Irisha::err_channelisfull(const int sock, const std::string& channel) const
+{
+	send_rpl_msg(sock, ERR_CHANNELISFULL, channel + " :Cannot join channel (+l)");
+}
+
+void Irisha::err_toomanychannels(const int sock, const std::string& channel) const
+{
+	send_rpl_msg(sock, ERR_TOOMANYCHANNELS, channel + " :You have joined too many channels");
+}
+
+void Irisha::err_noprivileges(const int sock) const
+{
+	send_rpl_msg(sock, ERR_NOPRIVILEGES, ":Permission Denied- You're not an IRC operator");
+}
+
+void Irisha::err_useronchannel(const int sock, const std::string& user, const std::string& channel) const
+{
+	send_rpl_msg(sock, ERR_USERONCHANNEL, user + channel +" :is already on channel");
 }
 
 /// Common replies
 void Irisha::rpl_welcome(const int sock) const
 {
-	std::string	receiver = connection_name(sock);
-	send_rpl_msg(sock, RPL_WELCOME, receiver, welcome_);
+	send_rpl_msg(sock, RPL_WELCOME, welcome_);
 }
 
 void Irisha::rpl_youreoper(const int sock) const
 {
-	std::string	receiver = connection_name(sock);
-	send_rpl_msg(sock, RPL_YOUREOPER, receiver, ":You are now an IRC operator");
+	send_rpl_msg(sock, RPL_YOUREOPER, ":You are now an IRC operator");
 }
 
 void Irisha::rpl_time(const int sock, const std::string& server, const std::string& local_time) const
 {
-	std::string	receiver = connection_name(sock);
-	send_rpl_msg(sock, RPL_TIME, receiver, server + " " + local_time);
+	send_rpl_msg(sock, RPL_TIME, server + " " + local_time);
+}
+
+void Irisha::rpl_away(const int sock, const std::string& nick, const std::string& away_msg) const
+{
+	send_rpl_msg(sock, RPL_AWAY, nick + " " + away_msg);
+}
+
+void Irisha::rpl_channelmodeis(const int sock, const std::string& mode, const std::string& mode_params) const
+{
+	send_rpl_msg(sock, RPL_CHANNELMODEIS, mode + " " + mode_params);
+}
+
+void Irisha::rpl_banlist(const int sock, const std::string& channel, const std::string& ban_id) const
+{
+	send_rpl_msg(sock, RPL_BANLIST, channel + " " + ban_id);
+}
+
+void Irisha::rpl_endofbanlist(const int sock, const std::string& channel) const
+{
+	send_rpl_msg(sock, RPL_ENDOFBANLIST, channel + " :End of channel ban list");
+}
+
+void Irisha::rpl_info(const int sock, const std::string& info) const
+{
+	send_rpl_msg(sock, RPL_INFO, ":" + info);
+}
+
+void Irisha::rpl_endofinfo(const int sock) const
+{
+	send_rpl_msg(sock, RPL_ENDOFINFO, ":End of /INFO list");
+}
+
+void Irisha::rpl_motdstart(const int sock, const std::string& server) const
+{
+	send_rpl_msg(sock, RPL_MOTDSTART, ":- " + server + " Message of the day - ");
+}
+
+void Irisha::rpl_motd(const int sock, const std::string& text) const
+{
+	send_rpl_msg(sock, RPL_MOTD, ":- " + text);
+}
+
+void Irisha::rpl_endofmotd(const int sock) const
+{
+	send_rpl_msg(sock, RPL_ENDOFMOTD, ":End of /MOTD command");
+}
+
+void Irisha::rpl_umodeis(const int sock, const std::string& mode_string) const
+{
+	send_rpl_msg(sock, RPL_UMODEIS, mode_string);
+}
+
+void Irisha::rpl_topic(const int sock, const std::string& channel, const std::string& topic) const
+{
+	send_rpl_msg(sock, RPL_TOPIC, channel + " :" + topic);
+}
+
+void Irisha::rpl_notopic(const int sock, const std::string& channel) const
+{
+	send_rpl_msg(sock, RPL_NOTOPIC, channel + " :No topic is set");
+}
+
+void Irisha::rpl_inviting(const int sock, const std::string& channel, const std::string& nick) const
+{
+	send_rpl_msg(sock, RPL_INVITING, channel + " " + nick);
+}
+
+void Irisha::rpl_version(const int sock, const std::string& version, const std::string& debug_lvl
+						 	, const std::string& server, const std::string& comments) const
+{
+	send_rpl_msg(sock, RPL_VERSION, version + "." + debug_lvl + " " + server + " :" + comments);
 }

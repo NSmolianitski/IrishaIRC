@@ -168,7 +168,7 @@ void Irisha::handle_command(const int sock)
 	if (it != commands_.end())	// Execute command
 		((*this).*it->second)(sock);
 	else
-		send_msg(sock, domain_, ":No such command, my friend"); //! TODO: change to error reply (421, "<command> :Unknown command")
+		err_unknowncommand(sock, cmd_.command_);
 }
 
 /**

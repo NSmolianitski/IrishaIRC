@@ -29,7 +29,7 @@ void Irisha::add_user() // [0]<nick> [1]<hopcount> [2]<username> [3]<host> [4]<s
 	user->set_username(cmd_.arguments_[2]);
 //	user->set_mode(cmd_.arguments_[2]);	//! TODO: make mode parsing function
 	user->set_realname(cmd_.arguments_[2]);
-	connections_.insert(std::pair<std::string, AConnection*>(cmd_.arguments_[0], user)); //! TODO: sock must be unique in map!!!!!
+	connections_.insert(std::pair<std::string, AConnection*>(cmd_.arguments_[0], user));
 
 	sys_msg(E_ALIEN, "New external user", cmd_.arguments_[0], "registered!");
 }

@@ -122,7 +122,6 @@ eResult Irisha::USER(const int sock)
 	if (cmd_.arguments_.size() < 4)
 	{
 		err_needmoreparams(sock, "USER");
-		send_msg(sock, domain_, "461 :USER :Not enough parameters"); //! TODO: change to error reply
 		return R_FAILURE;
 	}
 	User*	user = find_user(sock);
@@ -133,7 +132,7 @@ eResult Irisha::USER(const int sock)
 	}
 	if (!user->username().empty())
 	{
-		send_msg(sock, domain_, "462 :Unauthorized command (already registered)"); //! TODO: change to error reply
+		err_alreadyregistered(sock);
 		return R_FAILURE;
 	}
 	user->set_username(cmd_.arguments_[0]);
@@ -142,7 +141,7 @@ eResult Irisha::USER(const int sock)
 		user->set_mode(0);
 	else
 		user->set_mode(str_to_int(cmd_.arguments_[1]));
-	send_msg(sock, domain_, "001 " + user->nick() + " " + welcome_); //! TODO: change to RPL_WELCOME
+	rpl_welcome(sock);
 
 	sys_msg(E_MAN, "New local user", user->nick(), "registered!");
 	// NICK <nickname> <hopcount> <username> <host> <servertoken> <umode> <realname>
@@ -210,7 +209,10 @@ eResult Irisha::SERVER(const int sock)
 eResult Irisha::PONG(const int sock)
 {
 	if (cmd_.arguments_.empty())
-		return R_FAILURE; ///TODO: send ERR_NOORIGIN
+	{
+		err_noorigin(sock);
+		return R_FAILURE;
+	}
 	else if (cmd_.arguments_.size() == 1)
 		send_msg(sock, domain_, "PONG " + domain_);
 	//else send to receiver
@@ -220,7 +222,10 @@ eResult Irisha::PONG(const int sock)
 eResult Irisha::PING(const int sock)
 {
 	if (cmd_.arguments_.empty())
-		return R_FAILURE; ///TODO: send ERR_NOORIGIN
+	{
+		err_noorigin(sock);
+		return R_FAILURE;
+	}
 	else if (cmd_.arguments_.size() == 1) // PINGing this server
 		PONG(sock);
 	//else send to receiver
