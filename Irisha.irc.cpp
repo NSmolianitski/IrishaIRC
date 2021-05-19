@@ -20,6 +20,7 @@ void	Irisha::prepare_commands()
 	commands_.insert(std::pair<std::string, func>("PING", &Irisha::PING));
 	commands_.insert(std::pair<std::string, func>("PONG", &Irisha::PONG));
 	commands_.insert(std::pair<std::string, func>("QUIT", &Irisha::QUIT));
+	commands_.insert(std::pair<std::string, func>("TIME", &Irisha::TIME));
 }
 
 /**
@@ -253,5 +254,24 @@ eResult Irisha::QUIT(const int sock)
 	else
 		send_servers(user->nick(), msg, sock);
 	remove_user(user->nick());
+	return R_SUCCESS;
+}
+
+eResult Irisha::TIME(const int sock)
+{
+	time_t	current_time = time(nullptr);
+	std::string local_time = ctime(&current_time);
+	local_time = local_time.substr(0, local_time.length() - 1);
+	if (!cmd_.arguments_.empty())
+	{
+		if (find_server(cmd_.arguments_[0]) == nullptr)
+		{
+			err_nosuchserver(sock, cmd_.arguments_[0]);
+			return R_FAILURE;
+		}
+		rpl_time(sock, cmd_.arguments_[0], local_time);
+		return R_SUCCESS;
+	}
+	rpl_time(sock, domain_, local_time);
 	return R_SUCCESS;
 }

@@ -8,6 +8,7 @@
 #include "AConnection.hpp"
 #include "User.hpp"
 #include "Server.hpp"
+#include "utils.hpp"
 
 #include <iostream>
 #include <map>
@@ -101,10 +102,13 @@ private:
 	User*			find_user			(const int sock) const;
 
 	/// Servers
+	Server*			find_server			(const std::string& name) const;
 	Server*			find_server			(const int sock) const;
 
 	/// Utils
 	void			send_msg			(int sock, const std::string& prefix, const std::string& msg) const;
+	void			send_rpl_msg		(int sock, eReply rpl, const std::string& prefix, const std::string& msg) const;
+	void			send_rpl_msg		(int sock, eError rpl, const std::string& prefix, const std::string& msg) const;
 	void			send_servers		(const std::string& prefix, const std::string& msg) const;
 	void			send_servers		(const std::string& prefix, const std::string& msg, const int sock) const;
 	void			send_everyone		(const std::string& prefix, const std::string& msg) const;
@@ -120,12 +124,19 @@ private:
 	eResult			PING				(const int sock);
 	eResult			PONG				(const int sock);
 	eResult			QUIT				(const int sock);
+	eResult			TIME				(const int sock);
 
 	/// IRC commands utils
 	eResult			NICK_user			(User* const connection, const int sock, const std::string& new_nick);
 	eResult			NICK_server			(const std::string& new_nick);
 	std::string		createPASSmsg		(std::string password);
 	std::string		createSERVERmsg		();
+
+	/// Error replies
+	void			err_nosuchserver	(const int sock, const std::string& server_name);
+
+	/// Common Replies
+	void			rpl_time			(const int sock, const std::string& server, const std::string& local_time);
 
 	/// Unused constructors
 	Irisha				() {};

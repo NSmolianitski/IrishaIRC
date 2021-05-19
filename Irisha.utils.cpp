@@ -43,6 +43,27 @@ AConnection* Irisha::find_connection(const int sock) const
 }
 
 /**
+ * @description Finds server by name
+ * @param		name
+ * @return		user pointer or nullptr
+ */
+Server* Irisha::find_server(const std::string& name) const
+{
+	Server*			server;
+	con_const_it	it = connections_.begin();
+	for (; it != connections_.end(); ++it)
+	{
+		if (it->second->type() == T_SERVER)
+		{
+			server = static_cast<Server*>(it->second);
+			if (server->name() == name)
+				return server;
+		}
+	}
+	return nullptr;
+}
+
+/**
  * @description	Finds server by socket
  * @param		sock: socket
  * @return		server pointer or nullptr

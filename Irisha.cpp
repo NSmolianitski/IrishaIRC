@@ -192,7 +192,7 @@ void Irisha::loop()
 	while (true)
 	{
 		read_fds_ = all_fds_;
-		n = select(max_fd_ + 1, &read_fds_, nullptr, nullptr, &timeout);
+		n = select(max_fd_ + 1, &read_fds_, nullptr, nullptr, nullptr); //! TODO: change last nullptr to &timeout (nullptr is for debugging)
 		if (n == -1) throw std::runtime_error("Select error");
 		if (difftime(time(nullptr), last_ping) >= ping_timeout_)
 			ping_connections(last_ping);
