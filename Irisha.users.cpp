@@ -15,8 +15,6 @@ void Irisha::add_user(const int sock, const std::string& nick)
 {
 	User* user = new User(sock, domain_, nick);
 	connections_.insert(std::pair<std::string, AConnection*>(nick, user));
-
-	sys_msg(E_MAN, "New local user", nick, "registered!");
 }
 
 /**

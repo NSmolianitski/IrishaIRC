@@ -26,6 +26,7 @@ void	Irisha::prepare_commands()
 	commands_.insert(std::pair<std::string, func>("QUIT", &Irisha::QUIT));
 	commands_.insert(std::pair<std::string, func>("TOPIC", &Irisha::TOPIC));
 	commands_.insert(std::pair<std::string, func>("PRIVMSG", &Irisha::PRIVMSG));
+	commands_.insert(std::pair<std::string, func>("TIME", &Irisha::TIME));
 }
 
 /**
@@ -134,7 +135,7 @@ eResult Irisha::USER(const int sock)
 	User*	user = find_user(sock);
 	if (user == nullptr)	// Safeguard for invalid user
 	{
-		std::cout << RED BOLD "ALARM! WE DON'T HAVE USER WITH SOCKET №" BWHITE << sock << RED " IN OUR DATABASE!" CLR << std::endl;
+		std::cout << RED BOLD "ALARM! WE DON'T HAVE USER WITH SOCKET" BWHITE " №" << sock << RED " IN OUR DATABASE!" CLR << std::endl;
 		return R_FAILURE;
 	}
 	if (!user->username().empty())
@@ -148,8 +149,11 @@ eResult Irisha::USER(const int sock)
 		user->set_mode(0);
 	else
 		user->set_mode(str_to_int(cmd_.arguments_[1]));
-	send_msg(sock, domain_, "001 " + user->nick() + " :⭐ Welcome to Irisha server! ⭐"); //! TODO: change to RPL_WELCOME
-	//! TODO: send message to other servers
+	send_msg(sock, domain_, "001 " + user->nick() + " " + welcome_); //! TODO: change to RPL_WELCOME
+
+	sys_msg(E_MAN, "New local user", user->nick(), "registered!");
+	// NICK <nickname> <hopcount> <username> <host> <servertoken> <umode> <realname>
+	send_servers(domain_, "NICK " + user->nick() + " 1 " + user->username() + " " + user->server() + " 2 + " + user->username()); //! TODO: add server token, user modes, fix realname
 	return R_SUCCESS;
 }
 
@@ -510,3 +514,22 @@ eResult Irisha::PRIVMSG(const int sock)
 
 //ERR_CANNOTSENDTOCHAN            ERR_NOTOPLEVEL
 //ERR_WILDTOPLEVEL
+
+eResult Irisha::TIME(const int sock)
+{
+	time_t	current_time = time(nullptr);
+	std::string local_time = ctime(&current_time);
+	local_time = local_time.substr(0, local_time.length() - 1);
+	if (!cmd_.arguments_.empty())
+	{
+		if (find_server(cmd_.arguments_[0]) == nullptr)
+		{
+			err_nosuchserver(sock, cmd_.arguments_[0]);
+			return R_FAILURE;
+		}
+		rpl_time(sock, cmd_.arguments_[0], local_time);
+		return R_SUCCESS;
+	}
+	rpl_time(sock, domain_, local_time);
+	return R_SUCCESS;
+}

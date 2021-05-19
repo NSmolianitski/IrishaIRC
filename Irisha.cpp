@@ -84,8 +84,27 @@ Irisha::~Irisha()
 void Irisha::apply_config(const std::string& path)
 {
 	check_config(path);
-	domain_		= get_config_value(path, DOMAIN);
-	//password_	= get_config_value(path, PASS);
+	domain_			= get_config_value(path, DOMAIN);
+	welcome_		= get_config_value(path, WELCOME);
+	ping_timeout_	= str_to_int(get_config_value(path, PING_T));
+	conn_timeout_	= str_to_int(get_config_value(path, CONN_T));
+	if (ping_timeout_ < 1 || ping_timeout_ > 10000)
+	{
+		ping_timeout_ = 20;
+		std::cout << RED "Ping timeout is wrong - server will use default setting (20 sec)" CLR << std::endl;
+	}
+	if (conn_timeout_ < 1 || conn_timeout_ > 10000)
+	{
+		conn_timeout_ = 120;
+		std::cout << RED "Connection timeout is wrong - server will use default setting (120 sec)" CLR << std::endl;
+	}
+	if (ping_timeout_ > conn_timeout_)
+	{
+		ping_timeout_ = 20;
+		conn_timeout_ = 120;
+		std::cout << RED "Ping timeout can't be greater than connection timeout - server will use default settings" CLR << std::endl;
+	}
+	//password_		= get_config_value(path, PASS);
 	int	dots	= 0;
 	for (size_t i = 0; i < domain_.length(); ++i)
 	{
@@ -114,6 +133,7 @@ void Irisha::launch()
 	if (b == -1) throw std::runtime_error("Binding failed!");
 
 	listen(listener_, 5);
+	launch_time_ = time(nullptr);
 }
 
 void Irisha::init(int port)
@@ -123,6 +143,7 @@ void Irisha::init(int port)
 	listener_ = socket(PF_INET, SOCK_STREAM, 0);
 	if (listener_ == -1) throw std::runtime_error("Socket creation failed!");
 
+	signal(SIGPIPE, SIG_IGN);
 	FD_ZERO(&all_fds_);
 	FD_SET(listener_, &all_fds_);
 
@@ -159,18 +180,23 @@ int Irisha::accept_connection()
  */
 void Irisha::loop()
 {
-	int			n;
-	std::string	client_msg;
-	std::list<Irisha::RegForm*>	reg_expect;	//not registered connections
-    std::deque<std::string>		arr_msg;	// array messages, not /r/n
+	int							n;
+	std::string					client_msg;
+	std::list<Irisha::RegForm*>	reg_expect;	// Not registered connections
+    std::deque<std::string>		arr_msg;	// Array messages, not /r/n
+    timeval						timeout;	// Select timeout
+    time_t						last_ping = time(nullptr);	// Time of the last connection ping
 
-	signal(SIGPIPE, SIG_IGN);
+	timeout.tv_sec	= ping_timeout_;
+	timeout.tv_usec	= 0;
 	std::thread	sender(sending_loop, this); //! TODO: REMOVE ////////////////////////////////////////////////////////////////////////////////////////////
 	while (true)
 	{
 		read_fds_ = all_fds_;
-		n = select(max_fd_ + 1, &read_fds_, nullptr, nullptr, nullptr);
+		n = select(max_fd_ + 1, &read_fds_, nullptr, nullptr, nullptr); //! TODO: change last nullptr to &timeout (nullptr is for debugging)
 		if (n == -1) throw std::runtime_error("Select error");
+		if (difftime(time(nullptr), last_ping) >= ping_timeout_)
+			ping_connections(last_ping);
 
 		for (int i = 3; i < max_fd_ + 1; ++i)
 		{
@@ -190,8 +216,8 @@ void Irisha::loop()
                         parse_msg(arr_msg[0], cmd_);
 						print_cmd(PM_LINE, i);
 						arr_msg.pop_front();
-						std::list<RegForm*>::iterator it = expecting_registration(i, reg_expect);	//is this connection waiting for registration?
-						if (it != reg_expect.end())														//yes, register it
+						std::list<RegForm*>::iterator it = expecting_registration(i, reg_expect);	// Is this connection waiting for registration? TODO: add timeout handling to registration
+						if (it != reg_expect.end())														// Yes, register it
 						{
 							if (register_connection(it) == R_SUCCESS)
 							{
@@ -200,10 +226,10 @@ void Irisha::loop()
 								delete rf;
 							}
 							else
-								handle_command(i);														//no, handle not registration command TODO: handle_command two times? 🤔
+								handle_command(i);														// No, handle not registration command TODO: do we need handle_command two times? 🤔
 						}
 						else
-							handle_command(i);															//no, handle not registration command TODO: handle_command two times? 🤔
+							handle_command(i);															// No, handle not registration command TODO: do we need handle_command two times? 🤔
 					}
 				}
 			}
@@ -219,16 +245,21 @@ void Irisha::loop()
  */
 void Irisha::handle_disconnection(const int sock)
 {
-	User*	user = find_user(sock);
+	User*		user = find_user(sock);
+	std::string msg;
 
 	if (user == nullptr)
 	{
 		Server*	server = find_server(sock);
 		sys_msg(E_BOOM, "Server", server->name(), "disconnected!");
+		send_servers(server->name(), msg);
 	}
 	else
-		sys_msg(E_SCULL, "User", user->nick(), "disconnected!");
-
+	{
+		msg = sys_msg(E_SCULL, "User", user->nick(), "disconnected!");
+		send_servers(user->nick(), msg);
+		remove_user(user->nick());
+	}
 	FD_CLR(sock, &all_fds_);
 	close(sock);
 }

@@ -8,6 +8,7 @@
 #include "AConnection.hpp"
 #include "User.hpp"
 #include "Server.hpp"
+#include "utils.hpp"
 
 #include <iostream>
 #include <sstream>
@@ -52,7 +53,6 @@ private:
 
 	typedef eResult (Irisha::*func)(const int sock);
 
-	std::string	domain_;
 	int			listener_;
 	sockaddr_in	address_;
 	char		buff_[512];
@@ -60,13 +60,21 @@ private:
 	fd_set		read_fds_;
 	fd_set		serv_fds_;
 	int			max_fd_;
-    Command		cmd_;		// Struct for parsed command
-	std::string	host_name_;	// Host server. Need when this server connected to other.
-	std::string	password_;	// Password for clients and servers connection to connect this server
+    Command		cmd_;			// Struct for parsed command
+	std::string	host_name_;		// Host server. Need when this server connected to other.
+	std::string	password_;		// Password for clients and servers connection to connect this server
+	time_t		launch_time_;	// Server launch time
 
 	std::map<std::string, AConnection*>		connections_;	// Server and client connections
 	std::map<std::string, func>				commands_;		// IRC commands
     std::map<std::string ,Channel*>          channels_;
+
+	/// Configuration members
+	std::string	domain_;        // Server name
+	std::string	welcome_;       // Welcome message
+	int			ping_timeout_;  // How often server sends PING command
+	int			conn_timeout_;	// Seconds without respond until disconnection
+
 	std::list<Irisha::RegForm*>::iterator	expecting_registration(int i, std::list<RegForm*>& reg_expect);
 	int										register_connection	(std::list<RegForm*>::iterator rf);
 
@@ -86,6 +94,7 @@ private:
 	void			handle_disconnection(const int sock);
 	void			handle_command		(const int sock);
 	AConnection*	find_connection		(const int sock) const;
+	void			ping_connections	(time_t& last_ping);
 
 	/// Users
 	void			add_user			(const int sock, const std::string& nick);
@@ -95,10 +104,13 @@ private:
 	User*			find_user			(const int sock) const;
 
 	/// Servers
+	Server*			find_server			(const std::string& name) const;
 	Server*			find_server			(const int sock) const;
 
 	/// Utils
 	void			send_msg			(int sock, const std::string& prefix, const std::string& msg) const;
+	void			send_rpl_msg		(int sock, eReply rpl, const std::string& prefix, const std::string& msg) const;
+	void			send_rpl_msg		(int sock, eError rpl, const std::string& prefix, const std::string& msg) const;
 	void			send_servers		(const std::string& prefix, const std::string& msg) const;
 	void			send_servers		(const std::string& prefix, const std::string& msg, const int sock) const;
 	void			send_everyone		(const std::string& prefix, const std::string& msg) const;
@@ -119,6 +131,8 @@ private:
     eResult         PART                (const int sock);
     eResult         TOPIC               (const int sock);
     eResult         PRIVMSG             (const int sock);
+	eResult			TIME				(const int sock);
+
 	/// IRC commands utils
 	void        send_channel    (Channel *channel, std::string msg, std::string prefix);
     void        send_channel(Channel *channel, std::string msg, std::string prefix, int sock);
@@ -127,6 +141,14 @@ private:
 	eResult			NICK_server			(const std::string& new_nick);
 	std::string		createPASSmsg		(std::string password);
 	std::string		createSERVERmsg		();
+
+	/// Error replies
+	void			err_nosuchserver	(const int sock, const std::string& server_name);
+	void			err_nosuchnick		(const int sock, const std::string& nick);
+	void			err_nosuchchannel	(const int sock, const std::string& nick);
+
+	/// Common Replies
+	void			rpl_time			(const int sock, const std::string& server, const std::string& local_time);
 
 	/// Unused constructors
 	Irisha				() {};

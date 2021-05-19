@@ -19,7 +19,11 @@ std::string Irisha::get_msg(int sock)
 
 	if (read_bytes == 0)
 		handle_disconnection(sock);
+
 	buff_[read_bytes] = '\0';
+	AConnection*	sender = find_connection(sock);
+	if (sender != nullptr)
+		sender->update_time();
 	return (buff_);
 }
 
@@ -34,6 +38,27 @@ AConnection* Irisha::find_connection(const int sock) const
 	{
 		if (it->second->socket() == sock)
 			return it->second;
+	}
+	return nullptr;
+}
+
+/**
+ * @description Finds server by name
+ * @param		name
+ * @return		user pointer or nullptr
+ */
+Server* Irisha::find_server(const std::string& name) const
+{
+	Server*			server;
+	con_const_it	it = connections_.begin();
+	for (; it != connections_.end(); ++it)
+	{
+		if (it->second->type() == T_SERVER)
+		{
+			server = static_cast<Server*>(it->second);
+			if (server->name() == name)
+				return server;
+		}
 	}
 	return nullptr;
 }
@@ -194,6 +219,29 @@ std::string Irisha::connection_name(const int sock) const
 	else
 		name = user->nick();
 	return name;
+}
+
+void Irisha::ping_connections(time_t& last_ping)
+{
+	std::cout << PURPLE ITALIC << "Ping connections!" CLR << std::endl;
+
+	AConnection*	connection;
+	for (con_it it = connections_.begin(); it != connections_.end(); ++it)
+	{
+		connection = it->second;
+		int time = static_cast<int>(connection->last_msg_time());
+		if (connection->socket() != U_EXTERNAL_USER && time >= ping_timeout_)
+		{
+			if (connection->last_msg_time() >= conn_timeout_)
+			{
+				--it;
+				handle_disconnection(connection->socket());
+				continue;
+			}
+			send_msg(it->second->socket(), domain_, "PING " + domain_); // Send PING message
+		}
+	}
+	last_ping = time(nullptr);
 }
 
 /// ‼️ ⚠️ DEVELOPMENT UTILS (REMOVE OR COMMENT WHEN PROJECT IS READY) ⚠️ ‼️ //! TODO: DEV -> REMOVE /////////////////////
