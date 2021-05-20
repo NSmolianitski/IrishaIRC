@@ -65,6 +65,7 @@ private:
 	std::string	host_name_;		// Host server. Need when this server connected to other.
 	std::string	password_;		// Password for clients and servers connection to connect this server
 	time_t		launch_time_;	// Server launch time
+	int 		parent_fd_;
 
 	std::map<std::string, AConnection*>		connections_;	// Server and client connections
 	std::map<std::string, func>				commands_;		// IRC commands
@@ -131,6 +132,7 @@ private:
 	void			send_everyone		(const std::string& prefix, const std::string& msg) const;
 	void			print_info			() const;
 	std::string		connection_name		(const int sock) const;
+	int 			next_token			();
 
 	/// IRC commands
 	eResult			NICK				(const int sock);
