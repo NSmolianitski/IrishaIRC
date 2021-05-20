@@ -61,7 +61,8 @@ std::string	Irisha::get_msg(int sock, std::list<Irisha::RegForm*>& reg_expect)
 	char			tmp_buff[513];
 
 	int read_bytes = recv(sock, &tmp_buff, 512, 0);
-	if (read_bytes < 0) throw std::runtime_error("Recv error in get_msg()");
+	if (read_bytes < 0)
+		throw std::runtime_error("Recv error in get_msg()");
 
 	if (read_bytes == 0)
 		handle_disconnection(sock);

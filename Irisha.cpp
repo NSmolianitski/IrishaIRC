@@ -200,7 +200,7 @@ void Irisha::loop()
 
 	timeout.tv_sec	= ping_timeout_;
 	timeout.tv_usec	= 0;
-	std::thread	sender(sending_loop, this); //! TODO: REMOVE ////////////////////////////////////////////////////////////////////////////////////////////
+//	std::thread	sender(sending_loop, this); //! TODO: REMOVE ////////////////////////////////////////////////////////////////////////////////////////////
 	while (true)
 	{
 		read_fds_ = all_fds_;
@@ -208,7 +208,6 @@ void Irisha::loop()
 		if (n == -1) throw std::runtime_error("Select error");
 //		if (difftime(time(nullptr), last_ping) >= ping_timeout_)
 //			ping_connections(last_ping);
-
 		for (int i = 3; i < max_fd_ + 1; ++i)
 		{
 			if (FD_ISSET(i, &read_fds_))
@@ -244,7 +243,7 @@ void Irisha::loop()
 			}
 		}
 	}
-	sender.detach(); //! TODO: REMOVE ////<======///////////////////////////////////////////////////////////////////////////////
+//	sender.detach(); //! TODO: REMOVE ////<======///////////////////////////////////////////////////////////////////////////////
 }
 
 /**
@@ -259,9 +258,12 @@ void Irisha::handle_disconnection(const int sock)
 
 	if (user == nullptr)
 	{
-		Server*	server = find_server(sock);
-		sys_msg(E_BOOM, "Server", server->name(), "disconnected!");
-		send_servers(server->name(), msg);
+		Server*		server = find_server(sock);
+		std::string	name = "unknown";
+		if (server != nullptr)
+			name = server->name();
+		sys_msg(E_BOOM, "Server", name, "disconnected!");
+		send_servers(name, msg);
 	}
 	else
 	{

@@ -276,6 +276,11 @@ eResult Irisha::QUIT(const int sock)
 	}
 
 	std::string	msg;
+	if (user == nullptr)
+	{
+		sys_msg(E_CROSS, "Can't disconnect user", cmd_.prefix_, "(don't worry, not our problem)");
+		return R_FAILURE;
+	}
 	msg = sys_msg(E_SCULL, "User", user->nick(), "disconnected!");
 	if (!cmd_.arguments_.empty())
 		msg = cmd_.arguments_[0];
