@@ -1,6 +1,3 @@
-//
-// Created by Parfait Kentaurus on 5/10/21.
-//
 
 #ifndef FT_IRC_USER_HPP
 #define FT_IRC_USER_HPP

@@ -1,6 +1,3 @@
-//
-// Created by Parfait Kentaurus on 5/14/21.
-//
 
 #include "Irisha.hpp"
 #include "utils.hpp"
@@ -198,8 +195,6 @@ void Irisha::send_servers(const std::string& prefix, const std::string& msg) con
 			send_msg(it->second->socket(), prefix, msg);
 	}
 }
-
-//:pig.irisha.net NICK Guest84 1 textual pig.irisha.net 4 + textual
 
 /**
  * @description	Sends a message to all servers except one with socket

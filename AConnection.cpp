@@ -1,6 +1,3 @@
-//
-// Created by Parfait Kentaurus on 5/12/21.
-//
 
 #include "AConnection.hpp"
 

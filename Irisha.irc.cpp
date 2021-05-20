@@ -1,12 +1,10 @@
-//
-// Created by Parfait Kentaurus on 5/14/21.
-//
 
-#include <sstream>
 #include "Irisha.hpp"
 #include "User.hpp"
 #include "Server.hpp"
 #include "utils.hpp"
+
+#include <sstream>
 
 /**
  * @description	Inserts all supported IRC commands to map

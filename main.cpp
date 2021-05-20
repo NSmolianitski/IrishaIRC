@@ -1,12 +1,15 @@
-#include <string>
 
 #include "Irisha.hpp"
 #include "utils.hpp"
 #include "parser.hpp"
+
+#include <string>
+
 void server_cycle(const std::string& host, int port_network, const std::string& password_network, int port, const std::string& password)
 {
 	try
 	{
+//		Irisha server("localhost", 2000, "psw", 6668, "psw");
 		Irisha server("localhost", 6667, "secret", 6668, "secret");
 //		Irisha server(6668, "psw");
 	}

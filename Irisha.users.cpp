@@ -1,6 +1,3 @@
-//
-// Created by Parfait Kentaurus on 5/14/21.
-//
 
 #include "Irisha.hpp"
 #include "User.hpp"

@@ -1,6 +1,3 @@
-//
-// Created by Parfait Kentaurus on 5/6/21.
-//
 
 #ifndef FT_IRC_IRISHA_HPP
 #define FT_IRC_IRISHA_HPP
@@ -96,6 +93,8 @@ private:
 	/// Config
 	void			apply_config		(const std::string& path);
 	void			check_timeout_values();
+	void			check_domain		();
+	void			set_time_stamp		(const std::string& path);
 
 	/// Connections
 	int				accept_connection	();

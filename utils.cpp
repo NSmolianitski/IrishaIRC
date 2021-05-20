@@ -1,6 +1,3 @@
-//
-// Created by Parfait Kentaurus on 5/13/21.
-//
 
 #include "utils.hpp"
 
@@ -28,6 +25,11 @@ void	remove_comment(std::string& str)
 void string_trim(std::string& str, const std::string& trim_symbols)
 {
 	size_t begin = str.find_first_not_of(trim_symbols);
+	if (begin == std::string::npos)
+	{
+		str.clear();
+		return;
+	}
 	size_t end = str.find_last_not_of(trim_symbols) + 1;
 	str = str.substr(begin, end - begin);
 }
@@ -70,10 +72,14 @@ void	check_config(const std::string& path)
 
 	while (getline(istream, line))
 	{
+		if (line.length() > 500)
+			throw std::runtime_error("Config error: line maximum length is 500");
 		remove_comment(line);
 		if (!line.empty() && !(line[0] == ';' || line[0] == '#'))
 		{
 			string_trim(line, " \t");
+			if (line.empty())
+				continue;
 			size_t equal_index = line.find_first_of('='); // Check for at least one '='
 			if (equal_index == std::string::npos)
 				throw std::runtime_error("Config error: setting must contain at least one '=");
