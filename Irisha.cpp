@@ -216,7 +216,7 @@ void Irisha::loop()
                     while (!arr_msg.empty())
                     {
                         parse_msg(arr_msg[0], cmd_);
-                        if (cmd_.command_ != "PING") ///TODO: delete if
+                        //if (cmd_.command_ != "PING") ///TODO: delete if
                         	print_cmd(PM_LINE, i);
 						arr_msg.pop_front();
 						std::list<RegForm*>::iterator it = expecting_registration(i, reg_expect);	// Is this connection waiting for registration? TODO: add timeout handling to registration

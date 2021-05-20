@@ -294,7 +294,7 @@ eResult Irisha::PONG(const int sock)
 		err_noorigin(sock);
 		return R_FAILURE;
 	}
-	else if (cmd_.arguments_.size() == 1)
+	else if (cmd_.arguments_.size() == 1 && cmd_.command_ == "PING")
 		send_msg(sock, domain_, "PONG " + domain_);
 	//else send to receiver
 	return R_SUCCESS;
@@ -307,7 +307,7 @@ eResult Irisha::PING(const int sock)
 		err_noorigin(sock);
 		return R_FAILURE;
 	}
-	else if (cmd_.arguments_.size() == 1) // PINGing this server
+	else if (cmd_.arguments_.size() == 1 && cmd_.command_ == "PING") // PINGing this server
 		PONG(sock);
 	else if (cmd_.command_ == "SERVER")
 		send_msg(sock, domain_,"PING :" + domain_);
