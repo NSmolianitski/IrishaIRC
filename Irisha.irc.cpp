@@ -227,9 +227,10 @@ eResult Irisha::SERVER(const int sock) ///TODO: test server tokens!
 			{
 				if (it->second->type() == T_SERVER && sock != it->second->socket() )
 				{
-					send_msg(sock, NO_PREFIX, createSERVERmsg(it->second));
+					send_msg(sock, NO_PREFIX, createSERVERmsg(it->second, token));
 					if (it->second->socket() != U_EXTERNAL_CONNECTION)
-						send_msg(it->second->socket(), NO_PREFIX, createSERVERmsg(server));
+						send_msg(it->second->socket(), NO_PREFIX, createSERVERmsg(server, token));
+					++token;
 				}
 			}
 		}
@@ -272,7 +273,7 @@ std::string Irisha::createPASSmsg(std::string password) const
  * @description	Returns SERVER message string
  * @return		SERVER command string in this format: <servername> <info>
  */
-std::string Irisha::createSERVERmsg(AConnection* server) const	///TODO: choose servername smarter
+std::string Irisha::createSERVERmsg(AConnection* server, int token) const	///TODO: choose servername smarter
 {
 	std::string msg;
 	if (server == nullptr)
@@ -284,7 +285,7 @@ std::string Irisha::createSERVERmsg(AConnection* server) const	///TODO: choose s
 		Server* serv = static_cast<Server*>(server);
 		msg = ":" + domain_ + " SERVER " + serv->name() +
 				" " + std::to_string(serv->hopcount() + 1) +
-				" " + std::to_string(serv->token()) + " :Irisha server";
+				" " + std::to_string((token == 0) ? serv->token() : token) + " :Irisha server";
 	}
 	return msg;
 }
@@ -297,7 +298,7 @@ eResult Irisha::PONG(const int sock)
 		return R_FAILURE;
 	}
 	else if (cmd_.arguments_.size() == 1 && cmd_.command_ == "PING")
-		send_msg(sock, domain_, "PONG " + domain_);
+		send_msg(sock, domain_, "PONG " + cmd_.prefix_);
 	//else send to receiver
 	return R_SUCCESS;
 }
