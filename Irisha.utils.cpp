@@ -7,24 +7,56 @@
 
 #include <sstream>
 
+std::string*	Irisha::choose_buff(int sock, std::list<Irisha::RegForm*>& reg_expect)
+{
+	std::string*	buff;
+	AConnection*	sender = find_connection(sock);
+	if (sender == nullptr)
+	{
+		RegForm*	form = find_regform(sock, reg_expect);
+		if (form != nullptr)
+		{
+			buff = &form->buff_;
+			form->last_msg_time_ = time(nullptr);
+		}
+		else
+			return nullptr;
+	}
+	else
+	{
+		buff = &sender->buff();
+		sender->update_time();
+	}
+	return buff;
+}
+
 /**
  * @description	Receives a message from socket
  * @param		socket: sender socket
  * @return		message received from socket
  */
-std::string Irisha::get_msg(int sock)
+std::string	Irisha::get_msg(int sock, std::list<Irisha::RegForm*>& reg_expect)
 {
-	int read_bytes = recv(sock, &buff_, 512, 0);
+	char			tmp_buff[513];
+
+	int read_bytes = recv(sock, &tmp_buff, 512, 0);
 	if (read_bytes < 0) throw std::runtime_error("Recv error in get_msg()");
 
 	if (read_bytes == 0)
 		handle_disconnection(sock);
+	else if (read_bytes > 510)
+	{
+		send_msg(sock, domain_, "Error! Request is too long");
+		read_bytes = 0;
+	}
+	tmp_buff[read_bytes] = '\0';
 
-	buff_[read_bytes] = '\0';
-	AConnection*	sender = find_connection(sock);
-	if (sender != nullptr)
-		sender->update_time();
-	return (buff_);
+	std::string*	buff = choose_buff(sock, reg_expect);
+	if (buff == nullptr) // If Irisha connects to server
+		return tmp_buff;
+
+	*buff += tmp_buff;
+	return *buff;
 }
 
 /**
@@ -397,5 +429,16 @@ void Irisha::send_input_msg(int sock) const
 
 	ssize_t n = send(sock, message.c_str(), message.length(), 0);
 	if (n == -1) throw std::runtime_error("Send error");
+}
+
+Irisha::RegForm* Irisha::find_regform(int sock, std::list<Irisha::RegForm*>& reg_expect)
+{
+	std::list<Irisha::RegForm*>::iterator it = reg_expect.begin();
+	for (; it != reg_expect.end(); ++it)
+	{
+		if ((*it)->socket_ == sock)
+			return *it;
+	}
+	return nullptr;
 }
 /// ‼️ ⚠️ END OF DEVELOPMENT UTILS ⚠️ ‼️ //! TODO: DEV -> REMOVE //////////////////////////////////////////

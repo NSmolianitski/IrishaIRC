@@ -40,13 +40,16 @@ class Irisha
 private:
 	struct RegForm
 	{
-		int		socket_;
-		bool	pass_received_;
+		int			socket_;
+		bool		pass_received_;
+		std::string buff_;
+		time_t		last_msg_time_;
 
 		explicit RegForm(int sock)
 		{
 			socket_ = sock;
 			pass_received_ = false;
+			last_msg_time_ = time(nullptr);
 		}
 	};
 
@@ -113,6 +116,9 @@ private:
 	Server*			find_server			(const int sock) const;
 
 	/// Utils
+	std::string*	choose_buff			(int sock, std::list<Irisha::RegForm*>& reg_expect);
+	std::string 	get_msg				(int sock, std::list<Irisha::RegForm*>& reg_expect);
+	RegForm*	 	find_regform		(int sock, std::list<Irisha::RegForm*>& reg_expect);
 	bool			is_valid_prefix		(const int sock);
 	void			send_msg			(int sock, const std::string& prefix, const std::string& msg) const;
 	void			send_rpl_msg		(int sock, eReply rpl, const std::string& msg) const;
@@ -124,7 +130,6 @@ private:
 	void			send_servers		(const std::string& prefix, const std::string& msg) const;
 	void			send_servers		(const std::string& prefix, const std::string& msg, const int sock) const;
 	void			send_everyone		(const std::string& prefix, const std::string& msg) const;
-	std::string 	get_msg				(int sock);
 	void			print_info			() const;
 	std::string		connection_name		(const int sock) const;
 

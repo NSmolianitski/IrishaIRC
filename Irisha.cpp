@@ -217,7 +217,7 @@ void Irisha::loop()
 				}
 				else
 				{
-					client_msg = get_msg(i);
+					client_msg = get_msg(i, reg_expect);
                     parse_arr_msg(arr_msg, client_msg);
                     while (!arr_msg.empty())
                     {
