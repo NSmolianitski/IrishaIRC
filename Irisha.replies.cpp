@@ -8,7 +8,6 @@
  * @description	Sends reply message
  * @param		sock
  * @param		rpl: reply code
- * @param		target: receiver
  * @param		msg: reply message
  */
 void			Irisha::send_rpl_msg		(int sock, eReply rpl, const std::string& msg) const
@@ -19,15 +18,42 @@ void			Irisha::send_rpl_msg		(int sock, eReply rpl, const std::string& msg) cons
 }
 
 /**
+ * @description	Sends reply message with receiver name
+ * @param		sock
+ * @param		rpl: reply code
+ * @param		msg: reply message
+ * @param		receiver
+ */
+void			Irisha::send_rpl_msg		(int sock, eReply rpl, const std::string& msg
+							  					, const std::string& target) const
+{
+	std::string message = rpl_code_to_str(rpl) + " " + target + " " + msg;
+	send_msg(sock, domain_, message);
+}
+
+/**
  * @description	Sends error reply message
  * @param		sock
  * @param		rpl: error reply code
- * @param		target: receiver
  * @param		msg: reply message
  */
 void			Irisha::send_rpl_msg		(int sock, eError rpl, const std::string& msg) const
 {
 	std::string	target = connection_name(sock);
+	std::string message = rpl_code_to_str(rpl) + " " + target + " " + msg;
+	send_msg(sock, domain_, message);
+}
+
+/**
+ * @description	Sends error reply message with receiver name
+ * @param		sock
+ * @param		rpl: error reply code
+ * @param		msg: reply message
+ * @param		receiver
+ */
+void			Irisha::send_rpl_msg		(int sock, eError rpl, const std::string& msg
+							  					, const std::string& target) const
+{
 	std::string message = rpl_code_to_str(rpl) + " " + target + " " + msg;
 	send_msg(sock, domain_, message);
 }
@@ -178,6 +204,21 @@ void Irisha::err_useronchannel(const int sock, const std::string& user, const st
 	send_rpl_msg(sock, ERR_USERONCHANNEL, user + channel +" :is already on channel");
 }
 
+void Irisha::err_usersdisabled(const int sock) const
+{
+	send_rpl_msg(sock, ERR_USERSDISABLED, ":USERS has been disabled");
+}
+
+void Irisha::err_notregistered(const int sock) const
+{
+	send_rpl_msg(sock, ERR_NOTREGISTERED, ":You have not registered");
+}
+
+void Irisha::err_yourebannedcreep(const int sock) const
+{
+	send_rpl_msg(sock, ERR_YOUREBANNEDCREEP, ":You are banned from this server");
+}
+
 /// Common replies
 void Irisha::rpl_welcome(const int sock) const
 {
@@ -263,4 +304,24 @@ void Irisha::rpl_version(const int sock, const std::string& version, const std::
 						 	, const std::string& server, const std::string& comments) const
 {
 	send_rpl_msg(sock, RPL_VERSION, version + "." + debug_lvl + " " + server + " :" + comments);
+}
+
+void Irisha::rpl_adminme(const int sock, const std::string& target, const std::string& server) const
+{
+	send_rpl_msg(sock, RPL_ADMINME, server + " :Administrative info", target);
+}
+
+void Irisha::rpl_adminloc1(const int sock, const std::string& target, const std::string& info) const
+{
+	send_rpl_msg(sock, RPL_ADMINLOC1, ":" + info, target);
+}
+
+void Irisha::rpl_adminloc2(const int sock, const std::string& target, const std::string& info) const
+{
+	send_rpl_msg(sock, RPL_ADMINLOC2, ":" + info, target);
+}
+
+void Irisha::rpl_adminmail(const int sock, const std::string& target, const std::string& info) const
+{
+	send_rpl_msg(sock, RPL_ADMINEMAIL, ":" + info, target);
 }

@@ -7,8 +7,8 @@ void server_cycle(const std::string& host, int port_network, const std::string& 
 {
 	try
 	{
-//		Irisha server("localhost", 6670, "psw", 6668, "psw");
-		Irisha server(6668, "psw");
+		Irisha server("localhost", 6667, "secret", 6668, "secret");
+//		Irisha server(6668, "psw");
 	}
 	catch (std::exception& e)
 	{
@@ -16,7 +16,7 @@ void server_cycle(const std::string& host, int port_network, const std::string& 
 		exit(1);
 	}
 }
-//:ngircd3.irisha.net NICK Guest52 2 ~textual localhost 3 + :Textual User
+
 int	main(int argc, char *argv[])
 {
     std::string	host;

@@ -79,17 +79,8 @@ Irisha::~Irisha()
 	close(listener_);
 }
 
-/**
- * @description	Applies config settings and checks for domain and password validity
- * @param		path: path to config
- */
-void Irisha::apply_config(const std::string& path)
+void Irisha::check_timeout_values()
 {
-	check_config(path);
-	domain_			= get_config_value(path, DOMAIN);
-	welcome_		= get_config_value(path, WELCOME);
-	ping_timeout_	= str_to_int(get_config_value(path, PING_T));
-	conn_timeout_	= str_to_int(get_config_value(path, CONN_T));
 	if (ping_timeout_ < 1 || ping_timeout_ > 10000)
 	{
 		ping_timeout_ = 20;
@@ -106,7 +97,33 @@ void Irisha::apply_config(const std::string& path)
 		conn_timeout_ = 120;
 		std::cout << RED "Ping timeout can't be greater than connection timeout - server will use default settings" CLR << std::endl;
 	}
+}
+
+/**
+ * @description	Applies config settings and checks for domain and password validity
+ * @param		path: path to config
+ */
+/**
+ * @description	Applies config settings and checks for domain and password validity
+ * @param		path: path to config
+ */
+void Irisha::apply_config(const std::string& path)
+{
+	check_config(path);
+	domain_			= get_config_value(path, DOMAIN);
+	welcome_		= get_config_value(path, WELCOME);
+	admin_mail_		= get_config_value(path, ADMIN_MAIL);
+	admin_location_	= get_config_value(path, ADMIN_LOC);
+	admin_info_		= get_config_value(path, ADMIN_INFO);
 	//password_		= get_config_value(path, PASS);
+	ping_timeout_	= str_to_int(get_config_value(path, PING_T));
+	conn_timeout_	= str_to_int(get_config_value(path, CONN_T));
+	check_timeout_values();
+
+	time_stamp_		= U_DISABLED;
+	if (get_config_value(path, TIME_STAMP) == "yes")
+		time_stamp_		= U_ENABLED;
+
 	int	dots	= 0;
 	for (size_t i = 0; i < domain_.length(); ++i)
 	{
@@ -117,8 +134,8 @@ void Irisha::apply_config(const std::string& path)
 			++dots;
 		}
 	}
-	if (dots < 2)
-		throw std::runtime_error("Config error: server domain must contain at least two dots.");
+	if (dots < 1)
+		throw std::runtime_error("Config error: server domain must contain at least one dot.");
 	if (domain_.empty())
 		throw std::runtime_error("Config error: server domain and password must not be empty.");
 }
@@ -211,16 +228,15 @@ void Irisha::loop()
 				}
 				else
 				{
-					client_msg = get_msg(i);
+					client_msg = get_msg(i, reg_expect);
                     parse_arr_msg(arr_msg, client_msg);
                     while (!arr_msg.empty())
                     {
-                        parse_msg(arr_msg[0], cmd_);
-                        //if (cmd_.command_ != "PING") ///TODO: delete if
-                        	print_cmd(PM_LINE, i);
+                        parse_msg(arr_msg[0], cmd_); //! TODO: fix EXC_BAD_ACCESS in cases: ":prefix", ":", "::"
+						print_cmd(PM_LINE, i);
 						arr_msg.pop_front();
 						std::list<RegForm*>::iterator it = expecting_registration(i, reg_expect);	// Is this connection waiting for registration? TODO: add timeout handling to registration
-						if (it != reg_expect.end())														// Yes, register it
+						if (it != reg_expect.end())														// Yes, register it TODO: handle sudden user disconnection (CTRL + C, CTRL + \, CTRL + D, CTRL + Z)
 						{
 							if (register_connection(it) == R_SUCCESS)
 							{
@@ -251,9 +267,12 @@ void Irisha::handle_disconnection(const int sock)
 
 	if (user == nullptr)
 	{
-		Server*	server = find_server(sock);
-		sys_msg(E_BOOM, "Server", server->name(), "disconnected!");
-		send_servers(server->name(), msg);
+		Server*		server = find_server(sock);
+		std::string	name = "unknown";
+		if (server != nullptr)
+			name = server->name();
+		sys_msg(E_BOOM, "Server", name, "disconnected!");
+		send_servers(name, msg);
 	}
 	else
 	{

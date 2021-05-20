@@ -7,6 +7,29 @@
 
 #include <sstream>
 
+std::string*	Irisha::choose_buff(int sock, std::list<Irisha::RegForm*>& reg_expect)
+{
+	std::string*	buff;
+	AConnection*	sender = find_connection(sock);
+	if (sender == nullptr)
+	{
+		RegForm*	form = find_regform(sock, reg_expect);
+		if (form != nullptr)
+		{
+			buff = &form->buff_;
+			form->last_msg_time_ = time(nullptr);
+		}
+		else
+			return nullptr;
+	}
+	else
+	{
+		buff = &sender->buff();
+		sender->update_time();
+	}
+	return buff;
+}
+
 /**
  * find biggest token and return it + 1
  * @return token for new server connection
@@ -33,19 +56,29 @@ int 			Irisha::next_token()
  * @param		socket: sender socket
  * @return		message received from socket
  */
-std::string Irisha::get_msg(int sock)
+std::string	Irisha::get_msg(int sock, std::list<Irisha::RegForm*>& reg_expect)
 {
-	int read_bytes = recv(sock, &buff_, 512, 0);
-	if (read_bytes < 0) throw std::runtime_error("Recv error in get_msg()");
+	char			tmp_buff[513];
+
+	int read_bytes = recv(sock, &tmp_buff, 512, 0);
+	if (read_bytes < 0)
+		throw std::runtime_error("Recv error in get_msg()");
 
 	if (read_bytes == 0)
 		handle_disconnection(sock);
+	else if (read_bytes > 510)
+	{
+		send_msg(sock, domain_, "Error! Request is too long");
+		read_bytes = 0;
+	}
+	tmp_buff[read_bytes] = '\0';
 
-	buff_[read_bytes] = '\0';
-	AConnection*	sender = find_connection(sock);
-	if (sender != nullptr)
-		sender->update_time();
-	return (buff_);
+	std::string*	buff = choose_buff(sock, reg_expect);
+	if (buff == nullptr) // If Irisha connects to server
+		return tmp_buff;
+
+	*buff += tmp_buff;
+	return *buff;
 }
 
 /**
@@ -58,6 +91,21 @@ AConnection* Irisha::find_connection(const int sock) const
 	for (con_const_it it = connections_.begin(); it != connections_.end(); ++it)
 	{
 		if (it->second->socket() == sock)
+			return it->second;
+	}
+	return nullptr;
+}
+
+/**
+ * @description	Finds connection by name
+ * @param		sock: socket
+ * @return		Returns connection pointer or nullptr
+ */
+AConnection* Irisha::find_connection(const std::string& name) const
+{
+	for (con_const_it it = connections_.begin(); it != connections_.end(); ++it)
+	{
+		if (it->first == name)
 			return it->second;
 	}
 	return nullptr;
@@ -128,7 +176,8 @@ void Irisha::send_msg(int sock, const std::string& prefix, const std::string& ms
 	else
 		message = msg;
 
-	std::cout << message + " " E_SPEECH PURPLE ITALIC " to " + connection_name(sock) << CLR << std::endl;
+	std::cout << time_stamp() + message + " " E_SPEECH PURPLE ITALIC " to "
+								+ connection_name(sock) << CLR << std::endl;
 	message.append("\r\n");
 
 	ssize_t n = send(sock, message.c_str(), message.length(), 0);
@@ -190,6 +239,8 @@ void Irisha::send_everyone(const std::string& prefix, const std::string& msg) co
  */
 void Irisha::handle_command(const int sock)
 {
+	if (!is_valid_prefix(sock))
+		return;
 	std::map<std::string, func>::const_iterator it = commands_.find(cmd_.command_);
 	if (it != commands_.end())	// Execute command
 		((*this).*it->second)(sock);
@@ -242,6 +293,89 @@ void Irisha::ping_connections(time_t& last_ping)
 	last_ping = time(nullptr);
 }
 
+bool Irisha::is_valid_prefix(const int sock)
+{
+	User*	user = find_user(sock);
+	if (user != nullptr && !cmd_.prefix_.empty() && cmd_.prefix_ != user->nick())
+	{
+		if (find_connection(cmd_.prefix_))
+		{
+			send_msg(sock, domain_, "Error! Cheater! Closing connection...");
+			handle_disconnection(sock);
+		}
+		else
+			send_msg(sock, domain_, "Error! Wrong prefix!");
+		return false;
+	}
+	return true;
+}
+
+///	System messages
+/**
+ * @description	Sends message to STDOUT
+ * @param		emoji: emoji message prefix
+ * @param		str: purple message
+ * @return		sent string
+ */
+std::string	Irisha::sys_msg(const std::string& emoji, const std::string& str) const
+{
+	std::string msg = emoji + " " PURPLE ITALIC + str + CLR;
+	std::cout << time_stamp() + msg << std::endl;
+	return msg;
+}
+
+/**
+ * @description	Sends message to STDOUT
+ * @param		emoji: emoji message prefix
+ * @param		str: purple message
+ * @param		white_str: string which would be white
+ * @return		sent string
+ */
+std::string	Irisha::sys_msg(const std::string& emoji, const std::string& str
+		, const std::string& white_str) const
+{
+	std::string msg =  emoji + " " PURPLE ITALIC + str
+					   + " " BWHITE + white_str + CLR;
+	std::cout << time_stamp() + msg << std::endl;
+	return msg;
+}
+
+/**
+ * @description	Sends message to STDOUT
+ * @param		emoji: emoji message prefix
+ * @param		str: purple message
+ * @param		white_str: string which would be white
+ * @param		ending: purple ending
+ * @return		sent string
+ */
+std::string	Irisha::sys_msg(const std::string& emoji, const std::string& str
+		, const std::string& white_str, const std::string& ending) const
+{
+	std::string msg = emoji + " " PURPLE ITALIC + str
+					  + " " BWHITE + white_str + " " + PURPLE + ending + CLR;
+	std::cout << time_stamp() + msg << std::endl;
+	return msg;
+}
+
+/**
+ * @description	Sends message to STDOUT
+ * @param		emoji: emoji message prefix
+ * @param		str: purple message
+ * @param		white_str: string which would be white
+ * @param		str2: second purple string
+ * @param		ending: white ending
+ * @return		sent string
+ */
+std::string	Irisha::sys_msg(const std::string& emoji, const std::string& str
+		, const std::string& white_str, const std::string& str2, const std::string& ending) const
+{
+	std::string msg =  emoji + " " PURPLE ITALIC + str
+					   + " " BWHITE + white_str + " " + PURPLE + str2
+					   + " " BWHITE + ending + CLR;
+	std::cout << time_stamp() + msg << std::endl;
+	return msg;
+}
+
 /// ‼️ ⚠️ DEVELOPMENT UTILS (REMOVE OR COMMENT WHEN PROJECT IS READY) ⚠️ ‼️ //! TODO: DEV -> REMOVE /////////////////////
 #define GUEST52 "Guest52" //! TODO: REMOVE
 
@@ -263,7 +397,7 @@ void sending_loop(const Irisha* server)
 		else if (input[0] == 'W' && input[1] == ' ')
 		{
 			input = input.replace(0, 2, serv_prefix + "001 ");
-			input.append(" ⭐ Welcome to Irisha server! ⭐");
+			input.append(" " + server->welcome_);
 		}
 		else if (input == "W")
 			input = serv_prefix + "001 " + GUEST52 + " ⭐ Welcome to Irisha server! ⭐";
@@ -295,7 +429,7 @@ void Irisha::print_cmd(ePrintMode mode, const int sock) const
 	}
 	std::stringstream	sender;
 	sender << connection_name(sock);
-	std::cout << "[" BLUE << sender.str() << CLR "] ";
+	std::cout << time_stamp() << "[" BLUE << sender.str() << CLR "] ";
 	if (!cmd_.prefix_.empty())
 	{
 		if (mode == PM_LIST)
@@ -386,5 +520,24 @@ void Irisha::send_input_msg(int sock) const
 
 	ssize_t n = send(sock, message.c_str(), message.length(), 0);
 	if (n == -1) throw std::runtime_error("Send error");
+}
+
+Irisha::RegForm* Irisha::find_regform(int sock, std::list<Irisha::RegForm*>& reg_expect)
+{
+	std::list<Irisha::RegForm*>::iterator it = reg_expect.begin();
+	for (; it != reg_expect.end(); ++it)
+	{
+		if ((*it)->socket_ == sock)
+			return *it;
+	}
+	return nullptr;
+}
+
+std::string Irisha::time_stamp() const
+{
+	if (time_stamp_ == U_DISABLED)
+		return "";
+	std::string msg = int_to_str(time(nullptr) - launch_time_);
+	return "[" + msg + "] ";
 }
 /// ‼️ ⚠️ END OF DEVELOPMENT UTILS ⚠️ ‼️ //! TODO: DEV -> REMOVE //////////////////////////////////////////
