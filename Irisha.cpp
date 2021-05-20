@@ -67,7 +67,7 @@ Irisha::Irisha(const std::string& host_name, int network_port, const std::string
 
 	//registration
 	send_msg(parent_fd_, NO_PREFIX, createPASSmsg(network_password));
-	send_msg(parent_fd_, NO_PREFIX, createSERVERmsg());
+	send_msg(parent_fd_, NO_PREFIX, "SERVER " + domain_ + " :Irisha server");
 	loop();
 }
 
@@ -144,7 +144,7 @@ void Irisha::loop()
 
 	timeout.tv_sec	= ping_timeout_;
 	timeout.tv_usec	= 0;
-//	std::thread	sender(sending_loop, this); //! TODO: REMOVE ////////////////////////////////////////////////////////////////////////////////////////////
+	std::thread	sender(sending_loop, this); //! TODO: REMOVE ////////////////////////////////////////////////////////////////////////////////////////////
 	while (true)
 	{
 		read_fds_ = all_fds_;
@@ -152,6 +152,7 @@ void Irisha::loop()
 		if (n == -1) throw std::runtime_error("Select error");
 //		if (difftime(time(nullptr), last_ping) >= ping_timeout_)
 //			ping_connections(last_ping);
+
 		for (int i = 3; i < max_fd_ + 1; ++i)
 		{
 			if (FD_ISSET(i, &read_fds_))
@@ -187,7 +188,7 @@ void Irisha::loop()
 			}
 		}
 	}
-//	sender.detach(); //! TODO: REMOVE ////<======///////////////////////////////////////////////////////////////////////////////
+	sender.detach(); //! TODO: REMOVE ////<======///////////////////////////////////////////////////////////////////////////////
 }
 
 /**
@@ -263,29 +264,7 @@ int			Irisha::register_connection	(std::list<Irisha::RegForm*>::iterator rf)
 
 /***************Creating message strings***************/
 
-/**
- * @description	Returns PASS message string
- * @param		password - parent server password for connection
- * @return		PASS command string in this format: PASS <password> <version> <flags>
- */
-std::string Irisha::createPASSmsg(std::string password)
-{
-	std::string msg = "PASS ";
-	msg.append(password);
-	msg.append(" 0210 IRC| ");
-	return msg;
-}
 
-/**
- * @description	Returns SERVER message string
- * @return		SERVER command string in this format: <servername> <info>
- */
-std::string Irisha::createSERVERmsg()	///TODO: choose servername smarter
-{
-	std::string msg = "SERVER ";
-	msg.append(domain_ + " :Irisha server");
-	return msg;
-}
 
 /*
  * COMMANDS:

@@ -219,19 +219,73 @@ eResult Irisha::SERVER(const int sock) ///TODO: test server tokens!
 		if (sock != parent_fd_)
 		{
 			send_msg(sock, NO_PREFIX, createPASSmsg(password_));
-			send_msg(sock, NO_PREFIX, createSERVERmsg());
-		}
+			send_msg(sock, NO_PREFIX, createSERVERmsg(nullptr));
 
+			//send information about other servers to connected serer
+			//and about connected server to other servers
+			std::map<std::string, AConnection*>::iterator it = connections_.begin();
+			for (; it != connections_.end(); it++)
+			{
+				if (it->second->type() == T_SERVER &&
+					sock != it->second->socket() && it->second->socket() != U_EXTERNAL_CONNECTION)
+				{
+					send_msg(sock, NO_PREFIX, createSERVERmsg(it->second));
+					send_msg(it->second->socket(), NO_PREFIX, createSERVERmsg(server));
+				}
+			}
+		}
 		PING(sock);
 	}
-	else
+	else	//handle message from known server about new server
 	{
 		AConnection* server = new Server(cmd_.arguments_[0], U_EXTERNAL_CONNECTION, hopcount, token);
 		connections_.insert(std::pair<std::string, AConnection*>(cmd_.arguments_[0], server));
-	}
 
+		//:pig.irisha.net SERVER pig2.irisha.net 2 3 :Server Info Text
+		//send to connected servers about new server, except current server and server-sender this message
+//		std::map<std::string, AConnection*>::iterator it = connections_.begin();
+//		for (; it != connections_.end(); it++)
+//		{
+//			if (it->second->type() == T_SERVER &&
+//					sock != it->second->socket() && it->second->socket() != U_EXTERNAL_CONNECTION)
+//		}
+	}
 	sys_msg(E_LAPTOP, "Server", cmd_.arguments_[0], "registered!");
 	return R_SUCCESS;
+}
+
+/**
+ * @description	Returns PASS message string
+ * @param		password - parent server password for connection
+ * @return		PASS command string in this format: PASS <password> <version> <flags>
+ */
+std::string Irisha::createPASSmsg(std::string password) const
+{
+	std::string msg = "PASS ";
+	msg.append(password);
+	msg.append(" 0210 IRC| ");
+	return msg;
+}
+
+/**
+ * @description	Returns SERVER message string
+ * @return		SERVER command string in this format: <servername> <info>
+ */
+std::string Irisha::createSERVERmsg(AConnection* server) const	///TODO: choose servername smarter
+{
+	std::string msg;
+	if (server == nullptr)
+	{
+		msg = ":" + domain_ + " SERVER " + domain_ + " 1 :Irisha server";
+	}
+	else
+	{
+		Server* serv = static_cast<Server*>(server);
+		msg = ":" + domain_ + " SERVER " + serv->name() +
+				" " + std::to_string(serv->hopcount() + 1) +
+				" " + std::to_string(serv->token()) + " :Irisha server";
+	}
+	return msg;
 }
 
 eResult Irisha::PONG(const int sock)
@@ -241,7 +295,7 @@ eResult Irisha::PONG(const int sock)
 		err_noorigin(sock);
 		return R_FAILURE;
 	}
-	else if (cmd_.arguments_.size() == 1)
+	else if (cmd_.arguments_.size() == 1 && cmd_.command_ == "PING")
 		send_msg(sock, domain_, "PONG " + domain_);
 	//else send to receiver
 	return R_SUCCESS;
@@ -254,7 +308,7 @@ eResult Irisha::PING(const int sock)
 		err_noorigin(sock);
 		return R_FAILURE;
 	}
-	else if (cmd_.arguments_.size() == 1) // PINGing this server
+	else if (cmd_.arguments_.size() == 1 && cmd_.command_ == "PING") // PINGing this server
 		PONG(sock);
 	else if (cmd_.command_ == "SERVER")
 		send_msg(sock, domain_,"PING :" + domain_);
