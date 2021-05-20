@@ -21,6 +21,9 @@ void	Irisha::prepare_commands()
 	commands_.insert(std::pair<std::string, func>("PONG", &Irisha::PONG));
 	commands_.insert(std::pair<std::string, func>("QUIT", &Irisha::QUIT));
 	commands_.insert(std::pair<std::string, func>("TIME", &Irisha::TIME));
+	commands_.insert(std::pair<std::string, func>("USERS", &Irisha::USERS));
+	commands_.insert(std::pair<std::string, func>("KILL", &Irisha::KILL));
+	commands_.insert(std::pair<std::string, func>("ADMIN", &Irisha::ADMIN));
 }
 
 /**
@@ -279,3 +282,77 @@ eResult Irisha::TIME(const int sock)
 	rpl_time(sock, domain_, local_time);
 	return R_SUCCESS;
 }
+
+eResult Irisha::USERS(const int sock)
+{
+	err_usersdisabled(sock);
+	return R_SUCCESS;
+}
+
+eResult Irisha::KILL(const int sock)
+{
+	if (cmd_.arguments_.size() < 2)
+	{
+		err_needmoreparams(sock, "KILL");
+		return R_FAILURE;
+	}
+	//! TODO: make KILL command
+	return R_SUCCESS;
+}
+
+void	Irisha::admin_info(const int sock, const std::string& receiver)
+{
+	rpl_adminme(sock, receiver, domain_);
+	rpl_adminloc1(sock, receiver, admin_location_);
+	rpl_adminloc2(sock, receiver, admin_info_);
+	rpl_adminmail(sock, receiver, admin_mail_);
+}
+
+eResult Irisha::ADMIN(const int sock)
+{
+	if (cmd_.arguments_.empty())
+	{
+		admin_info(sock, connection_name(sock));
+		return R_SUCCESS;
+	}
+	Server* server;
+	for (int i = 0; i < cmd_.arguments_.size(); ++i)
+	{
+		server = find_server(cmd_.arguments_[i]);
+		if (cmd_.arguments_[i] == domain_)
+			admin_info(sock, cmd_.prefix_);
+		else if (server == nullptr)
+			err_nosuchserver(sock, cmd_.arguments_[i]);
+		else
+			send_servers(connection_name(sock), "ADMIN " + cmd_.arguments_[i], sock);
+			//! TODO: send ADMIN <nick> cmd_.arguments_[i] to other servers
+	}
+	return R_SUCCESS;
+}
+
+/*
+ * OPER
+ * SERVICE
+ * SQUIT
+ * NAMES
+ * LIST
+ * INVITE
+ * KICK
+ * NOTICE
+ * MOTD
+ * LUSERS
+ * VERSION
+ * STATS
+ * LINKS
+ * CONNECT
+ * TRACE
+ * ADMIN
+ * INFO
+ * SERVLIST
+ * SQUERY
+ * WHO
+ * WHOIS
+ * WHOWAS
+ * KILL
+ * ERROR
+ */

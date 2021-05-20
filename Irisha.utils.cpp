@@ -43,6 +43,21 @@ AConnection* Irisha::find_connection(const int sock) const
 }
 
 /**
+ * @description	Finds connection by name
+ * @param		sock: socket
+ * @return		Returns connection pointer or nullptr
+ */
+AConnection* Irisha::find_connection(const std::string& name) const
+{
+	for (con_const_it it = connections_.begin(); it != connections_.end(); ++it)
+	{
+		if (it->first == name)
+			return it->second;
+	}
+	return nullptr;
+}
+
+/**
  * @description Finds server by name
  * @param		name
  * @return		user pointer or nullptr
@@ -167,6 +182,8 @@ void Irisha::send_everyone(const std::string& prefix, const std::string& msg) co
  */
 void Irisha::handle_command(const int sock)
 {
+	if (!is_valid_prefix(sock))
+		return;
 	std::map<std::string, func>::const_iterator it = commands_.find(cmd_.command_);
 	if (it != commands_.end())	// Execute command
 		((*this).*it->second)(sock);
@@ -219,6 +236,23 @@ void Irisha::ping_connections(time_t& last_ping)
 	last_ping = time(nullptr);
 }
 
+bool Irisha::is_valid_prefix(const int sock)
+{
+	User*	user = find_user(sock);
+	if (user != nullptr && !cmd_.prefix_.empty() && cmd_.prefix_ != user->nick())
+	{
+		if (find_connection(cmd_.prefix_))
+		{
+			send_msg(sock, domain_, "Error! Cheater! Closing connection...");
+			handle_disconnection(sock);
+		}
+		else
+			send_msg(sock, domain_, "Error! Wrong prefix!");
+		return false;
+	}
+	return true;
+}
+
 /// ‼️ ⚠️ DEVELOPMENT UTILS (REMOVE OR COMMENT WHEN PROJECT IS READY) ⚠️ ‼️ //! TODO: DEV -> REMOVE /////////////////////
 #define GUEST52 "Guest52" //! TODO: REMOVE
 
@@ -240,7 +274,7 @@ void sending_loop(const Irisha* server)
 		else if (input[0] == 'W' && input[1] == ' ')
 		{
 			input = input.replace(0, 2, serv_prefix + "001 ");
-			input.append(" ⭐ Welcome to Irisha server! ⭐");
+			input.append(" " + server->welcome_);
 		}
 		else if (input == "W")
 			input = serv_prefix + "001 " + GUEST52 + " ⭐ Welcome to Irisha server! ⭐";

@@ -12,7 +12,6 @@
 class User : public AConnection
 {
 private:
-	//int		id_;
 	std::string	nick_;
 	std::string	username_;
 	std::string realname_;

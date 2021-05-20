@@ -70,6 +70,9 @@ private:
 	/// Configuration members
 	std::string	domain_;        // Server name
 	std::string	welcome_;       // Welcome message
+	std::string	admin_mail_;
+	std::string	admin_location_;
+	std::string	admin_info_;    // Admin information
 	int			ping_timeout_;  // How often server sends PING command
 	int			conn_timeout_;	// Seconds without respond until disconnection
 
@@ -84,14 +87,18 @@ private:
 	void			prepare_commands	();
 	void			launch				();
 	void 			init				(int port);
-	void			apply_config		(const std::string& path);
 	void			loop				();
+
+	/// Config
+	void			apply_config		(const std::string& path);
+	void			check_timeout_values();
 
 	/// Connections
 	int				accept_connection	();
 	void			handle_disconnection(const int sock);
 	void			handle_command		(const int sock);
 	AConnection*	find_connection		(const int sock) const;
+	AConnection*	find_connection		(const std::string& name) const;
 	void			ping_connections	(time_t& last_ping);
 
 	/// Users
@@ -106,9 +113,14 @@ private:
 	Server*			find_server			(const int sock) const;
 
 	/// Utils
+	bool			is_valid_prefix		(const int sock);
 	void			send_msg			(int sock, const std::string& prefix, const std::string& msg) const;
 	void			send_rpl_msg		(int sock, eReply rpl, const std::string& msg) const;
+	void			send_rpl_msg		(int sock, eReply rpl, const std::string& msg
+											, const std::string& target) const;
 	void			send_rpl_msg		(int sock, eError rpl, const std::string& msg) const;
+	void			send_rpl_msg		(int sock, eError rpl, const std::string& msg
+											, const std::string& target) const;
 	void			send_servers		(const std::string& prefix, const std::string& msg) const;
 	void			send_servers		(const std::string& prefix, const std::string& msg, const int sock) const;
 	void			send_everyone		(const std::string& prefix, const std::string& msg) const;
@@ -125,8 +137,12 @@ private:
 	eResult			PONG				(const int sock);
 	eResult			QUIT				(const int sock);
 	eResult			TIME				(const int sock);
+	eResult			USERS				(const int sock);
+	eResult			KILL				(const int sock);
+	eResult			ADMIN				(const int sock);
 
 	/// IRC commands utils
+	void			admin_info			(const int sock, const std::string& receiver);
 	eResult			NICK_user			(User* const connection, const int sock, const std::string& new_nick);
 	eResult			NICK_server			(const std::string& new_nick);
 	std::string		createPASSmsg		(std::string password);
@@ -162,6 +178,10 @@ private:
 	void			err_toomanychannels		(const int sock, const std::string& channel) const;
 	void			err_noprivileges		(const int sock) const;
 	void			err_useronchannel		(const int sock, const std::string& user, const std::string& channel) const;
+	void			err_usersdisabled		(const int sock) const;
+	void			err_notregistered		(const int sock) const;
+	void			err_passwdmismatch		(const int sock) const;
+	void			err_yourebannedcreep	(const int sock) const;
 
 	/// Common Replies
 	void			rpl_welcome				(const int sock) const;
@@ -179,9 +199,13 @@ private:
 	void			rpl_umodeis				(const int sock, const std::string& mode_string) const;
 	void			rpl_topic				(const int sock, const std::string& channel, const std::string& topic) const;
 	void			rpl_notopic				(const int sock, const std::string& channel) const;
-	void			rpl_inviting			(const int sock, const std::string& channe, const std::string& nick) const;
+	void			rpl_inviting			(const int sock, const std::string& channel, const std::string& nick) const;
 	void			rpl_version				(const int sock, const std::string& version, const std::string& debug_lvl
 												, const std::string& server, const std::string& comments) const;
+	void			rpl_adminme				(const int sock, const std::string& target, const std::string& server) const;
+	void			rpl_adminloc1			(const int sock, const std::string& target, const std::string& info) const;
+	void			rpl_adminloc2			(const int sock, const std::string& target, const std::string& info) const;
+	void			rpl_adminmail			(const int sock, const std::string& target, const std::string& info) const;
 
 	/// Unused constructors
 	Irisha				() {};

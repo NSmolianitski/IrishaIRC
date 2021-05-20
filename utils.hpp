@@ -42,6 +42,7 @@
 #define E_STAR		"⭐"
 #define E_SCULL		"☠"
 #define E_BOOM		"🧨"
+#define E_CROSS		"❌"
 
 enum eUtils
 {
@@ -182,10 +183,13 @@ enum eReply
 	RPL_NOUSERS			= 395
 };
 
-#define DOMAIN	"server-domain"
-#define WELCOME	"welcome-message"
-#define PING_T	"ping-timeout"
-#define CONN_T	"connection-timeout"
+#define DOMAIN		"server-domain"
+#define WELCOME		"welcome-message"
+#define PING_T		"ping-timeout"
+#define CONN_T		"connection-timeout"
+#define ADMIN_MAIL	"admin-mail"
+#define ADMIN_INFO	"admin-info"
+#define ADMIN_LOC	"admin-location"
 //#define PASS	"server-password"
 
 /// Config
