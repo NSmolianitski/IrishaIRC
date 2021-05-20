@@ -131,8 +131,8 @@ private:
 	/// IRC commands utils
 	eResult			NICK_user			(User* const connection, const int sock, const std::string& new_nick);
 	eResult			NICK_server			(const std::string& new_nick);
-	std::string		createPASSmsg		(std::string password);
-	std::string		createSERVERmsg		();
+	std::string		createPASSmsg		(std::string password) const ;
+	std::string		createSERVERmsg		(AConnection* server) const;
 
 	/// Error replies
 	void			err_nosuchserver		(const int sock, const std::string& server) const;

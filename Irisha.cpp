@@ -70,7 +70,7 @@ Irisha::Irisha(const std::string& host_name, int network_port, const std::string
 
 	//registration
 	send_msg(parent_fd_, NO_PREFIX, createPASSmsg(network_password));
-	send_msg(parent_fd_, NO_PREFIX, createSERVERmsg());
+	send_msg(parent_fd_, NO_PREFIX,"SERVER " + domain_ + " :Irisha server");
 	loop();
 }
 
@@ -216,7 +216,8 @@ void Irisha::loop()
                     while (!arr_msg.empty())
                     {
                         parse_msg(arr_msg[0], cmd_);
-						print_cmd(PM_LINE, i);
+                        if (cmd_.command_ != "PING") ///TODO: delete if
+                        	print_cmd(PM_LINE, i);
 						arr_msg.pop_front();
 						std::list<RegForm*>::iterator it = expecting_registration(i, reg_expect);	// Is this connection waiting for registration? TODO: add timeout handling to registration
 						if (it != reg_expect.end())														// Yes, register it
@@ -308,29 +309,7 @@ int			Irisha::register_connection	(std::list<Irisha::RegForm*>::iterator rf)
 
 /***************Creating message strings***************/
 
-/**
- * @description	Returns PASS message string
- * @param		password - parent server password for connection
- * @return		PASS command string in this format: PASS <password> <version> <flags>
- */
-std::string Irisha::createPASSmsg(std::string password)
-{
-	std::string msg = "PASS ";
-	msg.append(password);
-	msg.append(" 0210 IRC| ");
-	return msg;
-}
 
-/**
- * @description	Returns SERVER message string
- * @return		SERVER command string in this format: <servername> <info>
- */
-std::string Irisha::createSERVERmsg()	///TODO: choose servername smarter
-{
-	std::string msg = "SERVER ";
-	msg.append(domain_ + " :Irisha server");
-	return msg;
-}
 
 /*
  * COMMANDS:
