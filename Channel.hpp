@@ -41,6 +41,7 @@ public:
 
     const std::string &getTopic() const;
     const std::string &getKey() const;
+    const std::string &getName() const;
     const std::map<char, int> &getMode() const;
     const std::vector<User*> &getUsers() const;
     const std::vector<User*> &getOperators() const;

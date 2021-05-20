@@ -132,6 +132,9 @@ private:
     eResult         TOPIC               (const int sock);
     eResult         PRIVMSG             (const int sock);
 	eResult			TIME				(const int sock);
+	eResult			NAMES				(const int sock);
+	eResult			LIST				(const int sock);
+	eResult			INVITE				(const int sock);
 
 	/// IRC commands utils
 	void        send_channel    (Channel *channel, std::string msg, std::string prefix);

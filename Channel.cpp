@@ -8,16 +8,16 @@ Channel::Channel(const std::string &name) : name_(name), max_users_(0){
     mode_.insert(std::pair<char, int>('i', 0)); //toggle the invite-only channel flag
     mode_.insert(std::pair<char, int>('m', 0)); //toggle the moderated channel
     mode_.insert(std::pair<char, int>('n', 0)); //toggle the no messages to channel from clients on the outside
-    mode_.insert(std::pair<char, int>('q', 0)); //toggle the quiet channel flag
+//    mode_.insert(std::pair<char, int>('q', 0)); //toggle the quiet channel flag
 //    mode_.insert(std::pair<char, int>('p', 0)); //toggle the private channel flag
     mode_.insert(std::pair<char, int>('s', 0)); //toggle the secret channel flag
     mode_.insert(std::pair<char, int>('r', 0)); //toggle the server reop channel flag
     mode_.insert(std::pair<char, int>('t', 1)); //toggle the topic settable by channel operator only flag
     mode_.insert(std::pair<char, int>('k', 0)); //set/remove the channel key (password)
     mode_.insert(std::pair<char, int>('l', 0)); //set/remove the user limit to channel
-    mode_.insert(std::pair<char, int>('b', 0)); //set/remove ban mask to keep users out
-    mode_.insert(std::pair<char, int>('e', 0)); //set/remove an exception mask to override a ban mask
-    mode_.insert(std::pair<char, int>('I', 0)); //set/remove an invitation mask to automatically override the invite-only flag
+//    mode_.insert(std::pair<char, int>('b', 0)); //set/remove ban mask to keep users out
+//    mode_.insert(std::pair<char, int>('e', 0)); //set/remove an exception mask to override a ban mask
+//    mode_.insert(std::pair<char, int>('I', 0)); //set/remove an invitation mask to automatically override the invite-only flag
 }
 
 Channel::~Channel() {
@@ -103,6 +103,8 @@ void Channel::delOperators(User* oper) {
         itr++;
     }
 }
+
+
 
 const std::vector<User *> &Channel::getOperators() const {
     return operators_;
@@ -284,3 +286,8 @@ bool Channel::isUser(User *user) {
     }
     return false;
 }
+
+const std::string &Channel::getName() const {
+    return name_;
+}
+

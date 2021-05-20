@@ -27,6 +27,9 @@ void	Irisha::prepare_commands()
 	commands_.insert(std::pair<std::string, func>("TOPIC", &Irisha::TOPIC));
 	commands_.insert(std::pair<std::string, func>("PRIVMSG", &Irisha::PRIVMSG));
 	commands_.insert(std::pair<std::string, func>("TIME", &Irisha::TIME));
+	commands_.insert(std::pair<std::string, func>("NAMES", &Irisha::NAMES));
+	commands_.insert(std::pair<std::string, func>("LIST", &Irisha::LIST));
+	commands_.insert(std::pair<std::string, func>("INVITE", &Irisha::INVITE));
 }
 
 /**
@@ -512,6 +515,7 @@ eResult Irisha::PART(const int sock)
             }
             send_channel((*itr).second, "PART " + arr_channel[i], find_user(sock)->nick());
             (*itr).second->delUser(find_user(sock));
+            (*itr).second->delOperators(find_user(sock));
             if ((*itr).second->getUsers().size() == 0){
                 delete((*itr).second);
                 channels_.erase(itr);
@@ -644,6 +648,57 @@ eResult Irisha::PRIVMSG(const int sock)
 
 //ERR_CANNOTSENDTOCHAN            ERR_NOTOPLEVEL
 //ERR_WILDTOPLEVEL
+
+eResult Irisha::NAMES(const int sock) // list users channels
+{
+    std::vector<std::string> arr_channel;
+    std::string str_channels = cmd_.arguments_[0];
+
+    parse_arr(arr_channel, str_channels, ',');
+    for (size_t i = 0; i < arr_channel.size(); ++i) {
+        if ((arr_channel[i][0] == '#' || arr_channel[i][0] == '&' || arr_channel[i][0] == '+' || arr_channel[i][0] == '!')) {
+            std::map<std::string, Channel *>::iterator itr = channels_.find(arr_channel[i]);
+            if (itr == channels_.end())
+                continue;
+            if (itr->second->getMode().find('s')->second == 1 && !itr->second->isUser(find_user(sock)))
+                    continue;
+            send_msg(sock, domain_, "353 " + find_user(sock)->nick() + " = " + arr_channel[i] +" :" + itr->second->getListUsers());
+            send_msg(sock, domain_, "366 " + find_user(sock)->nick() + " " + arr_channel[i] +" :End of NAMES list");
+        }
+    }
+    return R_SUCCESS;
+}
+
+eResult Irisha::LIST(const int sock) // list server ?
+{
+    std::map<std::string ,Channel*>::iterator itr = channels_.begin();
+    std::map<std::string ,Channel*>::iterator ite = channels_.end();
+
+    while (itr != ite){
+        if (itr->second->getMode().find('s')->second == 1 && !itr->second->isUser(find_user(sock))){
+            itr++;
+            continue;
+        }
+        send_msg(sock, domain_, "322 " + find_user(sock)->nick() + " " + itr->second->getName() + " " + int_to_str(itr->second->getUsers().size()) + " :" + itr->second->getTopic());
+        itr++;
+    }
+    send_msg(sock, domain_, "323 " + find_user(sock)->nick() + " :End of /LIST");
+    return R_SUCCESS;
+}
+
+eResult Irisha::INVITE(const int sock)
+{
+    std::map<std::string, Channel *>::iterator itr = channels_.find(cmd_.arguments_[1]);
+    if (!itr->second->isUser(find_user(sock))){
+        send_msg(sock, domain_, "442 " + find_user(sock)->nick() + " " + cmd_.arguments_[1] + " :You're not on that channel");
+    }
+    return R_SUCCESS;
+}
+//:Angel INVITE Wiz #Dust
+//              ERR_NOSUCHNICK
+//ERR_NOTONCHANNEL                ERR_USERONCHANNEL
+//ERR_CHANOPRIVSNEEDED
+//        RPL_INVITING
 
 eResult Irisha::TIME(const int sock)
 {
