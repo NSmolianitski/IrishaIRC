@@ -112,72 +112,6 @@ bool is_a_valid_nick(const std::string& nick)
 	return true;
 }
 
-///	System messages
-/**
- * @description	Sends message to STDOUT
- * @param		emoji: emoji message prefix
- * @param		str: purple message
- * @return		sent string
- */
-std::string	sys_msg(const std::string& emoji, const std::string& str)
-{
-	std::string msg = emoji + " " PURPLE ITALIC + str + CLR;
-	std::cout << msg << std::endl;
-	return msg;
-}
-
-/**
- * @description	Sends message to STDOUT
- * @param		emoji: emoji message prefix
- * @param		str: purple message
- * @param		white_str: string which would be white
- * @return		sent string
- */
-std::string	sys_msg(const std::string& emoji, const std::string& str
-				, const std::string& white_str)
-{
-	std::string msg =  emoji + " " PURPLE ITALIC + str
-					   + " " BWHITE + white_str + CLR;
-	std::cout << msg << std::endl;
-	return msg;
-}
-
-/**
- * @description	Sends message to STDOUT
- * @param		emoji: emoji message prefix
- * @param		str: purple message
- * @param		white_str: string which would be white
- * @param		ending: purple ending
- * @return		sent string
- */
-std::string	sys_msg(const std::string& emoji, const std::string& str
-				, const std::string& white_str, const std::string& ending)
-{
-	std::string msg =  emoji + " " PURPLE ITALIC + str
-			+ " " BWHITE + white_str + " " + PURPLE + ending + CLR;
-	std::cout << msg << std::endl;
-	return msg;
-}
-
-/**
- * @description	Sends message to STDOUT
- * @param		emoji: emoji message prefix
- * @param		str: purple message
- * @param		white_str: string which would be white
- * @param		str2: second purple string
- * @param		ending: white ending
- * @return		sent string
- */
-std::string	sys_msg(const std::string& emoji, const std::string& str
-		, const std::string& white_str, const std::string& str2, const std::string& ending)
-{
-	std::string msg =  emoji + " " PURPLE ITALIC + str
-					   + " " BWHITE + white_str + " " + PURPLE + str2
-					   + " " BWHITE + ending + CLR;
-	std::cout << msg << std::endl;
-	return msg;
-}
-
 ///	Other
 /**
  * @description	Turns string into int
@@ -191,6 +125,14 @@ int str_to_int(const std::string& str)
 
 	convert >> number;
 	return number;
+}
+
+std::string int_to_str(int num)
+{
+	std::ostringstream str; //! TODO: change to other itoa thing
+
+	str << num;
+	return str.str();
 }
 
 std::string	rpl_code_to_str(const eReply code)

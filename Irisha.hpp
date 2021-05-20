@@ -78,6 +78,7 @@ private:
 	std::string	admin_info_;    // Admin information
 	int			ping_timeout_;  // How often server sends PING command
 	int			conn_timeout_;	// Seconds without respond until disconnection
+	eUtils		time_stamp_;	// Enabled or disabled time stamps
 
 	std::list<Irisha::RegForm*>::iterator	expecting_registration(int i, std::list<RegForm*>& reg_expect);
 	int										register_connection	(std::list<RegForm*>::iterator rf);
@@ -118,6 +119,7 @@ private:
 	/// Utils
 	std::string*	choose_buff			(int sock, std::list<Irisha::RegForm*>& reg_expect);
 	std::string 	get_msg				(int sock, std::list<Irisha::RegForm*>& reg_expect);
+	std::string 	time_stamp			() const;
 	RegForm*	 	find_regform		(int sock, std::list<Irisha::RegForm*>& reg_expect);
 	bool			is_valid_prefix		(const int sock);
 	void			send_msg			(int sock, const std::string& prefix, const std::string& msg) const;
@@ -133,6 +135,16 @@ private:
 	void			print_info			() const;
 	std::string		connection_name		(const int sock) const;
 	int 			next_token			();
+
+	///	System messages
+	std::string	sys_msg				(const std::string& emoji, const std::string& str) const;
+	std::string	sys_msg				(const std::string& emoji, const std::string& str
+										, const std::string& white_str) const;
+	std::string	sys_msg				(const std::string& emoji, const std::string& str
+										, const std::string& white_str, const std::string& ending) const;
+	std::string	sys_msg				(const std::string& emoji, const std::string& str
+										, const std::string& white_str, const std::string& str2
+										, const std::string& ending) const;
 
 	/// IRC commands
 	eResult			NICK				(const int sock);

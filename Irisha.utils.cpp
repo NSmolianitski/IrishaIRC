@@ -176,7 +176,8 @@ void Irisha::send_msg(int sock, const std::string& prefix, const std::string& ms
 	else
 		message = msg;
 
-	std::cout << message + " " E_SPEECH PURPLE ITALIC " to " + connection_name(sock) << CLR << std::endl;
+	std::cout << time_stamp() + message + " " E_SPEECH PURPLE ITALIC " to "
+								+ connection_name(sock) << CLR << std::endl;
 	message.append("\r\n");
 
 	ssize_t n = send(sock, message.c_str(), message.length(), 0);
@@ -309,6 +310,72 @@ bool Irisha::is_valid_prefix(const int sock)
 	return true;
 }
 
+///	System messages
+/**
+ * @description	Sends message to STDOUT
+ * @param		emoji: emoji message prefix
+ * @param		str: purple message
+ * @return		sent string
+ */
+std::string	Irisha::sys_msg(const std::string& emoji, const std::string& str) const
+{
+	std::string msg = emoji + " " PURPLE ITALIC + str + CLR;
+	std::cout << time_stamp() + msg << std::endl;
+	return msg;
+}
+
+/**
+ * @description	Sends message to STDOUT
+ * @param		emoji: emoji message prefix
+ * @param		str: purple message
+ * @param		white_str: string which would be white
+ * @return		sent string
+ */
+std::string	Irisha::sys_msg(const std::string& emoji, const std::string& str
+		, const std::string& white_str) const
+{
+	std::string msg =  emoji + " " PURPLE ITALIC + str
+					   + " " BWHITE + white_str + CLR;
+	std::cout << time_stamp() + msg << std::endl;
+	return msg;
+}
+
+/**
+ * @description	Sends message to STDOUT
+ * @param		emoji: emoji message prefix
+ * @param		str: purple message
+ * @param		white_str: string which would be white
+ * @param		ending: purple ending
+ * @return		sent string
+ */
+std::string	Irisha::sys_msg(const std::string& emoji, const std::string& str
+		, const std::string& white_str, const std::string& ending) const
+{
+	std::string msg = emoji + " " PURPLE ITALIC + str
+					  + " " BWHITE + white_str + " " + PURPLE + ending + CLR;
+	std::cout << time_stamp() + msg << std::endl;
+	return msg;
+}
+
+/**
+ * @description	Sends message to STDOUT
+ * @param		emoji: emoji message prefix
+ * @param		str: purple message
+ * @param		white_str: string which would be white
+ * @param		str2: second purple string
+ * @param		ending: white ending
+ * @return		sent string
+ */
+std::string	Irisha::sys_msg(const std::string& emoji, const std::string& str
+		, const std::string& white_str, const std::string& str2, const std::string& ending) const
+{
+	std::string msg =  emoji + " " PURPLE ITALIC + str
+					   + " " BWHITE + white_str + " " + PURPLE + str2
+					   + " " BWHITE + ending + CLR;
+	std::cout << time_stamp() + msg << std::endl;
+	return msg;
+}
+
 /// ‼️ ⚠️ DEVELOPMENT UTILS (REMOVE OR COMMENT WHEN PROJECT IS READY) ⚠️ ‼️ //! TODO: DEV -> REMOVE /////////////////////
 #define GUEST52 "Guest52" //! TODO: REMOVE
 
@@ -362,7 +429,7 @@ void Irisha::print_cmd(ePrintMode mode, const int sock) const
 	}
 	std::stringstream	sender;
 	sender << connection_name(sock);
-	std::cout << "[" << time(nullptr) - launch_time_ << "][" BLUE << sender.str() << CLR "] ";
+	std::cout << time_stamp() << "[" BLUE << sender.str() << CLR "] ";
 	if (!cmd_.prefix_.empty())
 	{
 		if (mode == PM_LIST)
@@ -464,5 +531,13 @@ Irisha::RegForm* Irisha::find_regform(int sock, std::list<Irisha::RegForm*>& reg
 			return *it;
 	}
 	return nullptr;
+}
+
+std::string Irisha::time_stamp() const
+{
+	if (time_stamp_ == U_DISABLED)
+		return "";
+	std::string msg = int_to_str(time(nullptr) - launch_time_);
+	return "[" + msg + "] ";
 }
 /// ‼️ ⚠️ END OF DEVELOPMENT UTILS ⚠️ ‼️ //! TODO: DEV -> REMOVE //////////////////////////////////////////

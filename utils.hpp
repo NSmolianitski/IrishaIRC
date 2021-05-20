@@ -46,7 +46,9 @@
 
 enum eUtils
 {
-	U_EXTERNAL_CONNECTION = -1
+	U_EXTERNAL_CONNECTION = -1,
+	U_DISABLED,
+	U_ENABLED
 };
 
 enum eError
@@ -190,6 +192,7 @@ enum eReply
 #define ADMIN_MAIL	"admin-mail"
 #define ADMIN_INFO	"admin-info"
 #define ADMIN_LOC	"admin-location"
+#define TIME_STAMP	"time_stamps"
 //#define PASS	"server-password"
 
 /// Config
@@ -198,19 +201,10 @@ void		string_trim			(std::string& str, const std::string& trim_symbols);
 std::string	get_config_value	(const std::string& path, const std::string& setting);
 void		check_config		(const std::string& path);
 
-///	System messages
-std::string	sys_msg				(const std::string& emoji, const std::string& str);
-std::string	sys_msg				(const std::string& emoji, const std::string& str
-									, const std::string& white_str);
-std::string	sys_msg				(const std::string& emoji, const std::string& str
-									, const std::string& white_str, const std::string& ending);
-std::string	sys_msg				(const std::string& emoji, const std::string& str
-									, const std::string& white_str, const std::string& str2
-									, const std::string& ending);
-
 /// Other
 bool		is_a_valid_nick		(const std::string& nick);
 int			str_to_int			(const std::string& str);
+std::string int_to_str          (int num);
 std::string	rpl_code_to_str		(const eReply code);
 std::string	rpl_code_to_str		(const eError code);
 

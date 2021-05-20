@@ -116,6 +116,10 @@ void Irisha::apply_config(const std::string& path)
 	conn_timeout_	= str_to_int(get_config_value(path, CONN_T));
 	check_timeout_values();
 
+	time_stamp_		= U_DISABLED;
+	if (get_config_value(path, TIME_STAMP) == "yes")
+		time_stamp_		= U_ENABLED;
+
 	int	dots	= 0;
 	for (size_t i = 0; i < domain_.length(); ++i)
 	{
