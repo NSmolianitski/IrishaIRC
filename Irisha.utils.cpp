@@ -338,7 +338,7 @@ void Irisha::print_cmd(ePrintMode mode, const int sock) const
 	}
 	std::stringstream	sender;
 	sender << connection_name(sock);
-	std::cout << "[" BLUE << sender.str() << CLR "] ";
+	std::cout << "[" << time(nullptr) - launch_time_ << "][" BLUE << sender.str() << CLR "] ";
 	if (!cmd_.prefix_.empty())
 	{
 		if (mode == PM_LIST)

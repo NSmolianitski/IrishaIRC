@@ -57,7 +57,6 @@ private:
 
 	int			listener_;
 	sockaddr_in	address_;
-	char		buff_[512];
 	fd_set		all_fds_;
 	fd_set		read_fds_;
 	fd_set		serv_fds_;
