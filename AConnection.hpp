@@ -19,13 +19,14 @@ private:
 	int			socket_;
 	eType		type_;
 	int			hopcount_;
+	int 		source_socket_;
 	std::string	buff_;
 	time_t		last_msg_time_;
 
 	/// Unused constructors
 	AConnection();
 public:
-	AConnection(int socket, eType type, int hopcount);
+	AConnection(int socket, eType type, int hopcount, int source_socket);
 	virtual ~AConnection() = 0;
 
 	int 			socket				() const;

@@ -107,7 +107,7 @@ private:
 
 	/// Users
 	void			add_user			(const int sock, const std::string& nick);
-	void			add_user			();
+	void			add_user			(int source_sock);
 	void			remove_user			(const std::string& nick);
 	User*			find_user			(const std::string& nick) const;
 	User*			find_user			(const int sock) const;
@@ -162,7 +162,7 @@ private:
 	/// IRC commands utils
 	void			admin_info			(const int sock, const std::string& receiver);
 	eResult			NICK_user			(User* const connection, const int sock, const std::string& new_nick);
-	eResult			NICK_server			(const std::string& new_nick);
+	eResult			NICK_server			(const std::string& new_nick, int source_sock);
 	std::string		createPASSmsg		(std::string password) const ;
 	std::string		createSERVERmsg		(AConnection* server) const;
 

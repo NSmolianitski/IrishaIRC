@@ -60,7 +60,7 @@ eResult	Irisha::NICK_user(User* const connection, const int sock, const std::str
  * @param		new_nick: new nickname
  * @return		R_SUCCESS
  */
-eResult	Irisha::NICK_server(const std::string& new_nick)
+eResult	Irisha::NICK_server(const std::string& new_nick, int source_sock)
 {
 	User*		user;
 	std::string	old_nick;
@@ -68,7 +68,7 @@ eResult	Irisha::NICK_server(const std::string& new_nick)
 	user = find_user(cmd_.prefix_);
 	if (user == nullptr)		// Add new external user
 	{
-		add_user();
+		add_user(source_sock);
 		return R_SUCCESS;
 	}
 	old_nick = user->nick();
@@ -109,7 +109,7 @@ eResult	Irisha::NICK(const int sock) //! TODO: handle hopcount
 	{
 		User*	connection = dynamic_cast<User *>(it->second);
 		if (connection == nullptr)	// Handle request from other server
-			return NICK_server(new_nick);
+			return NICK_server(new_nick, sock);
 		return NICK_user(connection, sock, new_nick); // Change local user nickname
 	}
 	print_user_list(); //! TODO: remove
@@ -179,7 +179,6 @@ eResult Irisha::SERVER(const int sock) ///TODO: test server tokens!
 		return R_FAILURE;
 	if (cmd_.arguments_[cmd_.arguments_.size() - 1].find(':') == std::string::npos)
 		return R_FAILURE;
-
 	//validation-
 
 	int hopcount;
@@ -216,7 +215,7 @@ eResult Irisha::SERVER(const int sock) ///TODO: test server tokens!
 
 	if (find_server(sock) == nullptr)	//new connection to this server
 	{
-		AConnection* server = new Server(cmd_.arguments_[0], sock, hopcount, token);
+		AConnection* server = new Server(cmd_.arguments_[0], sock, hopcount, token, sock);
 		connections_.insert(std::pair<std::string, AConnection*>(cmd_.arguments_[0], server));
 		if (sock != parent_fd_)
 		{
@@ -228,11 +227,11 @@ eResult Irisha::SERVER(const int sock) ///TODO: test server tokens!
 			std::map<std::string, AConnection*>::iterator it = connections_.begin();
 			for (; it != connections_.end(); it++)
 			{
-				if (it->second->type() == T_SERVER &&
-					sock != it->second->socket() && it->second->socket() != U_EXTERNAL_CONNECTION)
+				if (it->second->type() == T_SERVER && sock != it->second->socket() )
 				{
 					send_msg(sock, NO_PREFIX, createSERVERmsg(it->second));
-					send_msg(it->second->socket(), NO_PREFIX, createSERVERmsg(server));
+					if (it->second->socket() != U_EXTERNAL_CONNECTION)
+						send_msg(it->second->socket(), NO_PREFIX, createSERVERmsg(server));
 				}
 			}
 		}
@@ -240,17 +239,19 @@ eResult Irisha::SERVER(const int sock) ///TODO: test server tokens!
 	}
 	else	//handle message from known server about new server
 	{
-		AConnection* server = new Server(cmd_.arguments_[0], U_EXTERNAL_CONNECTION, hopcount, token);
+		AConnection* server = new Server(cmd_.arguments_[0], U_EXTERNAL_CONNECTION, hopcount, token, sock);
 		connections_.insert(std::pair<std::string, AConnection*>(cmd_.arguments_[0], server));
 
-		//:pig.irisha.net SERVER pig2.irisha.net 2 3 :Server Info Text
 		//send to connected servers about new server, except current server and server-sender this message
-//		std::map<std::string, AConnection*>::iterator it = connections_.begin();
-//		for (; it != connections_.end(); it++)
-//		{
-//			if (it->second->type() == T_SERVER &&
-//					sock != it->second->socket() && it->second->socket() != U_EXTERNAL_CONNECTION)
-//		}
+		std::map<std::string, AConnection*>::iterator it = connections_.begin();
+		for (; it != connections_.end(); it++)
+		{
+			if (it->second->type() == T_SERVER && sock != it->second->socket() &&
+				 it->second->socket() != U_EXTERNAL_CONNECTION)
+			{
+				send_msg(it->second->socket(), NO_PREFIX, createSERVERmsg(server));
+			}
+		}
 	}
 	sys_msg(E_LAPTOP, "Server", cmd_.arguments_[0], "registered!");
 	return R_SUCCESS;

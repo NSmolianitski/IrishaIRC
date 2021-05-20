@@ -22,13 +22,13 @@ private:
 	std::string	server_;
 
 	/// Unused constructors
-	User() : AConnection(0, T_CLIENT,0) {};
-	User(const User& other) : AConnection(0, T_CLIENT, 0) {};
+	User() : AConnection(0, T_CLIENT,0, 0) {};
+	User(const User& other) : AConnection(0, T_CLIENT, 0, 0) {};
 	User& operator= (const User& other) { return *this; };
 
 public:
 	User(const int sock, const std::string& server, const std::string& nick); // Constructor for local user
-	User(const int sock, const std::string& server, const int hopcount); // Constructor for external user
+	User(const int sock, const std::string& server, const int hopcount, const int source_sock); // Constructor for external user
 	~User();
 
 	void	set_nick		(const std::string& nick);

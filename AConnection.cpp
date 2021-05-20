@@ -7,8 +7,8 @@
 #include <ctime>
 
 AConnection::AConnection() {}
-AConnection::AConnection(int socket, eType type, int hopcount)
-	: socket_(socket), type_(type), hopcount_(hopcount), last_msg_time_(time(nullptr)) {}
+AConnection::AConnection(int socket, eType type, int hopcount, int source_socket)
+	: socket_(socket), type_(type), hopcount_(hopcount), last_msg_time_(time(nullptr)), source_socket_(source_socket) {}
 AConnection::~AConnection() {}
 
 int				AConnection::socket				() const { return socket_; }

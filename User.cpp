@@ -9,13 +9,13 @@
  * @param		real_name
  */
 User::User(const int sock, const std::string& server, const std::string& nick)
-	: AConnection(sock, T_CLIENT, 0), server_(server), nick_(nick), operator_(false)
+	: AConnection(sock, T_CLIENT, 0, sock), server_(server), nick_(nick), operator_(false)
 {
 
 }
 
-User::User(const int sock, const std::string& server, const int hopcount)
-	: AConnection(sock, T_CLIENT, hopcount), server_(server), operator_(false)
+User::User(const int sock, const std::string& server, const int hopcount, const int source_sock)
+	: AConnection(sock, T_CLIENT, hopcount, source_sock), server_(server), operator_(false)
 {
 
 }
