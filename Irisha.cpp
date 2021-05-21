@@ -136,7 +136,7 @@ int Irisha::accept_connection()
 void Irisha::loop()
 {
 	int							n;
-	std::string					client_msg;
+	std::string*				buff;
 	std::list<Irisha::RegForm*>	reg_expect;	// Not registered connections
     std::deque<std::string>		arr_msg;	// Array messages, not /r/n
     timeval						timeout;	// Select timeout
@@ -164,8 +164,8 @@ void Irisha::loop()
 				}
 				else
 				{
-					client_msg = get_msg(i, reg_expect);
-                    parse_arr_msg(arr_msg, client_msg);
+					buff = get_msg(i, reg_expect);
+                    parse_arr_msg(arr_msg, *buff);
                     while (!arr_msg.empty())
                     {
                         parse_msg(arr_msg[0], cmd_); //! TODO: fix EXC_BAD_ACCESS in cases: ":prefix", ":", "::"

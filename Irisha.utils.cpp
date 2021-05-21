@@ -17,7 +17,7 @@ std::string*	Irisha::choose_buff(int sock, std::list<Irisha::RegForm*>& reg_expe
 			form->last_msg_time_ = time(nullptr);
 		}
 		else
-			return nullptr;
+			return &buff_;
 	}
 	else
 	{
@@ -53,7 +53,7 @@ int 			Irisha::next_token()
  * @param		socket: sender socket
  * @return		message received from socket
  */
-std::string	Irisha::get_msg(int sock, std::list<Irisha::RegForm*>& reg_expect)
+std::string* Irisha::get_msg(int sock, std::list<Irisha::RegForm*>& reg_expect)
 {
 	char			tmp_buff[513];
 
@@ -71,11 +71,9 @@ std::string	Irisha::get_msg(int sock, std::list<Irisha::RegForm*>& reg_expect)
 	tmp_buff[read_bytes] = '\0';
 
 	std::string*	buff = choose_buff(sock, reg_expect);
-	if (buff == nullptr) // If Irisha connects to server
-		return tmp_buff;
 
 	*buff += tmp_buff;
-	return *buff;
+	return buff;
 }
 
 /**
