@@ -1,6 +1,3 @@
-//
-// Created by Ullhor Greyiron on 5/13/21.
-//
 
 #ifndef FT_IRC_SERVER_HPP
 #define FT_IRC_SERVER_HPP

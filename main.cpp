@@ -1,8 +1,10 @@
-#include <string>
 
 #include "Irisha.hpp"
 #include "utils.hpp"
 #include "parser.hpp"
+
+#include <string>
+
 void server_cycle(const std::string& host, int port_network, const std::string& password_network, int port, const std::string& password)
 {
 	try

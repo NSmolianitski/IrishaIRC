@@ -1,6 +1,3 @@
-//
-// Created by Ullhor Greyiron on 5/13/21.
-//
 
 #include "Server.hpp"
 

@@ -1,6 +1,3 @@
-//
-// Created by Parfait Kentaurus on 5/6/21.
-//
 
 #ifndef FT_IRC_IRISHA_HPP
 #define FT_IRC_IRISHA_HPP
@@ -56,6 +53,7 @@ private:
 	typedef eResult (Irisha::*func)(const int sock);
 
 	int			listener_;
+	std::string buff_;
 	sockaddr_in	address_;
 	fd_set		all_fds_;
 	fd_set		read_fds_;
@@ -96,6 +94,8 @@ private:
 	/// Config
 	void			apply_config		(const std::string& path);
 	void			check_timeout_values();
+	void			check_domain		();
+	void			set_time_stamp		(const std::string& path);
 
 	/// Connections
 	int				accept_connection	();
@@ -118,7 +118,7 @@ private:
 
 	/// Utils
 	std::string*	choose_buff			(int sock, std::list<Irisha::RegForm*>& reg_expect);
-	std::string 	get_msg				(int sock, std::list<Irisha::RegForm*>& reg_expect);
+	std::string* 	get_msg				(int sock, std::list<Irisha::RegForm*>& reg_expect);
 	std::string 	time_stamp			() const;
 	RegForm*	 	find_regform		(int sock, std::list<Irisha::RegForm*>& reg_expect);
 	bool			is_valid_prefix		(const int sock);

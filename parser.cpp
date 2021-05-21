@@ -47,11 +47,10 @@ void 	parse_msg(const std::string& msg, Command& cmd)
     }
 }
 
-void parse_arr_msg(std::deque<std::string>& arr_msg, const std::string& client_msg)
+void parse_arr_msg(std::deque<std::string>& arr_msg, std::string& buff)
 {
     std::string s;
-    std::istringstream is(client_msg);
-
+    std::istringstream is(buff);
 
     while (std::getline(is, s, '\r'))
         arr_msg.push_back(s);
@@ -67,6 +66,7 @@ void parse_arr_msg(std::deque<std::string>& arr_msg, const std::string& client_m
             itr++;
         }
     }
+    buff.clear(); //! TODO: add check for command concatenation
 }
 
 void parse_argv(int argc, char *argv[], std::string& host, int& port_network, std::string& password_network, int& port, std::string& password)

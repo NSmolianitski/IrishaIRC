@@ -1,6 +1,3 @@
-//
-// Created by Parfait Kentaurus on 5/9/21.
-//
 
 #ifndef FT_IRC_UTILS_HPP
 #define FT_IRC_UTILS_HPP
@@ -192,7 +189,7 @@ enum eReply
 #define ADMIN_MAIL	"admin-mail"
 #define ADMIN_INFO	"admin-info"
 #define ADMIN_LOC	"admin-location"
-#define TIME_STAMP	"time_stamps"
+#define TIME_STAMP	"time-stamps"
 //#define PASS	"server-password"
 
 /// Config
