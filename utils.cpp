@@ -1,6 +1,7 @@
 
 #include "utils.hpp"
 
+
 #include <fstream> //! TODO: remove fstream!
 #include <sstream> //! TODO: remove sstream!
 
@@ -165,4 +166,15 @@ std::string	rpl_code_to_str(const eError code)
 	}
 	rpl_code << code;
 	return rpl_code.str();
+}
+
+std::string get_sock_host(int sock)
+{
+	struct sockaddr sock_addr;
+	socklen_t len =  sizeof(sock_addr);
+	if (getsockname(sock, &sock_addr, &len) != -1)
+	{
+		int a = 1;
+	}
+	return "";
 }

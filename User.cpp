@@ -1,6 +1,7 @@
 
 #include "User.hpp"
 
+
 /**
  * @description	Default User constructor
  * @param		sock
@@ -12,7 +13,7 @@
 User::User(const int sock, const std::string& server, const std::string& nick)
 	: AConnection(sock, T_CLIENT, 0, sock), server_(server), nick_(nick), operator_(false)
 {
-
+	host_ = get_sock_host(sock);
 }
 
 User::User(const int sock, const std::string& server, const int hopcount, const int source_sock)

@@ -3,7 +3,7 @@
 #define FT_IRC_USER_HPP
 
 #include "AConnection.hpp"
-
+#include "utils.hpp"
 #include <string>
 
 class User : public AConnection
@@ -17,6 +17,7 @@ private:
 	bool 		operator_;
 	std::string netwideID_;
 	std::string	server_;
+	std::string host_;
 
 	/// Unused constructors
 	User() : AConnection(0, T_CLIENT,0, 0) {};
