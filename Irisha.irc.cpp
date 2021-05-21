@@ -67,6 +67,11 @@ eResult	Irisha::NICK_server(const std::string& new_nick, int source_sock)
 	if (user == nullptr)		// Add new external user
 	{
 		add_user(source_sock);
+		//sending NICK msg to other servers
+		Server* serv = static_cast<Server*>(find_server(source_sock));
+		send_servers(cmd_.prefix_, "NICK " + cmd_.arguments_[0] + " " + std::to_string(serv->hopcount() + 1) +
+			" " + cmd_.arguments_[2] + " " + cmd_.arguments_[3] + " " + std::to_string(serv->token() + 1) +
+			" " + cmd_.arguments_[5] + cmd_.arguments_[6], source_sock);
 		return R_SUCCESS;
 	}
 	old_nick = user->nick();
@@ -146,7 +151,7 @@ eResult Irisha::USER(const int sock)
 
 	sys_msg(E_MAN, "New local user", user->nick(), "registered!");
 	// NICK <nickname> <hopcount> <username> <host> <servertoken> <umode> <realname>
-	send_servers(domain_, "NICK " + user->nick() + " 1 " + user->username() + " " + user->server() + " 2 + " + user->username()); //! TODO: add server token, user modes, fix realname
+	send_servers(domain_, "NICK " + user->nick() + " 1 " + user->username() + " " + user->server() + " 1 + " + user->username()); //! TODO: add user modes, fix realname
 	return R_SUCCESS;
 }
 
@@ -227,12 +232,26 @@ eResult Irisha::SERVER(const int sock) ///TODO: test server tokens!
 			{
 				if (it->second->type() == T_SERVER && sock != it->second->socket() )
 				{
-					send_msg(sock, NO_PREFIX, createSERVERmsg(it->second));
+					send_msg(sock, domain_, createSERVERmsg(it->second));
 					if (it->second->socket() != U_EXTERNAL_CONNECTION)
 						send_msg(it->second->socket(), domain_, createSERVERmsg(server));
 					++token;
 				}
 			}
+			//send information about other clients to connected server
+//			it = connections_.begin();
+//			for (; it != connections_.end(); it++)
+//			{
+//				if (it->second->type() == T_CLIENT)
+//				{
+//					User* usr = static_cast<User*>(it->second);
+//					if (usr->socket() != U_EXTERNAL_CONNECTION)
+//					{
+//						send_msg(sock, domain_, "NICK " + usr->nick() + " 1 " + usr->username() + " " +
+//							usr->);
+//					}
+//				}
+//			}
 		}
 		PING(sock);
 	}
