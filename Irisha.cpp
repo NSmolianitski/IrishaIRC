@@ -185,8 +185,8 @@ void Irisha::loop()
 								RegForm* rf = *it;
 								reg_expect.erase(it);
 								delete rf;
-								continue;
 							}
+							continue;
 						}
 						handle_command(i);															// No, handle not registration command
 					}
@@ -249,8 +249,6 @@ std::list<Irisha::RegForm*>::iterator Irisha::expecting_registration(int i, std:
 	return (reg_expect.end());
 }
 
-
-///TODO: handle client connection
 int			Irisha::register_connection	(std::list<Irisha::RegForm*>::iterator rf)
 {
 	if ((*rf)->pass_received_ == false)
@@ -259,13 +257,17 @@ int			Irisha::register_connection	(std::list<Irisha::RegForm*>::iterator rf)
 			(*rf)->pass_received_ = true;
 		return R_FAILURE;
 	}
-	else
-	{
-		if (cmd_.command_ == "SERVER" && (SERVER((*rf)->socket_) == R_SUCCESS))
-			///TODO: send SERVER info about other servers
+	else if (cmd_.command_ == "SERVER" && (SERVER((*rf)->socket_) == R_SUCCESS))
 			return R_SUCCESS;
+	else if (cmd_.command_ == "NICK")
+	{
+		NICK((*rf)->socket_);
+		return R_FAILURE;
 	}
-	return 1;
+	else if (cmd_.command_ == "USER" && (USER((*rf)->socket_) == R_SUCCESS))
+		return R_SUCCESS;
+
+	return R_FAILURE;
 }
 
 /***************Creating message strings***************/
