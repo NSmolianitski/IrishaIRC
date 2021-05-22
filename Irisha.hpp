@@ -64,6 +64,7 @@ private:
 	std::string	password_;		// Password for clients and servers connection to connect this server
 	time_t		launch_time_;	// Server launch time
 	int 		parent_fd_;
+	std::string oper_pass_;
 
 	std::map<std::string, AConnection*>		connections_;	// Server and client connections
 	std::map<std::string, func>				commands_;		// IRC commands
@@ -159,6 +160,7 @@ private:
 	eResult			USERS				(const int sock);
 	eResult			KILL				(const int sock);
 	eResult			ADMIN				(const int sock);
+	eResult			OPER				(const int sock);
 
 	/// IRC commands utils
 	void			admin_info			(const int sock, const std::string& receiver);
@@ -202,6 +204,7 @@ private:
 	void			err_notregistered		(const int sock) const;
 	void			err_passwdmismatch		(const int sock) const;
 	void			err_yourebannedcreep	(const int sock) const;
+	void 			err_nooperhost			(const int sock) const;
 
 	/// Common Replies
 	void			rpl_welcome				(const int sock) const;

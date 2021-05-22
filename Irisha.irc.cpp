@@ -25,6 +25,41 @@ void	Irisha::prepare_commands()
 }
 
 /**
+ * make user operator of the network
+ * @param sock soket
+ * @return R_SUCCESS or R_FAILURE
+ */
+eResult Irisha::OPER(const int sock)
+{
+	if (cmd_.arguments_.size() < 2)
+	{
+		err_needmoreparams(sock, cmd_.command_);
+		return R_FAILURE;
+	}
+	if (oper_pass_.empty())
+	{
+		err_nooperhost(sock);
+		return R_FAILURE;
+	}
+	if (oper_pass_ == cmd_.arguments_[1])
+	{
+
+		User* user = find_user(sock);
+		if (user == 0)
+			return R_FAILURE;
+		user->set_operator(true);
+		//TODO: add mode +o to user
+		rpl_youreoper(sock);
+		return R_SUCCESS;
+	}
+	else
+	{
+		err_passwdmismatch(sock);
+		return R_FAILURE;
+	}
+}
+
+/**
  * @description	Changes user nick if it's not busy
  * @param		connection: User or Server
  * @param		sock: socket
@@ -199,7 +234,7 @@ eResult Irisha::SERVER(const int sock) ///TODO: test server tokens!
 		hopcount = 1;
 		try
 		{
-			token = std::stoi(cmd_.arguments_[1]);
+			token = str_to_int(cmd_.arguments_[1]);
 		}
 		catch(std::exception ex) { return R_FAILURE; }
 	}
@@ -210,8 +245,8 @@ eResult Irisha::SERVER(const int sock) ///TODO: test server tokens!
 	{
 		try
 		{
-			hopcount = std::stoi(cmd_.arguments_[1]);
-			token = std::stoi(cmd_.arguments_[2]);
+			hopcount = str_to_int(cmd_.arguments_[1]);
+			token = str_to_int(cmd_.arguments_[2]);
 		}
 		catch(std::exception ex) { return R_FAILURE; }
 	}
@@ -381,6 +416,7 @@ eResult Irisha::QUIT(const int sock)
 	else
 		send_servers(user->nick(), msg, sock);
 	remove_user(user->nick());
+	delete user;
 	return R_SUCCESS;
 }
 

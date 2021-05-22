@@ -101,7 +101,7 @@ void parse_argv(int argc, char *argv[], std::string& host, int& port_network, st
         }
         if (array[0].length() > 5 || array[0].length() < 4)
             throw std::runtime_error("Error: size port network");
-        port_network = std::stoi(array[0]);
+        port_network = str_to_int(array[0]);
         array.pop_front();
         password_network = array[0];
         array.pop_front();

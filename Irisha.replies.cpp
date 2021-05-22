@@ -216,6 +216,16 @@ void Irisha::err_yourebannedcreep(const int sock) const
 	send_rpl_msg(sock, ERR_YOUREBANNEDCREEP, ":You are banned from this server");
 }
 
+void Irisha::err_nooperhost(const int sock) const
+{
+	send_rpl_msg(sock, ERR_NOOPERHOST, ":No O-lines for your host");
+}
+
+void Irisha::err_passwdmismatch(const int sock) const
+{
+	send_rpl_msg(sock, ERR_NOOPERHOST, ":Password incorrect");
+}
+
 /// Common replies
 void Irisha::rpl_welcome(const int sock) const
 {
@@ -322,3 +332,4 @@ void Irisha::rpl_adminmail(const int sock, const std::string& target, const std:
 {
 	send_rpl_msg(sock, RPL_ADMINEMAIL, ":" + info, target);
 }
+

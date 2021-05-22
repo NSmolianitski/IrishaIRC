@@ -192,6 +192,7 @@ enum eReply
 #define ADMIN_INFO	"admin-info"
 #define ADMIN_LOC	"admin-location"
 #define TIME_STAMP	"time-stamps"
+#define OPER_PASS	"oper-password"
 //#define PASS	"server-password"
 
 /// Config

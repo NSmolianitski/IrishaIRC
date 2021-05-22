@@ -16,6 +16,7 @@ void Irisha::apply_config(const std::string& path)
 	//password_		= get_config_value(path, PASS);
 	ping_timeout_	= str_to_int(get_config_value(path, PING_T));
 	conn_timeout_	= str_to_int(get_config_value(path, CONN_T));
+	oper_pass_		= str_to_int(get_config_value(path, OPER_PASS));
 	set_time_stamp(path);
 
 	check_timeout_values();
