@@ -206,7 +206,7 @@ void Irisha::send_servers(const std::string& prefix, const std::string& msg, con
 	for (; it != connections_.end(); ++it)
 	{
 		if (it->second->type() == T_SERVER)
-			if (it->second->socket() != sock)
+			if (it->second->socket() != sock && it->second->socket() != U_EXTERNAL_CONNECTION)
 				send_msg(it->second->socket(), prefix, msg);
 	}
 }

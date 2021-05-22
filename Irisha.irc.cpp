@@ -235,23 +235,18 @@ eResult Irisha::SERVER(const int sock) ///TODO: test server tokens!
 					send_msg(sock, domain_, createSERVERmsg(it->second));
 					if (it->second->socket() != U_EXTERNAL_CONNECTION)
 						send_msg(it->second->socket(), domain_, createSERVERmsg(server));
-					++token;
 				}
 			}
-			//send information about other clients to connected server
-//			it = connections_.begin();
-//			for (; it != connections_.end(); it++)
-//			{
-//				if (it->second->type() == T_CLIENT)
-//				{
-//					User* usr = static_cast<User*>(it->second);
-//					if (usr->socket() != U_EXTERNAL_CONNECTION)
-//					{
-//						send_msg(sock, domain_, "NICK " + usr->nick() + " 1 " + usr->username() + " " +
-//							usr->);
-//					}
-//				}
-//			}
+			//send information about other clients to connected server TODO: send correct umode
+			it = connections_.begin();
+			for (; it != connections_.end(); it++)
+			{
+				if (it->second->type() == T_CLIENT)
+				{
+					User* usr = static_cast<User*>(it->second);
+					send_msg(sock, domain_, createNICKmsg(usr));		//local client
+				}
+			}
 		}
 		PING(sock);
 	}
@@ -278,7 +273,7 @@ eResult Irisha::SERVER(const int sock) ///TODO: test server tokens!
 /**
  * @description	Returns PASS message string
  * @param		password - parent server password for connection
- * @return		PASS command string in this format: PASS <password> <version> <flags>
+ * @return		PASS <password> <version> <flags>
  */
 std::string Irisha::createPASSmsg(std::string password) const
 {
@@ -290,9 +285,9 @@ std::string Irisha::createPASSmsg(std::string password) const
 
 /**
  * @description	Returns SERVER message string
- * @return		SERVER command string in this format: <servername> <info>
+ * @return		SERVER <servername> <hopcount> <token> <info>
  */
-std::string Irisha::createSERVERmsg(AConnection* server) const	///TODO: choose servername smarter
+std::string Irisha::createSERVERmsg(AConnection* server) const
 {
 	std::string msg;
 	if (server == nullptr)
@@ -307,6 +302,25 @@ std::string Irisha::createSERVERmsg(AConnection* server) const	///TODO: choose s
 				" " + std::to_string(serv->token() + 1) + " :Irisha server";
 	}
 	return msg;
+}
+
+/**
+ * @description	Returns NICK message string
+ * @return		NICK <nickname> <hopcount> <username> <host> <servertoken> <umode> <realname>
+ */
+std::string Irisha::createNICKmsg(User* usr) const
+{
+	if (usr->socket() != U_EXTERNAL_CONNECTION) //local client
+	{
+		return ("NICK " + usr->nick() + " 1 " + usr->username() + " " +
+								usr->host() + " 1 + :" + usr->realname());
+	}
+	else //remote client
+	{
+		return("NICK " + usr->nick() + " " + std::to_string(usr->hopcount() + 1) +
+				 " " + usr->username() + " " + usr->host() + " " + std::to_string(usr->token() + 1) +
+				 " + :" + usr->realname());
+	}
 }
 
 eResult Irisha::PONG(const int sock)

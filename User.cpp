@@ -11,13 +11,13 @@
  * @param		real_name
  */
 User::User(const int sock, const std::string& server, const std::string& nick)
-	: AConnection(sock, T_CLIENT, 0, sock), server_(server), nick_(nick), operator_(false)
+	: AConnection(sock, T_CLIENT, 0, sock, 1), server_(server), nick_(nick), operator_(false)
 {
-	host_ = get_sock_host(sock);
+	host_ = std::string(get_sock_host(sock));
 }
 
-User::User(const int sock, const std::string& server, const int hopcount, const int source_sock)
-	: AConnection(sock, T_CLIENT, hopcount, source_sock), server_(server), operator_(false)
+User::User(const int sock, const std::string& host, const int hopcount, const int source_sock, int token)
+	: AConnection(sock, T_CLIENT, hopcount, source_sock, token), host_(host), operator_(false)
 {
 
 }
@@ -40,3 +40,4 @@ int					User::mode			() const { return mode_; }
 bool 				User::is_operator	() const { return operator_; }
 const std::string&	User::netwideID		() const { return netwideID_; }
 const std::string&	User::server		() const { return server_; }
+const std::string & User::host			() const { return host_; }

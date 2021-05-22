@@ -13,10 +13,10 @@ public:
 	~Server();
 
 	const std::string&	name();
-	int 				token();
+
 private:
 	std::string name_;
-	int 		token_;
+
 
 	Server();
 	Server(const Server& server);

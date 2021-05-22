@@ -206,6 +206,5 @@ int			str_to_int			(const std::string& str);
 std::string int_to_str          (int num);
 std::string	rpl_code_to_str		(const eReply code);
 std::string	rpl_code_to_str		(const eError code);
-std::string get_sock_host		(int sock);
-
+char* 		get_sock_host		(int sock);
 #endif

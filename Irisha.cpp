@@ -6,7 +6,7 @@
 #include "parser.hpp"
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <arpa/inet.h>
+
 
 #include <thread>     //! TODO: REMOVE ///////////////////////////////////////////////////////////////////////////////////////////
 #include <list>
@@ -124,6 +124,7 @@ int Irisha::accept_connection()
 	//int sock = accept(listener_, nullptr, nullptr);
 	int sock = accept(listener_, reinterpret_cast<struct sockaddr*>(&con_addr), &con_addr_size);
 		if (sock == -1) throw std::runtime_error("Accepting failed");
+
 	fcntl(sock, F_SETFL, O_NONBLOCK);
 
 	FD_SET(sock, &all_fds_);

@@ -20,7 +20,9 @@ void Irisha::add_user(const int sock, const std::string& nick)
  */
 void Irisha::add_user(int source_sock) // [0]<nick> [1]<hopcount> [2]<username> [3]<host> [4]<servertoken> [5]<umode> [6]<realname>
 {
-	User* user = new User(U_EXTERNAL_CONNECTION, cmd_.arguments_[3], str_to_int(cmd_.arguments_[1]), source_sock);
+	User* user = new User(U_EXTERNAL_CONNECTION, cmd_.arguments_[3],
+					   str_to_int(cmd_.arguments_[1]), source_sock,
+					   std::stoi(cmd_.arguments_[4]));
 
 	user->set_nick(cmd_.arguments_[0]);
 	user->set_username(cmd_.arguments_[2]);

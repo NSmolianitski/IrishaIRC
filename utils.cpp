@@ -1,6 +1,6 @@
 
 #include "utils.hpp"
-
+#include <arpa/inet.h>
 
 #include <fstream> //! TODO: remove fstream!
 #include <sstream> //! TODO: remove sstream!
@@ -168,13 +168,12 @@ std::string	rpl_code_to_str(const eError code)
 	return rpl_code.str();
 }
 
-std::string get_sock_host(int sock)
+char* get_sock_host(int sock)
 {
-	struct sockaddr sock_addr;
+	struct sockaddr_in sock_addr;
 	socklen_t len =  sizeof(sock_addr);
-	if (getsockname(sock, &sock_addr, &len) != -1)
-	{
-		int a = 1;
-	}
-	return "";
+	if (getsockname(sock, reinterpret_cast<struct sockaddr*>(&sock_addr), &len) != -1)
+		return inet_ntoa(sock_addr.sin_addr);
+	else
+		return nullptr;
 }

@@ -165,6 +165,7 @@ private:
 	eResult			NICK_server			(const std::string& new_nick, int source_sock);
 	std::string		createPASSmsg		(std::string password) const ;
 	std::string		createSERVERmsg		(AConnection* server) const;
+	std::string		createNICKmsg		(User* usr) const;
 
 	/// Error replies
 	void			err_nosuchserver		(const int sock, const std::string& server) const;

@@ -16,6 +16,7 @@ private:
 	int			socket_;
 	eType		type_;
 	int			hopcount_;
+	int 		token_;
 	int 		source_socket_;
 	std::string	buff_;
 	time_t		last_msg_time_;
@@ -23,7 +24,7 @@ private:
 	/// Unused constructors
 	AConnection();
 public:
-	AConnection(int socket, eType type, int hopcount, int source_socket);
+	AConnection(int socket, eType type, int hopcount, int source_socket, int token);
 	virtual ~AConnection() = 0;
 
 	int 			socket				() const;
@@ -32,6 +33,7 @@ public:
 	std::string&	buff				();
 	void			update_time			();
 	double			last_msg_time		() const;
+	int 			token				() const;
 };
 
 
