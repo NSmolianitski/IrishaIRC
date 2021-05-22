@@ -34,6 +34,7 @@ public:
 	void			update_time			();
 	double			last_msg_time		() const;
 	int 			token				() const;
+	int 			source_socket		() const;
 };
 
 

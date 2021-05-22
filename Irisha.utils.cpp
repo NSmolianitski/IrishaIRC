@@ -4,6 +4,14 @@
 
 #include <sstream>
 
+int Irisha::choose_sock(AConnection *connection)
+{
+	if (connection->socket() == U_EXTERNAL_CONNECTION)
+		return connection->source_socket();
+	else
+		return connection->socket();
+}
+
 std::string*	Irisha::choose_buff(int sock, std::list<Irisha::RegForm*>& reg_expect)
 {
 	std::string*	buff;

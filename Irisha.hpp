@@ -135,6 +135,7 @@ private:
 	void			print_info			() const;
 	std::string		connection_name		(const int sock) const;
 	int 			next_token			();
+	int 			choose_sock			(AConnection* connection);
 
 	///	System messages
 	std::string	sys_msg				(const std::string& emoji, const std::string& str) const;
