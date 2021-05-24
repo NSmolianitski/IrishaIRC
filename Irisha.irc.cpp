@@ -37,6 +37,7 @@ void	Irisha::prepare_commands()
 	commands_.insert(std::pair<std::string, func>("257", &Irisha::RPL_257));
 	commands_.insert(std::pair<std::string, func>("258", &Irisha::RPL_258));
 	commands_.insert(std::pair<std::string, func>("259", &Irisha::RPL_259));
+	commands_.insert(std::pair<std::string, func>("LIST", &Irisha::LIST));
 }
 
 /**
@@ -100,7 +101,7 @@ eResult	Irisha::NICK_user(User* const connection, const int sock, const std::str
 	}
 	send_msg(sock, old_nick, "NICK " + new_nick); // Reply for user about nick changing success
 	connection->set_nick(new_nick);
-	// TODO: send message to next server
+	send_servers(old_nick, "NICK " + new_nick);
 
 	sys_msg(E_GEAR, "User", old_nick, "changed nick to", new_nick);
 	return R_SUCCESS;
@@ -216,11 +217,17 @@ eResult Irisha::USER(const int sock)
 eResult Irisha::PASS(const int sock)
 {
 	if (cmd_.arguments_.empty())
+	{
+		err_needmoreparams(sock, "PASS");
 		return R_FAILURE;
+	}
 	else if (password_ == cmd_.arguments_[0] || !cmd_.prefix_.empty())
 		return R_SUCCESS;
 	else
+	{
+		send_msg(sock, domain_, "ERROR :Access denied! Bad password"); //! TODO: fix unknown user disconnection with sending message to other servers
 		return R_FAILURE;
+	}
 }
 
 /**
@@ -974,6 +981,7 @@ eResult Irisha::ADMIN(const int sock)
 
 eResult Irisha::ERROR(const int sock)
 {
+	std::cout << E_CROSS RED " ALARM! " + cmd_.command_ + " " + cmd_.arguments_[0] + " " E_CROSS CLR << std::endl;
 	return R_SUCCESS;
 }
 

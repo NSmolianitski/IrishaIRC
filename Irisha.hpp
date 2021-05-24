@@ -11,7 +11,6 @@
 #include <sstream>
 #include <map>
 #include <vector>
-#include <deque>
 #include <list>
 
 #include <unistd.h>
@@ -19,7 +18,7 @@
 
 #define CONFIG_PATH "irisha.conf"
 #define NO_PREFIX	""
-class Channel;
+
 struct Command
 {
 	std::string					prefix_;
@@ -32,6 +31,8 @@ enum eResult
 	R_SUCCESS,
 	R_FAILURE
 };
+
+class Channel;
 
 class Irisha
 {
