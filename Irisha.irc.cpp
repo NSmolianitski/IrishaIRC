@@ -214,11 +214,17 @@ eResult Irisha::USER(const int sock)
 eResult Irisha::PASS(const int sock)
 {
 	if (cmd_.arguments_.empty())
+	{
+		err_needmoreparams(sock, "PASS");
 		return R_FAILURE;
+	}
 	else if (password_ == cmd_.arguments_[0] || !cmd_.prefix_.empty())
 		return R_SUCCESS;
 	else
+	{
+		send_msg(sock, domain_, "ERROR :Access denied! Bad password"); //! TODO: fix unknown user disconnection with sending message to other servers
 		return R_FAILURE;
+	}
 }
 
 /**
@@ -961,6 +967,7 @@ eResult Irisha::ADMIN(const int sock)
 
 eResult Irisha::ERROR(const int sock)
 {
+	std::cout << E_CROSS RED " ALARM! " + cmd_.command_ + " " + cmd_.arguments_[0] + " " E_CROSS CLR << std::endl;
 	return R_SUCCESS;
 }
 
