@@ -25,6 +25,9 @@ void	Irisha::prepare_commands()
 	commands_.insert(std::pair<std::string, func>("QUIT", &Irisha::QUIT));
 	commands_.insert(std::pair<std::string, func>("TOPIC", &Irisha::TOPIC));
 	commands_.insert(std::pair<std::string, func>("PRIVMSG", &Irisha::PRIVMSG));
+	commands_.insert(std::pair<std::string, func>("NAMES", &Irisha::NAMES));
+	commands_.insert(std::pair<std::string, func>("LIST", &Irisha::LIST));
+	commands_.insert(std::pair<std::string, func>("INVITE", &Irisha::INVITE));
 	commands_.insert(std::pair<std::string, func>("TIME", &Irisha::TIME));
 	commands_.insert(std::pair<std::string, func>("USERS", &Irisha::USERS));
 	commands_.insert(std::pair<std::string, func>("KILL", &Irisha::KILL));
