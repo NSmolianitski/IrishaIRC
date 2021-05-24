@@ -6,6 +6,8 @@
 
 #include <sstream>
 
+#include "parser.hpp"
+#include "Channel.hpp"
 /**
  * @description	Inserts all supported IRC commands to map
  */
@@ -17,7 +19,12 @@ void	Irisha::prepare_commands()
 	commands_.insert(std::pair<std::string, func>("SERVER", &Irisha::SERVER));
 	commands_.insert(std::pair<std::string, func>("PING", &Irisha::PING));
 	commands_.insert(std::pair<std::string, func>("PONG", &Irisha::PONG));
+	commands_.insert(std::pair<std::string, func>("JOIN", &Irisha::JOIN));
+	commands_.insert(std::pair<std::string, func>("MODE", &Irisha::MODE));
+	commands_.insert(std::pair<std::string, func>("PART", &Irisha::PART));
 	commands_.insert(std::pair<std::string, func>("QUIT", &Irisha::QUIT));
+	commands_.insert(std::pair<std::string, func>("TOPIC", &Irisha::TOPIC));
+	commands_.insert(std::pair<std::string, func>("PRIVMSG", &Irisha::PRIVMSG));
 	commands_.insert(std::pair<std::string, func>("TIME", &Irisha::TIME));
 	commands_.insert(std::pair<std::string, func>("USERS", &Irisha::USERS));
 	commands_.insert(std::pair<std::string, func>("KILL", &Irisha::KILL));
@@ -62,6 +69,9 @@ eResult Irisha::OPER(const int sock)
 		err_passwdmismatch(sock);
 		return R_FAILURE;
 	}
+	commands_.insert(std::pair<std::string, func>("NAMES", &Irisha::NAMES));
+	commands_.insert(std::pair<std::string, func>("LIST", &Irisha::LIST));
+	commands_.insert(std::pair<std::string, func>("INVITE", &Irisha::INVITE));
 }
 
 /**
@@ -424,6 +434,440 @@ eResult Irisha::QUIT(const int sock)
 	delete user;
 	return R_SUCCESS;
 }
+
+eResult Irisha::MODE(const int sock) // Доделать !!!
+{
+    std::string return_mode; // return str
+    std::string std_params; // string param for return_mode
+    std::string mode_flag = "aimnqpsrt";
+    int         add_flag = 0; // flag add + or - to return_mode
+    int         flag_mode = 2; // 1 on 0 off
+    std::map<char, int>::const_iterator itr_m;
+    std::list<std::string> arr_param; // array param for mode
+
+    if ((cmd_.arguments_[0][0] == '#' || cmd_.arguments_[0][0] == '&' || cmd_.arguments_[0][0] == '+' || cmd_.arguments_[0][0] == '!')){ // it's channel ?
+        std::map<std::string, Channel*>::iterator itr = channels_.find(cmd_.arguments_[0]);
+        if (cmd_.arguments_.size() == 1) {
+            if (itr == channels_.end()){
+                err_nosuchchannel(sock, cmd_.arguments_[0]);
+                return R_SUCCESS;
+            }
+            send_msg(sock, domain_, "324 " + find_user(sock)->nick() + " " + cmd_.arguments_[0] + " +" + (*itr).second->getListMode());
+            return R_SUCCESS;
+        }
+        if (!(*itr).second->isOperator(find_user(sock))){ // Error is operator
+            send_msg(sock, domain_, "482 " + find_user(sock)->nick() + " " + cmd_.arguments_[0] + " :You're not channel operator");
+            return R_SUCCESS;
+        }
+        for (int i = 2; i < cmd_.arguments_.size(); ++i) {
+            arr_param.push_back(cmd_.arguments_[i]);
+        }
+        for (size_t i = 0; i < cmd_.arguments_[1].size(); ++i) {
+            if (cmd_.arguments_[1][i] == '+'){
+                flag_mode = 1;
+                continue;
+            }
+            if (cmd_.arguments_[1][i] == '-'){
+                flag_mode = 0;
+                continue;
+            }
+            if (flag_mode == 2)
+                continue;
+            itr_m = (*itr).second->getMode().find(cmd_.arguments_[1][i]);
+            if (itr_m == (*itr).second->getMode().end()){ // Error char mode
+                send_msg(sock, domain_, "472 " + find_user(sock)->nick() + " " + cmd_.arguments_[1][i] + " :is unknown mode char to me");
+                continue;
+            }
+            if (mode_flag.find(cmd_.arguments_[1][i]) != std::string::npos) { // flag mode ?
+                if (flag_mode == 0 && (*itr).second->getMode().find(cmd_.arguments_[1][i])->second == 1) { // if on flag
+                    (*itr).second->setMode(cmd_.arguments_[1][i], flag_mode);
+                    if (add_flag == 0 || add_flag == 2) {
+                        return_mode.push_back('-');
+                        add_flag = 1;
+                    }
+                    return_mode.push_back(cmd_.arguments_[1][i]);
+                } else if (flag_mode == 1 && (*itr).second->getMode().find(cmd_.arguments_[1][i])->second == 0) { // if off flag
+                    (*itr).second->setMode(cmd_.arguments_[1][i], flag_mode);
+                    if (add_flag == 0 || add_flag == 1) {
+                        return_mode.push_back('+');
+                        add_flag = 2;
+                    }
+                    return_mode.push_back(cmd_.arguments_[1][i]);
+                }
+            } else {
+                if (cmd_.arguments_[1][i] == 'o'){ // mode operator channel
+                    if (arr_param.empty() || !is_a_valid_nick(arr_param.front())){ // empty param or nick not valid
+                        arr_param.pop_front();
+                        continue;
+                    }
+                    if (!(*itr).second->isUser(find_user(arr_param.front()))){ // not user in channel
+                        send_msg(sock, domain_, "441 " + find_user(sock)->nick() + " " + arr_param.front() + " " + cmd_.arguments_[0] + " :They aren't on that channel");
+                        arr_param.pop_front();
+                        continue;
+                    }
+                    if (flag_mode == 0){
+                        (*itr).second->delOperators(find_user(arr_param.front()));
+                        if (add_flag == 0 || add_flag == 2) {
+                            return_mode.push_back('-');
+                            add_flag = 1;
+                        }
+                        return_mode.push_back(cmd_.arguments_[1][i]);
+                        std_params.append(arr_param.front() + " ");
+                        arr_param.pop_front();
+                    }
+                    else if (flag_mode == 1){
+                        (*itr).second->addOperators(find_user(arr_param.front()));
+                        if (add_flag == 0 || add_flag == 1) {
+                            return_mode.push_back('+');
+                            add_flag = 2;
+                        }
+                        return_mode.push_back(cmd_.arguments_[1][i]);
+                        std_params.append(arr_param.front() + " ");
+                        arr_param.pop_front();
+                    }
+                }
+                else if (cmd_.arguments_[1][i] == 'v'){ // mode voice
+                    if (arr_param.empty() || !is_a_valid_nick(arr_param.front())){ // empty param or nick not valid
+                        arr_param.pop_front();
+                        continue;
+                    }
+                    if (!(*itr).second->isUser(find_user(arr_param.front()))){ // not user in channel
+                        send_msg(sock, domain_, "441 " + find_user(sock)->nick() + " " + arr_param.front() + " " + cmd_.arguments_[0] + " :They aren't on that channel");
+                        arr_param.pop_front();
+                        continue;
+                    }
+                    if (flag_mode == 0){
+                        (*itr).second->delModeratorUser(find_user(arr_param.front()));
+                        if (add_flag == 0 || add_flag == 2) {
+                            return_mode.push_back('-');
+                            add_flag = 1;
+                        }
+                        return_mode.push_back(cmd_.arguments_[1][i]);
+                        std_params.append(arr_param.front() + " ");
+                        arr_param.pop_front();
+                    }
+                    else if (flag_mode == 1){
+                        (*itr).second->addModeratorUser(find_user(arr_param.front()));
+                        if (add_flag == 0 || add_flag == 1) {
+                            return_mode.push_back('+');
+                            add_flag = 2;
+                        }
+                        return_mode.push_back(cmd_.arguments_[1][i]);
+                        std_params.append(arr_param.front() + " ");
+                        arr_param.pop_front();
+                    }
+                }
+            }
+        }
+        if (!std_params.empty()){
+            std_params.pop_back();
+            return_mode.append(" " + std_params);
+        }
+        send_channel((*itr).second, "MODE " + cmd_.arguments_[0] + " " + return_mode, find_user(sock)->nick());
+    }
+    return R_SUCCESS;
+}
+
+int     Irisha::check_mode_channel(const Channel* channel, const int sock, std::list<std::string>& arr_key, std::string& arr_channel)
+{
+    CITERATOR itr = channel->getBanUsers().begin();
+    CITERATOR ite = channel->getBanUsers().end();
+    if (!channel->getKey().empty()){
+        if (arr_key.empty() || arr_key.front() != channel->getKey()) {
+            send_msg(sock, domain_, "475 " + arr_channel + " :Cannot join channel (+k)");
+            arr_key.pop_front();
+            return 1;
+        }
+        arr_key.pop_front();
+    }
+    while (itr != ite)
+    {
+        if ((*itr) == find_user(sock)){
+            send_msg(sock, domain_, "474 " + arr_channel + " :Cannot join channel (+b)");
+            return 1;
+        }
+        itr++;
+    }
+    if (channel->getMode().find('i')->second == 1){
+        itr = channel->getInviteUsers().begin();
+        ite = channel->getInviteUsers().end();
+        while (itr != ite){
+            if ((*itr) == find_user(sock))
+                break;
+            itr++;
+        }
+        if (itr == ite){
+            send_msg(sock, domain_, "473 " + arr_channel + " :Cannot join channel (+i)");
+            return 1;
+        }
+    }
+    if (channel->getMode().find('l')->second == 1){
+        if (channel->getUsers().size() >= channel->getMaxUsers()){
+            send_msg(sock, domain_, "471 " + arr_channel + " :Cannot join channel (+l)");
+            return 1;
+        }
+    }
+    return 0;
+}
+
+eResult Irisha::JOIN(const int sock)
+{
+    std::vector<std::string> arr_channel; // array channels
+    std::list<std::string> arr_key; // arrray key for channels
+    std::string str_channels = cmd_.arguments_[0]; // string channels "#123,#321"
+
+    if (cmd_.arguments_.size() == 2){
+        std::string str_keys = cmd_.arguments_[1]; // string keys "hello,world"
+        parse_arr_list(arr_key, str_keys, ',');
+    }
+    parse_arr(arr_channel, str_channels, ',');
+    for (size_t i = 0; i < arr_channel.size(); ++i) {
+        if ((arr_channel[i][0] == '#' || arr_channel[i][0] == '&' || arr_channel[i][0] == '+' || arr_channel[i][0] == '!')){
+            std::map<std::string, Channel*>::iterator itr = channels_.find(arr_channel[i]);
+            if (itr == channels_.end()){
+                if (arr_channel[i].size() > 50){
+                    err_nosuchchannel(sock, arr_channel[i]);
+                    continue;
+                }
+                send_msg(sock, "", ":" + find_user(sock)->nick() + " JOIN " + arr_channel[i]);
+                Channel* channel = new Channel(arr_channel[i]);
+                channel->setType(arr_channel[i][0]);
+                channel->addOperators(find_user(sock));
+                channel->addUser(find_user(sock));
+                if (!arr_key.empty())
+                    channel->setKey(arr_key.front());
+                channels_.insert(std::pair<std::string, Channel*>(arr_channel[i], channel));
+                send_msg(sock, domain_, "353 " + find_user(sock)->nick() + " = " + arr_channel[i] +" :" + channel->getListUsers());
+                send_msg(sock, domain_, "366 " + find_user(sock)->nick() + " " + arr_channel[i] +" :End of NAMES list");
+            }
+            else{
+                if (check_mode_channel((*itr).second, sock, arr_key, arr_channel[i]) == 1)
+                    continue;
+                send_msg(sock, "", ":" + find_user(sock)->nick() + " JOIN " + arr_channel[i]);
+                itr->second->addUser(find_user(sock));
+                if (itr->second->getTopic().empty())
+                    send_msg(sock, domain_, "331 " + find_user(sock)->nick() + " " + arr_channel[i] + " :No topic is set");
+                else
+                    send_msg(sock, domain_, "332 " + find_user(sock)->nick() + " " + arr_channel[i] + " :" + itr->second->getTopic());
+                send_msg(sock, domain_, "353 " + find_user(sock)->nick() + " = " + arr_channel[i] +" :" + itr->second->getListUsers());
+                send_msg(sock, domain_, "366 " + find_user(sock)->nick() + " " + arr_channel[i] +" :End of NAMES list");
+                send_channel((*itr).second, "JOIN " + arr_channel[i], find_user(sock)->nick());
+            }
+        }
+    }
+    return R_SUCCESS;
+}
+
+eResult Irisha::PART(const int sock)
+{
+    std::vector<std::string> arr_channel;
+    std::string str_channels = cmd_.arguments_[0];
+
+    parse_arr(arr_channel, str_channels, ',');
+    for (size_t i = 0; i < arr_channel.size(); ++i) {
+        if ((arr_channel[i][0] == '#' || arr_channel[i][0] == '&' || arr_channel[i][0] == '+' || arr_channel[i][0] == '!')){
+            std::map<std::string, Channel*>::iterator itr = channels_.find(arr_channel[i]);
+            if (itr == channels_.end()){
+                err_nosuchchannel(sock, arr_channel[i]);
+                continue;
+            }
+            CITERATOR itr_u = (*itr).second->getUsers().begin();
+            CITERATOR ite_u = (*itr).second->getUsers().end();
+            while (itr_u != ite_u){
+                if ((*itr_u) == find_user(sock))
+                    break;
+                itr_u++;
+            }
+            if (itr_u == ite_u){
+                send_msg(sock, domain_, "442 " + find_user(sock)->nick() + " " + arr_channel[i] + " :You're not on that channel");
+                continue;
+            }
+            send_channel((*itr).second, "PART " + arr_channel[i], find_user(sock)->nick());
+            (*itr).second->delUser(find_user(sock));
+            (*itr).second->delOperators(find_user(sock));
+            if ((*itr).second->getUsers().size() == 0){
+                delete((*itr).second);
+                channels_.erase(itr);
+            }
+        }
+    }
+    return R_SUCCESS;
+}
+
+eResult Irisha::TOPIC(const int sock)
+{
+    if (cmd_.arguments_.size() > 2)
+        return R_SUCCESS;
+    if ((cmd_.arguments_[0][0] == '#' || cmd_.arguments_[0][0] == '&' || cmd_.arguments_[0][0] == '+' || cmd_.arguments_[0][0] == '!')){
+        std::map<std::string, Channel*>::iterator itr = channels_.find(cmd_.arguments_[0]);
+        if (itr == channels_.end()){
+            err_nosuchchannel(sock, cmd_.arguments_[0]);
+            return R_SUCCESS;
+        }
+        if (cmd_.arguments_.size() == 1){
+            if (itr->second->getMode().find('p')->second == 1 || itr->second->getMode().find('s')->second == 1){
+                send_msg(sock, domain_, "442 " + find_user(sock)->nick() + " " + cmd_.arguments_[0] + " :You're not on that channel");
+                return R_SUCCESS;
+            }
+            if (itr->second->getTopic().empty())
+                send_msg(sock, domain_, "331 " + find_user(sock)->nick() + " " + cmd_.arguments_[0] + " :No topic is set");
+            else
+                send_msg(sock, domain_, "332 " + find_user(sock)->nick() + " " + cmd_.arguments_[0] + " :" + itr->second->getTopic());
+            return R_SUCCESS;
+        }
+        CITERATOR itr_u = (*itr).second->getUsers().begin();
+        CITERATOR ite_u = (*itr).second->getUsers().end();
+        while (itr_u != ite_u){
+            if (*itr_u == find_user(sock))
+                break;
+            itr_u++;
+        }
+        if (itr_u == ite_u){
+            send_msg(sock, domain_, "442 " + find_user(sock)->nick() + " " + cmd_.arguments_[0] + " :You're not on that channel");
+            return R_SUCCESS;
+        }
+        itr_u = (*itr).second->getOperators().begin();
+        ite_u = (*itr).second->getOperators().end();
+        while (itr_u != ite_u){
+            if (*itr_u == find_user(sock))
+                break;
+            itr_u++;
+        }
+        if (itr_u == ite_u){
+            send_msg(sock, domain_, "482 " + find_user(sock)->nick() + " " + cmd_.arguments_[0] + " :You're not channel operator");
+            return R_SUCCESS;
+        }
+        if ((*itr).second->getMode().find('t')->second == 0){
+            send_msg(sock, domain_, "477 " + find_user(sock)->nick() + " " + cmd_.arguments_[0] + " :Channel doesn't support modes");
+            return R_SUCCESS;
+        }
+        cmd_.arguments_[1].erase(cmd_.arguments_[1].begin());
+        if (cmd_.arguments_[1] == (*itr).second->getTopic())
+            return R_SUCCESS;
+        (*itr).second->setTopic(cmd_.arguments_[1]);
+        send_channel((*itr).second, "TOPIC " + cmd_.arguments_[0] + " :" + cmd_.arguments_[1], find_user(sock)->nick());
+    }
+    return R_SUCCESS;
+}
+
+eResult Irisha::PRIVMSG(const int sock)
+{
+    if (cmd_.arguments_.size() == 0){
+        send_msg(sock, domain_, "411 " + find_user(sock)->nick() + " " + " :No recipient given (PRIVMSG)");
+        return R_SUCCESS;
+    }
+    if (cmd_.arguments_.size() == 1){
+        send_msg(sock, domain_, "412 " + find_user(sock)->nick() + " " + " :No text to send");
+        return R_SUCCESS;
+    }
+
+    std::list<std::string> arr_receiver;
+    std::string str_receiver = cmd_.arguments_[0];
+    User* user;
+
+    parse_arr_list(arr_receiver, str_receiver, ',');
+    arr_receiver.sort();
+    arr_receiver.unique();
+    while (!arr_receiver.empty()){
+        if ((arr_receiver.front()[0] == '#' || arr_receiver.front()[0] == '&' || arr_receiver.front()[0] == '+' || arr_receiver.front()[0] == '!')){
+            std::map<std::string, Channel*>::iterator itr = channels_.find(arr_receiver.front());
+            if (itr == channels_.end()){
+                err_nosuchnick(sock, arr_receiver.front());
+                arr_receiver.pop_front();
+                continue;
+            }
+            CITERATOR itr_u = (*itr).second->getUsers().begin();
+            CITERATOR ite_u = (*itr).second->getUsers().end();
+            while (itr_u != ite_u){
+                if (*itr_u == find_user(sock))
+                    break;
+                itr_u++;
+            }
+            if (itr_u == ite_u && (*itr).second->getMode().find('n')->second == 1){
+                send_msg(sock, domain_, "404 " + find_user(sock)->nick() + " " + arr_receiver.front() + " :Cannot send to channel");
+                arr_receiver.pop_front();
+                continue;
+            }
+            itr_u = (*itr).second->getModerators().begin();
+            ite_u = (*itr).second->getModerators().end();
+            while (itr_u != ite_u){
+                if (*itr_u == find_user(sock))
+                    break;
+                itr_u++;
+            }
+            if (itr_u == ite_u && (*itr).second->getMode().find('m')->second == 1){
+                send_msg(sock, domain_, "404 " + find_user(sock)->nick() + " " + arr_receiver.front() + " :Cannot send to channel");
+                arr_receiver.pop_front();
+                continue;
+            }
+            send_channel((*itr).second, "PRIVMSG " + arr_receiver.front() + " " + cmd_.arguments_[1], find_user(sock)->nick(), sock);
+        } else {
+            user = find_user(arr_receiver.front());
+            if (user != nullptr){
+                err_nosuchnick(sock, arr_receiver.front());
+                arr_receiver.pop_front();
+                continue;
+            }
+            send_msg(sock, find_user(sock)->nick(), "PRIVMSG " + arr_receiver.front() + " " + cmd_.arguments_[1]);
+        }
+        arr_receiver.pop_front();
+    }
+    return R_SUCCESS;
+}
+
+//ERR_CANNOTSENDTOCHAN            ERR_NOTOPLEVEL
+//ERR_WILDTOPLEVEL
+
+eResult Irisha::NAMES(const int sock) // list users channels
+{
+    std::vector<std::string> arr_channel;
+    std::string str_channels = cmd_.arguments_[0];
+
+    parse_arr(arr_channel, str_channels, ',');
+    for (size_t i = 0; i < arr_channel.size(); ++i) {
+        if ((arr_channel[i][0] == '#' || arr_channel[i][0] == '&' || arr_channel[i][0] == '+' || arr_channel[i][0] == '!')) {
+            std::map<std::string, Channel *>::iterator itr = channels_.find(arr_channel[i]);
+            if (itr == channels_.end())
+                continue;
+            if (itr->second->getMode().find('s')->second == 1 && !itr->second->isUser(find_user(sock)))
+                    continue;
+            send_msg(sock, domain_, "353 " + find_user(sock)->nick() + " = " + arr_channel[i] +" :" + itr->second->getListUsers());
+            send_msg(sock, domain_, "366 " + find_user(sock)->nick() + " " + arr_channel[i] +" :End of NAMES list");
+        }
+    }
+    return R_SUCCESS;
+}
+
+eResult Irisha::LIST(const int sock) // list server ?
+{
+    std::map<std::string ,Channel*>::iterator itr = channels_.begin();
+    std::map<std::string ,Channel*>::iterator ite = channels_.end();
+
+    while (itr != ite){
+        if (itr->second->getMode().find('s')->second == 1 && !itr->second->isUser(find_user(sock))){
+            itr++;
+            continue;
+        }
+        send_msg(sock, domain_, "322 " + find_user(sock)->nick() + " " + itr->second->getName() + " " + int_to_str(itr->second->getUsers().size()) + " :" + itr->second->getTopic());
+        itr++;
+    }
+    send_msg(sock, domain_, "323 " + find_user(sock)->nick() + " :End of /LIST");
+    return R_SUCCESS;
+}
+
+eResult Irisha::INVITE(const int sock)
+{
+    std::map<std::string, Channel *>::iterator itr = channels_.find(cmd_.arguments_[1]);
+    if (!itr->second->isUser(find_user(sock))){
+        send_msg(sock, domain_, "442 " + find_user(sock)->nick() + " " + cmd_.arguments_[1] + " :You're not on that channel");
+    }
+    return R_SUCCESS;
+}
+//:Angel INVITE Wiz #Dust
+//              ERR_NOSUCHNICK
+//ERR_NOTONCHANNEL                ERR_USERONCHANNEL
+//ERR_CHANOPRIVSNEEDED
+//        RPL_INVITING
 
 eResult Irisha::TIME(const int sock)
 {

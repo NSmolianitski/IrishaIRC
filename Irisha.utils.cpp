@@ -1,7 +1,7 @@
 
 #include "Irisha.hpp"
 #include "utils.hpp"
-
+#include "Channel.hpp"
 #include <sstream>
 
 int Irisha::choose_sock(AConnection *connection)
@@ -247,6 +247,34 @@ void Irisha::handle_command(const int sock)
 		((*this).*it->second)(sock);
 	else
 		err_unknowncommand(sock, cmd_.command_);
+}
+/// Send msg channel all users and operators
+void Irisha::send_channel(Channel *channel, std::string msg, std::string prefix)
+{
+    std::vector<User*>::const_iterator itr = channel->getUsers().begin();
+    std::vector<User*>::const_iterator ite = channel->getUsers().end();
+
+    while (itr != ite)
+    {
+        if ((*itr)->socket() != U_EXTERNAL_CONNECTION)
+            send_msg((*itr)->socket(), prefix, msg);
+        itr++;
+    }
+    send_servers(prefix, msg);
+}
+
+void Irisha::send_channel(Channel *channel, std::string msg, std::string prefix, int sock)
+{
+    std::vector<User*>::const_iterator itr = channel->getUsers().begin();
+    std::vector<User*>::const_iterator ite = channel->getUsers().end();
+
+    while (itr != ite)
+    {
+        if ((*itr)->socket() != U_EXTERNAL_CONNECTION && (*itr)->socket() != sock)
+            send_msg((*itr)->socket(), prefix, msg);
+        itr++;
+    }
+    send_servers(prefix, msg);
 }
 
 /**

@@ -8,6 +8,7 @@
 #include "utils.hpp"
 
 #include <iostream>
+#include <sstream>
 #include <map>
 #include <vector>
 #include <deque>
@@ -18,7 +19,7 @@
 
 #define CONFIG_PATH "irisha.conf"
 #define NO_PREFIX	""
-
+class Channel;
 struct Command
 {
 	std::string					prefix_;
@@ -68,6 +69,7 @@ private:
 
 	std::map<std::string, AConnection*>		connections_;	// Server and client connections
 	std::map<std::string, func>				commands_;		// IRC commands
+    std::map<std::string ,Channel*>          channels_;
 
 	/// Configuration members
 	std::string	domain_;        // Server name
@@ -156,6 +158,11 @@ private:
 	eResult			PING				(const int sock);
 	eResult			PONG				(const int sock);
 	eResult			QUIT				(const int sock);
+    eResult         JOIN                (const int sock);
+    eResult         MODE                (const int sock);
+    eResult         PART                (const int sock);
+    eResult         TOPIC               (const int sock);
+    eResult         PRIVMSG             (const int sock);
 	eResult			TIME				(const int sock);
 	eResult			USERS				(const int sock);
 	eResult			KILL				(const int sock);
@@ -166,9 +173,15 @@ private:
 	eResult			RPL_257				(const int sock);
 	eResult			RPL_258				(const int sock);
 	eResult			RPL_259				(const int sock);
+	eResult			NAMES				(const int sock);
+	eResult			LIST				(const int sock);
+	eResult			INVITE				(const int sock);
 
 	/// IRC commands utils
 	void			admin_info			(const int sock, const std::string& receiver);
+	void            send_channel    (Channel *channel, std::string msg, std::string prefix);
+    void            send_channel(Channel *channel, std::string msg, std::string prefix, int sock);
+	int             check_mode_channel(const Channel* channel, const int sock, std::list<std::string>& arr_key, std::string& arr_channel);
 	eResult			NICK_user			(User* const connection, const int sock, const std::string& new_nick);
 	eResult			NICK_server			(const std::string& new_nick, int source_sock);
 	std::string		createPASSmsg		(std::string password) const ;
