@@ -226,6 +226,11 @@ void Irisha::err_passwdmismatch(const int sock) const
 	send_rpl_msg(sock, ERR_NOOPERHOST, ":Password incorrect");
 }
 
+void Irisha::err_cantkillserver(const int sock) const
+{
+	send_rpl_msg(sock, ERR_CANTKILLSERVER, ":You cant kill a server!");
+}
+
 /// Common replies
 void Irisha::rpl_welcome(const int sock) const
 {

@@ -161,6 +161,11 @@ private:
 	eResult			KILL				(const int sock);
 	eResult			ADMIN				(const int sock);
 	eResult			OPER				(const int sock);
+	eResult			ERROR				(const int sock);
+	eResult			RPL_256				(const int sock);
+	eResult			RPL_257				(const int sock);
+	eResult			RPL_258				(const int sock);
+	eResult			RPL_259				(const int sock);
 
 	/// IRC commands utils
 	void			admin_info			(const int sock, const std::string& receiver);
@@ -205,6 +210,7 @@ private:
 	void			err_passwdmismatch		(const int sock) const;
 	void			err_yourebannedcreep	(const int sock) const;
 	void 			err_nooperhost			(const int sock) const;
+	void 			err_cantkillserver		(const int sock) const;
 
 	/// Common Replies
 	void			rpl_welcome				(const int sock) const;

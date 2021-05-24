@@ -198,7 +198,7 @@ void Irisha::loop()
 }
 
 /**
- * @description	Closes client socket and removes if
+ * @description	Closes client socket and removes it from connections map
  * 				from the all_fds_ member
  * @param		client_socket
  */
@@ -222,8 +222,11 @@ void Irisha::handle_disconnection(const int sock)
 		send_servers(user->nick(), msg);
 		remove_user(user->nick());
 	}
-	FD_CLR(sock, &all_fds_);
-	close(sock);
+	if (sock != U_EXTERNAL_CONNECTION)
+	{
+		FD_CLR(sock, &all_fds_);
+		close(sock);
+	}
 }
 
 /// Commands+
