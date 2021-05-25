@@ -190,6 +190,7 @@ private:
 	eResult			KICK				(const int sock);
 	eResult			MOTD				(const int sock);
 	eResult			MOTD_REPLIES		(const int sock);
+	eResult			LUSERS				(const int sock);
 
 	/// IRC commands utils
 	void			admin_info			(const int sock, const std::string& receiver);
@@ -202,6 +203,10 @@ private:
 	std::string		createSERVERmsg		(AConnection* server) const;
 	std::string		createNICKmsg		(User* usr) const;
 	void			send_motd			(const int sock);
+	void			count_operators		(int& operators) const;
+	void			count_global		(int& users, int& servers) const;
+	void			count_local			(int& users, int& servers) const;
+	void			send_lusers_replies	(const int sock) const;
 
 	/// Error replies
 	void			err_nosuchserver		(const int sock, const std::string& server) const;
@@ -263,6 +268,11 @@ private:
 	void			rpl_adminloc1			(const int sock, const std::string& target, const std::string& info) const;
 	void			rpl_adminloc2			(const int sock, const std::string& target, const std::string& info) const;
 	void			rpl_adminmail			(const int sock, const std::string& target, const std::string& info) const;
+	void			rpl_luserclient			(const int sock) const;
+	void			rpl_luserop				(const int sock) const;
+	void			rpl_luserchannels		(const int sock) const;
+	void			rpl_luserunknown		(const int sock) const;
+	void			rpl_luserme				(const int sock) const;
 
 	/// Unused constructors
 	Irisha				() {};

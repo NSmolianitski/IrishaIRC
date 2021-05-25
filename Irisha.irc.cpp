@@ -43,6 +43,7 @@ void	Irisha::prepare_commands()
 	commands_.insert(std::pair<std::string, func>("375", &Irisha::MOTD_REPLIES));
 	commands_.insert(std::pair<std::string, func>("372", &Irisha::MOTD_REPLIES));
 	commands_.insert(std::pair<std::string, func>("376", &Irisha::MOTD_REPLIES));
+	commands_.insert(std::pair<std::string, func>("LUSERS", &Irisha::LUSERS));
 }
 
 /**
@@ -1201,7 +1202,7 @@ eResult Irisha::MOTD(const int sock)
 		}
 		send_msg(choose_sock(server), user->nick(), "MOTD :" + cmd_.arguments_[0]);
 	}
-	return R_FAILURE;
+	return R_SUCCESS;
 }
 
 /**
@@ -1222,6 +1223,85 @@ eResult Irisha::MOTD_REPLIES(const int sock)
 	}
 	send_msg(choose_sock(user), domain_,cmd_.command_
 					+ " " + cmd_.arguments_[0] + " " + cmd_.arguments_[1]);
+	return R_SUCCESS;
+}
+
+void Irisha::count_operators(int& operators) const
+{
+	operators = 0;
+	User* user;
+	for (con_const_it it = connections_.begin(); it != connections_.end(); ++it)
+	{
+		if (it->second->type() == T_CLIENT)
+		{
+			user = static_cast<User*>(it->second);
+			if (user->is_operator())
+				++operators;
+		}
+	}
+}
+
+void Irisha::count_global(int& users, int& servers) const
+{
+	users = 0;
+	servers = 0;
+	for (con_const_it it = connections_.begin(); it != connections_.end(); ++it)
+	{
+		if (it->second->type() == T_CLIENT)
+			++users;
+		else if (it->second->type() == T_SERVER)
+			++servers;
+	}
+}
+
+void Irisha::count_local(int& users, int& servers) const
+{
+	users = 0;
+	servers = 0;
+	for (con_const_it it = connections_.begin(); it != connections_.end(); ++it)
+	{
+		if (it->second->socket() != U_EXTERNAL_CONNECTION)
+		{
+			if (it->second->type() == T_CLIENT)
+				++users;
+			else if (it->second->type() == T_SERVER)
+				++servers;
+		}
+	}
+}
+
+void Irisha::send_lusers_replies(const int sock) const
+{
+	rpl_luserclient(sock);
+	rpl_luserop(sock);
+	rpl_luserunknown(sock);
+	rpl_luserchannels(sock);
+	rpl_luserme(sock);
+}
+
+/**
+ * @description	Handles LUSERS command
+ * @param		sock
+ * @return
+ */
+eResult Irisha::LUSERS(const int sock) //! TODO: handle replies to and from other servers
+{
+	User*	user;
+	if (check_user(sock, user, cmd_.prefix_) == R_FAILURE)
+		return R_FAILURE;
+
+	if (cmd_.arguments_.empty() || cmd_.arguments_[0] == domain_)
+		send_lusers_replies(sock);
+	else
+	{
+		Server*	server = find_server(cmd_.arguments_[0]);
+		if (server == nullptr)
+		{
+			err_nosuchserver(sock, cmd_.arguments_[0]);
+			return R_FAILURE;
+		}
+		send_msg(choose_sock(server), user->nick(), "MOTD :" + cmd_.arguments_[0]);
+	}
 	return R_SUCCESS;
 }
 
