@@ -109,6 +109,9 @@ private:
 	AConnection*	find_connection		(const int sock) const;
 	AConnection*	find_connection		(const std::string& name) const;
 	void			ping_connections	(time_t& last_ping);
+	void			close_connection	(const int sock, const std::string& comment);
+	std::string		connection_name		(const int sock) const;
+	std::string		connection_name		(AConnection* connection) const;
 
 	/// Users
 	void			add_user			(const int sock, const std::string& nick);
@@ -138,7 +141,6 @@ private:
 	void			send_servers		(const std::string& prefix, const std::string& msg, const int sock) const;
 	void			send_everyone		(const std::string& prefix, const std::string& msg) const;
 	void			print_info			() const;
-	std::string		connection_name		(const int sock) const;
 	int 			next_token			();
 	int 			choose_sock			(AConnection* connection);
     eType           connection_type     (int sock);

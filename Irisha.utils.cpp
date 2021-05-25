@@ -379,6 +379,28 @@ std::string Irisha::connection_name(const int sock) const
 	return name;
 }
 
+/**
+ * @description	Gets connection name by AConnection pointer
+ * @param		connection: AConnection pointer
+ * @return		connection name
+ */
+std::string Irisha::connection_name(AConnection* connection) const
+{
+	User*	user = dynamic_cast<User*>(connection);
+
+	std::string name;
+	if (user == nullptr)
+	{
+		Server*	server = dynamic_cast<Server*>(connection);
+		if (server == nullptr)
+			return "unknown";
+		name = server->name();
+	}
+	else
+		name = user->nick();
+	return name;
+}
+
 void Irisha::ping_connections(time_t& last_ping)
 {
 	std::cout << PURPLE ITALIC << "Ping connections!" CLR << std::endl;
@@ -483,6 +505,39 @@ std::string	Irisha::sys_msg(const std::string& emoji, const std::string& str
 					   + " " BWHITE + ending + CLR;
 	std::cout << time_stamp() + msg << std::endl;
 	return msg;
+}
+
+void Irisha::close_connection(const int sock, const std::string& comment)
+{
+	if (sock == U_EXTERNAL_CONNECTION)
+	{
+		std::cout << E_CROSS RED " ALARM! TRYING TO CLOSE EXTERNAL CONNECTION! " E_CROSS << std::endl;
+		return;
+	}
+
+	User*		user = find_user(sock);
+
+	if (user == nullptr)
+	{
+		Server*		server = find_server(sock);
+		std::string	name = "unknown";
+		if (server != nullptr)
+			name = server->name();
+		if (name == "unknown")
+			sys_msg(E_BOOM, "Unknown connection closed!"); // Handle non-registered connection
+		else
+			sys_msg(E_BOOM, "Server", name, "disconnected!"); // Handle server connection
+		send_servers(name, "SQUIT :" + comment);
+//		remove_server(); //! TODO: add remove_server()
+	}
+	else
+	{
+		sys_msg(E_SCULL, "User", user->nick(), "disconnected!"); // Handle user connection
+		send_servers(user->nick(), "QUIT :" + comment);
+		remove_user(user->nick());
+	}
+	FD_CLR(sock, &all_fds_);
+	close(sock);
 }
 
 /// ‼️ ⚠️ DEVELOPMENT UTILS (REMOVE OR COMMENT WHEN PROJECT IS READY) ⚠️ ‼️ //! TODO: DEV -> REMOVE /////////////////////

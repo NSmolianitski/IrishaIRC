@@ -968,33 +968,33 @@ eResult Irisha::KILL(const int sock)
 		err_needmoreparams(sock, "KILL");
 		return R_FAILURE;
 	}
-	AConnection* killer = find_connection(sock);
+	AConnection* killer = find_connection(cmd_.prefix_);
+	if (killer == nullptr)
+		killer = find_connection(sock);
 	if (killer == nullptr) //! TODO: change !sender->is_operator() to function which shows if user is IRC-operator
 	{
 		err_noprivileges(sock);
 		return R_FAILURE;
 	}
 
+	std::string msg(cmd_.arguments_[1].begin() + 1, cmd_.arguments_[1].end());
 	AConnection* victim = find_connection(cmd_.arguments_[0]);
 	if (victim == nullptr)
 		err_nosuchnick(sock, cmd_.arguments_[0]);
 	else if (victim->type() == T_SERVER)
 		err_cantkillserver(sock);
+	else if (victim->socket() != U_EXTERNAL_CONNECTION)
+	{
+		send_msg(victim->socket(), connection_name(killer), "KILL "
+				+ cmd_.arguments_[0] + " :KILLed by " + connection_name(killer) + ": " + msg);
+		send_msg(victim->socket(), domain_, "ERROR :Killed by " + connection_name(killer) + ": " + msg);
+		close_connection(victim->socket(), "Killed by " + connection_name(killer));
+		return R_SUCCESS;
+	}
 	else
 	{
-		std::string msg(cmd_.arguments_[1].begin() + 1, cmd_.arguments_[1].end());
-		if (killer->type() == T_LOCAL_CLIENT)
-			send_everyone(connection_name(sock), "KILL " + cmd_.arguments_[0]
-						+ " :KILLed by " + connection_name(sock) + ": " + msg);
-		else if (killer->type() == T_SERVER)
-			send_msg(choose_sock(victim), connection_name(sock), "KILL "
-						+ cmd_.arguments_[0] + " :KILLed by " + connection_name(sock) + ": " + msg);
-		if (victim->type() == T_LOCAL_CLIENT)
-		{
-			send_everyone(cmd_.arguments_[0], "QUIT :Killed by " + connection_name(sock));
-			send_msg(victim->socket(), domain_, "ERROR :Killed by " + connection_name(sock) + ": " + msg);
-			handle_disconnection(victim->socket());
-		}
+		send_msg(choose_sock(victim), connection_name(killer), "KILL "
+					+ cmd_.arguments_[0] + " :KILLed by " + connection_name(killer) + ": " + msg);
 		return R_SUCCESS;
 	}
 	return R_FAILURE;
