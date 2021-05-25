@@ -53,5 +53,6 @@ public:
     std::string getListMode();
     bool isOperator(User* user);
     bool isUser(User* user);
+    bool isModerator(User* user);
     ~Channel();
 };
