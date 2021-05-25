@@ -883,33 +883,35 @@ eResult Irisha::PART(const int sock)
 {
     std::vector<std::string> arr_channel;
     std::string str_channels = cmd_.arguments_[0];
+    User* user;
+
+    if (check_user(sock, user, cmd_.prefix_) == R_FAILURE)
+        return R_FAILURE;
 
     parse_arr(arr_channel, str_channels, ',');
     for (size_t i = 0; i < arr_channel.size(); ++i) {
         if ((arr_channel[i][0] == '#' || arr_channel[i][0] == '&' || arr_channel[i][0] == '+' || arr_channel[i][0] == '!')){
             std::map<std::string, Channel*>::iterator itr = channels_.find(arr_channel[i]);
-            if (itr == channels_.end()){
-                err_nosuchchannel(sock, arr_channel[i]);
-                continue;
+            if (cmd_.type_ == T_LOCAL_CLIENT) {
+                if (itr == channels_.end()) {
+                    err_nosuchchannel(user->socket(), arr_channel[i]);
+                    continue;
+                }
+                if (!(*itr).second->isUser(user)) {
+                    send_msg(user->socket(), domain_,
+                             "442 " + user->nick() + " " + arr_channel[i] + " :You're not on that channel");
+                    continue;
+                }
+                send_channel((*itr).second, "PART " + arr_channel[i], user->nick());
+                (*itr).second->delUser(user);
+                (*itr).second->delOperators(user);
+                if ((*itr).second->getUsers().size() == 0) {
+                    delete ((*itr).second);
+                    channels_.erase(itr);
+                }
             }
-            CITERATOR itr_u = (*itr).second->getUsers().begin();
-            CITERATOR ite_u = (*itr).second->getUsers().end();
-            while (itr_u != ite_u){
-                if ((*itr_u) == find_user(sock))
-                    break;
-                itr_u++;
-            }
-            if (itr_u == ite_u){
-                send_msg(sock, domain_, "442 " + find_user(sock)->nick() + " " + arr_channel[i] + " :You're not on that channel");
-                continue;
-            }
-            send_channel((*itr).second, "PART " + arr_channel[i], find_user(sock)->nick());
-            (*itr).second->delUser(find_user(sock));
-            (*itr).second->delOperators(find_user(sock));
-            if ((*itr).second->getUsers().size() == 0){
-                delete((*itr).second);
-                channels_.erase(itr);
-            }
+            else
+                send_channel((*itr).second, "PART " + arr_channel[i], user->nick(), choose_sock(user));
         }
     }
     return R_SUCCESS;
@@ -917,56 +919,47 @@ eResult Irisha::PART(const int sock)
 
 eResult Irisha::TOPIC(const int sock)
 {
+    User* user;
+
+    if (check_user(sock, user, cmd_.prefix_) == R_FAILURE)
+        return R_FAILURE;
+
     if (cmd_.arguments_.size() > 2)
         return R_SUCCESS;
     if ((cmd_.arguments_[0][0] == '#' || cmd_.arguments_[0][0] == '&' || cmd_.arguments_[0][0] == '+' || cmd_.arguments_[0][0] == '!')){
         std::map<std::string, Channel*>::iterator itr = channels_.find(cmd_.arguments_[0]);
         if (itr == channels_.end()){
-            err_nosuchchannel(sock, cmd_.arguments_[0]);
+            err_nosuchchannel(user->socket(), cmd_.arguments_[0]);
             return R_SUCCESS;
         }
         if (cmd_.arguments_.size() == 1){
             if (itr->second->getMode().find('p')->second == 1 || itr->second->getMode().find('s')->second == 1){
-                send_msg(sock, domain_, "442 " + find_user(sock)->nick() + " " + cmd_.arguments_[0] + " :You're not on that channel");
+                send_msg(user->socket(), domain_, "442 " + user->nick() + " " + cmd_.arguments_[0] + " :You're not on that channel");
                 return R_SUCCESS;
             }
             if (itr->second->getTopic().empty())
-                send_msg(sock, domain_, "331 " + find_user(sock)->nick() + " " + cmd_.arguments_[0] + " :No topic is set");
+                send_msg(user->socket(), domain_, "331 " + user->nick() + " " + cmd_.arguments_[0] + " :No topic is set");
             else
-                send_msg(sock, domain_, "332 " + find_user(sock)->nick() + " " + cmd_.arguments_[0] + " :" + itr->second->getTopic());
+                send_msg(user->socket(), domain_, "332 " + user->nick() + " " + cmd_.arguments_[0] + " :" + itr->second->getTopic());
             return R_SUCCESS;
         }
-        CITERATOR itr_u = (*itr).second->getUsers().begin();
-        CITERATOR ite_u = (*itr).second->getUsers().end();
-        while (itr_u != ite_u){
-            if (*itr_u == find_user(sock))
-                break;
-            itr_u++;
-        }
-        if (itr_u == ite_u){
-            send_msg(sock, domain_, "442 " + find_user(sock)->nick() + " " + cmd_.arguments_[0] + " :You're not on that channel");
+        if (!(*itr).second->isUser(user)){
+            send_msg(user->socket(), domain_, "442 " + user->nick() + " " + cmd_.arguments_[0] + " :You're not on that channel");
             return R_SUCCESS;
         }
-        itr_u = (*itr).second->getOperators().begin();
-        ite_u = (*itr).second->getOperators().end();
-        while (itr_u != ite_u){
-            if (*itr_u == find_user(sock))
-                break;
-            itr_u++;
-        }
-        if (itr_u == ite_u){
-            send_msg(sock, domain_, "482 " + find_user(sock)->nick() + " " + cmd_.arguments_[0] + " :You're not channel operator");
+        if (!(*itr).second->isOperator(user)){
+            send_msg(user->socket(), domain_, "482 " + user->nick() + " " + cmd_.arguments_[0] + " :You're not channel operator");
             return R_SUCCESS;
         }
         if ((*itr).second->getMode().find('t')->second == 0){
-            send_msg(sock, domain_, "477 " + find_user(sock)->nick() + " " + cmd_.arguments_[0] + " :Channel doesn't support modes");
+            send_msg(user->socket(), domain_, "477 " + user->nick() + " " + cmd_.arguments_[0] + " :Channel doesn't support modes");
             return R_SUCCESS;
         }
         cmd_.arguments_[1].erase(cmd_.arguments_[1].begin());
         if (cmd_.arguments_[1] == (*itr).second->getTopic())
             return R_SUCCESS;
         (*itr).second->setTopic(cmd_.arguments_[1]);
-        send_channel((*itr).second, "TOPIC " + cmd_.arguments_[0] + " :" + cmd_.arguments_[1], find_user(sock)->nick());
+        send_channel((*itr).second, "TOPIC " + cmd_.arguments_[0] + " :" + cmd_.arguments_[1], user->nick());
     }
     return R_SUCCESS;
 }
