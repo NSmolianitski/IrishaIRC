@@ -7,7 +7,9 @@
 enum eType
 {
 	T_SERVER,
-	T_CLIENT
+	T_CLIENT,
+	T_LOCAL_CLIENT,
+	T_NONE
 };
 
 class AConnection

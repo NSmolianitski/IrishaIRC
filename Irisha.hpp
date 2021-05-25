@@ -24,6 +24,7 @@ struct Command
 	std::string					prefix_;
 	std::string					command_;
 	std::vector<std::string>	arguments_;
+	eType                       type_;
 };
 
 enum eResult
@@ -140,6 +141,12 @@ private:
 	std::string		connection_name		(const int sock) const;
 	int 			next_token			();
 	int 			choose_sock			(AConnection* connection);
+    eType           connection_type     (int sock);
+    User*           get_sender          (int sock);
+    eResult         check_user_sender   (int sender_sock, User*& sender, const std::string& sender_name
+                                            , User*& user, const std::string& user_nick);
+    eResult         check_user          (int sock, User*& user, const std::string& nick);
+    bool            is_enough_args      (int sock, const std::string& command, int min_args_number);
 
 	///	System messages
 	std::string	sys_msg				(const std::string& emoji, const std::string& str) const;
@@ -174,9 +181,11 @@ private:
 	eResult			RPL_257				(const int sock);
 	eResult			RPL_258				(const int sock);
 	eResult			RPL_259				(const int sock);
+	eResult			RPL_421 			(const int sock);
 	eResult			NAMES				(const int sock);
 	eResult			LIST				(const int sock);
 	eResult			INVITE				(const int sock);
+	eResult			KICK				(const int sock);
 
 	/// IRC commands utils
 	void			admin_info			(const int sock, const std::string& receiver);

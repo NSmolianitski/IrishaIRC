@@ -65,6 +65,7 @@ std::string* Irisha::get_msg(int sock, std::list<Irisha::RegForm*>& reg_expect)
 {
 	char			tmp_buff[513];
 
+    cmd_.type_ = connection_type(sock);
 	int read_bytes = recv(sock, &tmp_buff, 512, 0);
 	if (read_bytes < 0)
 		throw std::runtime_error("Recv error in get_msg()");
@@ -274,7 +275,86 @@ void Irisha::send_channel(Channel *channel, std::string msg, std::string prefix,
             send_msg((*itr)->socket(), prefix, msg);
         itr++;
     }
-    send_servers(prefix, msg);
+    send_servers(prefix, msg, sock);
+}
+
+eType Irisha::connection_type(int sock)
+{
+    AConnection* pointer = find_connection(sock);
+
+    if (pointer == nullptr)
+        return T_NONE;
+    if (pointer->type() == T_SERVER)
+        return T_SERVER;
+    if (pointer->type() == T_CLIENT && sock == U_EXTERNAL_CONNECTION)
+        return T_CLIENT;
+    if (pointer->type() == T_CLIENT)
+        return T_LOCAL_CLIENT;
+    return T_NONE;
+}
+
+/**
+ * @description Fills user and sender pointers if they exists, sends err_nosuchnick if not
+ * @param       sender_sock
+ * @param       sender
+ * @param       sender_name
+ * @param       user
+ * @param       user_nick
+ * @return      R_SUCCESS or R_FAILURE
+ */
+eResult Irisha::check_user_sender(int sender_sock, User*& sender, const std::string& sender_name
+                                  , User*& user, const std::string& user_nick)
+{
+    user = find_user(user_nick);
+    if (user == nullptr)
+    {
+        err_nosuchnick(sender_sock, user_nick);
+        return R_FAILURE;
+    }
+    sender = find_user(sender_sock);
+    if (sender == nullptr)
+    {
+        sender = find_user(sender_name);
+        if (sender == nullptr)
+        {
+            err_nosuchnick(sender_sock, sender_name);
+            return R_FAILURE;
+        }
+    }
+    return R_SUCCESS;
+}
+
+eResult Irisha::check_user(int sock, User*& user, const std::string& nick)
+{
+    user = find_user(sock);
+    if (user == nullptr)
+    {
+        user = find_user(nick);
+        if (user == nullptr)
+        {
+            err_nosuchnick(sock, nick);
+            return R_FAILURE;
+        }
+    }
+    return R_SUCCESS;
+}
+
+/**
+ * @description Checks if arguments number are at least equal to min_args_number
+ * @param       sock
+ * @param       command
+ * @param       min_args_number: minimum arguments number
+ * @return      True if args number equal or more than min_args_number
+ */
+bool Irisha::is_enough_args(int sock, const std::string& command, int min_args_number)
+{
+    if (cmd_.arguments_.size() == min_args_number)
+        return true;
+    else
+    {
+        err_needmoreparams(sock, command);
+        return false;
+    }
 }
 
 /**

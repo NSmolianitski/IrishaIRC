@@ -309,7 +309,7 @@ void Irisha::rpl_notopic(const int sock, const std::string& channel) const
 
 void Irisha::rpl_inviting(const int sock, const std::string& channel, const std::string& nick) const
 {
-	send_rpl_msg(sock, RPL_INVITING, channel + " " + nick);
+	send_rpl_msg(sock, RPL_INVITING, nick + " " + channel);
 }
 
 void Irisha::rpl_version(const int sock, const std::string& version, const std::string& debug_lvl
