@@ -119,14 +119,15 @@ eResult	Irisha::NICK_server(const std::string& new_nick, int source_sock)
 	std::string	old_nick;
 
 	user = find_user(cmd_.prefix_);
+	Server* serv = static_cast<Server*>(find_server(source_sock));
+	send_servers(cmd_.prefix_, "NICK " + cmd_.arguments_[0] + " " + std::to_string(serv->hopcount() + 1) +
+		" " + cmd_.arguments_[2] + " " + cmd_.arguments_[3] + " " + std::to_string(serv->token() + 1) +
+		" " + cmd_.arguments_[5] + cmd_.arguments_[6], source_sock);
+
 	if (user == nullptr)		// Add new external user
 	{
 		add_user(source_sock);
 		//sending NICK msg to other servers
-		Server* serv = static_cast<Server*>(find_server(source_sock));
-		send_servers(cmd_.prefix_, "NICK " + cmd_.arguments_[0] + " " + std::to_string(serv->hopcount() + 1) +
-			" " + cmd_.arguments_[2] + " " + cmd_.arguments_[3] + " " + std::to_string(serv->token() + 1) +
-			" " + cmd_.arguments_[5] + cmd_.arguments_[6], source_sock);
 		return R_SUCCESS;
 	}
 	old_nick = user->nick();
@@ -226,7 +227,7 @@ eResult Irisha::PASS(const int sock)
 		return R_SUCCESS;
 	else
 	{
-		send_msg(sock, domain_, "ERROR :Access denied! Bad password"); //! TODO: fix unknown user disconnection with sending message to other servers
+		send_msg(sock, domain_, "ERROR :Access denied! Bad password"); //! TODO: fix unknown user disconnection with sending message to other servers (in reg form)
 		return R_FAILURE;
 	}
 }
@@ -661,11 +662,11 @@ eResult Irisha::JOIN(const int sock)
                     send_servers(user->nick(), "JOIN " + arr_channel[i], sock);
             }
             else{
+				if (check_mode_channel((*itr).second, sock, arr_key, arr_channel[i]) == 1)
+					continue;
+				itr->second->addUser(user);
                 if (cmd_.type_ == T_LOCAL_CLIENT) {
-                    if (check_mode_channel((*itr).second, sock, arr_key, arr_channel[i]) == 1)
-                        continue;
                     send_msg(user->socket(), "", ":" + user->nick() + " JOIN " + arr_channel[i]);
-                    itr->second->addUser(user);
                     if (itr->second->getTopic().empty())
                         send_msg(user->socket(), domain_, "331 " + user->nick() + " " + arr_channel[i] + " :No topic is set");
                     else
