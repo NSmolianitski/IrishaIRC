@@ -287,6 +287,19 @@ bool Channel::isUser(User *user) {
     return false;
 }
 
+bool Channel::isModerator(User *user)
+{
+    ITERATOR itr = moderator_users_.begin();
+    ITERATOR ite = moderator_users_.end();
+
+    while (itr != ite){
+        if (*itr == user)
+            return true;
+        itr++;
+    }
+    return false;
+}
+
 const std::string &Channel::getName() const {
     return name_;
 }

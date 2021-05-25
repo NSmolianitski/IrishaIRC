@@ -770,18 +770,23 @@ eResult Irisha::TOPIC(const int sock)
 
 eResult Irisha::PRIVMSG(const int sock)
 {
+    User* user;
+
+    if (check_user(sock, user, cmd_.prefix_) == R_FAILURE)
+        return R_FAILURE;
+
     if (cmd_.arguments_.size() == 0){
-        send_msg(sock, domain_, "411 " + find_user(sock)->nick() + " " + " :No recipient given (PRIVMSG)");
+        send_msg(sock, domain_, "411 " + user->nick() + " " + " :No recipient given (PRIVMSG)");
         return R_SUCCESS;
     }
     if (cmd_.arguments_.size() == 1){
-        send_msg(sock, domain_, "412 " + find_user(sock)->nick() + " " + " :No text to send");
+        send_msg(sock, domain_, "412 " + user->nick() + " " + " :No text to send");
         return R_SUCCESS;
     }
 
     std::list<std::string> arr_receiver;
     std::string str_receiver = cmd_.arguments_[0];
-    User* user;
+//    User* user;
 
     parse_arr_list(arr_receiver, str_receiver, ',');
     arr_receiver.sort();
@@ -790,30 +795,16 @@ eResult Irisha::PRIVMSG(const int sock)
         if ((arr_receiver.front()[0] == '#' || arr_receiver.front()[0] == '&' || arr_receiver.front()[0] == '+' || arr_receiver.front()[0] == '!')){
             std::map<std::string, Channel*>::iterator itr = channels_.find(arr_receiver.front());
             if (itr == channels_.end()){
-                err_nosuchnick(sock, arr_receiver.front());
+                err_nosuchnick(user->socket(), arr_receiver.front());
                 arr_receiver.pop_front();
                 continue;
             }
-            CITERATOR itr_u = (*itr).second->getUsers().begin();
-            CITERATOR ite_u = (*itr).second->getUsers().end();
-            while (itr_u != ite_u){
-                if (*itr_u == find_user(sock))
-                    break;
-                itr_u++;
-            }
-            if (itr_u == ite_u && (*itr).second->getMode().find('n')->second == 1){
+            if (!(*itr).second->isUser(user) && (*itr).second->getMode().find('n')->second == 1){
                 send_msg(sock, domain_, "404 " + find_user(sock)->nick() + " " + arr_receiver.front() + " :Cannot send to channel");
                 arr_receiver.pop_front();
                 continue;
             }
-            itr_u = (*itr).second->getModerators().begin();
-            ite_u = (*itr).second->getModerators().end();
-            while (itr_u != ite_u){
-                if (*itr_u == find_user(sock))
-                    break;
-                itr_u++;
-            }
-            if (itr_u == ite_u && (*itr).second->getMode().find('m')->second == 1){
+            if (!(*itr).second->isModerator(user) && (*itr).second->getMode().find('m')->second == 1){
                 send_msg(sock, domain_, "404 " + find_user(sock)->nick() + " " + arr_receiver.front() + " :Cannot send to channel");
                 arr_receiver.pop_front();
                 continue;
