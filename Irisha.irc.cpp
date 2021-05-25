@@ -133,7 +133,6 @@ eResult	Irisha::NICK_server(const std::string& new_nick, int source_sock)
 	old_nick = user->nick();
 	user->set_nick(new_nick);	// Change nick for external user
 	sys_msg(E_GEAR, "User", old_nick, "changed nick to", new_nick);
-	// TODO: send message to next server
 
 	return R_SUCCESS;
 }
@@ -237,7 +236,7 @@ eResult Irisha::PASS(const int sock)
  * @param		sock: command sender socket
  * @return		R_FAILURE if registration successfully, else R_FAILURE
  */
-eResult Irisha::SERVER(const int sock) ///TODO: test server tokens!
+eResult Irisha::SERVER(const int sock) ///TODO: 1. test server tokens! 2. Make sending information about new server to all network (not only neighbours)
 {
 	//validation+
 	if (cmd_.arguments_.empty())
@@ -969,26 +968,33 @@ eResult Irisha::KILL(const int sock)
 		err_needmoreparams(sock, "KILL");
 		return R_FAILURE;
 	}
-	User* sender = find_user(sock);
-	if (sender == nullptr) //! TODO: change !sender->is_operator() to function which shows if user is IRC-operator
+	AConnection* killer = find_connection(sock);
+	if (killer == nullptr) //! TODO: change !sender->is_operator() to function which shows if user is IRC-operator
 	{
 		err_noprivileges(sock);
 		return R_FAILURE;
 	}
 
-	AConnection* connection = find_connection(cmd_.arguments_[0]);
-	if (connection == nullptr)
+	AConnection* victim = find_connection(cmd_.arguments_[0]);
+	if (victim == nullptr)
 		err_nosuchnick(sock, cmd_.arguments_[0]);
-	else if (connection->type() == T_SERVER)
+	else if (victim->type() == T_SERVER)
 		err_cantkillserver(sock);
 	else
 	{
 		std::string msg(cmd_.arguments_[1].begin() + 1, cmd_.arguments_[1].end());
-		send_everyone(sender->nick(), "KILL " + cmd_.arguments_[0] + " :KILLed by " + sender->nick() + ": " + msg);
-		send_everyone(cmd_.arguments_[0], "QUIT :Killed by " + sender->nick());
-		if (connection->socket() != U_EXTERNAL_CONNECTION)
-			send_msg(connection->socket(), domain_, "ERROR :Killed by " + sender->nick() + ": " + msg);
-		handle_disconnection(connection->socket());
+		if (killer->type() == T_LOCAL_CLIENT)
+			send_everyone(connection_name(sock), "KILL " + cmd_.arguments_[0]
+						+ " :KILLed by " + connection_name(sock) + ": " + msg);
+		else if (killer->type() == T_SERVER)
+			send_msg(choose_sock(victim), connection_name(sock), "KILL "
+						+ cmd_.arguments_[0] + " :KILLed by " + connection_name(sock) + ": " + msg);
+		if (victim->type() == T_LOCAL_CLIENT)
+		{
+			send_everyone(cmd_.arguments_[0], "QUIT :Killed by " + connection_name(sock));
+			send_msg(victim->socket(), domain_, "ERROR :Killed by " + connection_name(sock) + ": " + msg);
+			handle_disconnection(victim->socket());
+		}
 		return R_SUCCESS;
 	}
 	return R_FAILURE;
