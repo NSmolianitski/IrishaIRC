@@ -41,9 +41,9 @@ void	Irisha::prepare_commands()
 }
 
 /**
- * make user operator of the network
- * @param sock soket
- * @return R_SUCCESS or R_FAILURE
+ * @description Makes user operator of the network
+ * @param		sock: socket
+ * @return		R_SUCCESS or R_FAILURE
  */
 eResult Irisha::OPER(const int sock)
 {
@@ -132,6 +132,7 @@ eResult	Irisha::NICK_server(const std::string& new_nick, int source_sock)
 	user->set_nick(new_nick);	// Change nick for external user
 	sys_msg(E_GEAR, "User", old_nick, "changed nick to", new_nick);
 	// TODO: send message to next server
+	send_servers(old_nick, "NICK " + new_nick, source_sock);
 
 	return R_SUCCESS;
 }

@@ -215,8 +215,11 @@ void Irisha::handle_disconnection(const int sock)
 		std::string	name = "unknown";
 		if (server != nullptr)
 			name = server->name();
-		sys_msg(E_BOOM, "Server", name, "disconnected!");
-		send_servers(name, msg);
+		if (name == "unknown")
+			sys_msg(E_BOOM, "Unknown connection disconnected!");
+		else
+			sys_msg(E_BOOM, "Server", name, "disconnected!");
+		send_servers(name, msg); //! TODO: send disconnection command to other servers
 	}
 	else
 	{
