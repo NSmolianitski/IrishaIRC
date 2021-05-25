@@ -257,8 +257,10 @@ void Irisha::send_channel(Channel *channel, std::string msg, std::string prefix)
 
     while (itr != ite)
     {
-        if ((*itr)->socket() != U_EXTERNAL_CONNECTION)
+        if ((*itr)->socket() != U_EXTERNAL_CONNECTION) {
+            std::cout << "HELLO SEND CHANNEL" << std::endl;
             send_msg((*itr)->socket(), prefix, msg);
+        }
         itr++;
     }
     send_servers(prefix, msg);
