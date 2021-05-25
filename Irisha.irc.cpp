@@ -34,11 +34,15 @@ void	Irisha::prepare_commands()
 	commands_.insert(std::pair<std::string, func>("KILL", &Irisha::KILL));
 	commands_.insert(std::pair<std::string, func>("ADMIN", &Irisha::ADMIN));
 	commands_.insert(std::pair<std::string, func>("ERROR", &Irisha::ERROR));
+	commands_.insert(std::pair<std::string, func>("MOTD", &Irisha::MOTD));
 	commands_.insert(std::pair<std::string, func>("256", &Irisha::RPL_256));
 	commands_.insert(std::pair<std::string, func>("257", &Irisha::RPL_257));
 	commands_.insert(std::pair<std::string, func>("258", &Irisha::RPL_258));
 	commands_.insert(std::pair<std::string, func>("259", &Irisha::RPL_259));
 	commands_.insert(std::pair<std::string, func>("421", &Irisha::RPL_421));
+	commands_.insert(std::pair<std::string, func>("375", &Irisha::MOTD_REPLIES));
+	commands_.insert(std::pair<std::string, func>("372", &Irisha::MOTD_REPLIES));
+	commands_.insert(std::pair<std::string, func>("376", &Irisha::MOTD_REPLIES));
 }
 
 /**
@@ -203,6 +207,7 @@ eResult Irisha::USER(const int sock)
 	else
 		user->set_mode(str_to_int(cmd_.arguments_[1]));
 	rpl_welcome(sock);
+	send_motd(sock);
 
 	sys_msg(E_MAN, "New local user", user->nick(), "registered!");
 	// NICK <nickname> <hopcount> <username> <host> <servertoken> <umode> <realname>
@@ -1114,11 +1119,111 @@ eResult Irisha::RPL_259(const int sock)
 	return R_SUCCESS;
 }
 
+/**
+ * @description	Does nothing for unknown command reply (just for server safety of infinite loops)
+ * @param		sock
+ * @return		R_SUCCESS
+ */
 eResult Irisha::RPL_421(const int sock)
 {
     return R_SUCCESS;
 }
 
+void Irisha::send_motd(const int sock)
+{
+	rpl_motdstart(sock, domain_);
+	rpl_motd(sock, " __      __          ___                                          __");
+	rpl_motd(sock, "/\\ \\  __/\\ \\        /\\_ \\                                        /\\ \\__");
+	rpl_motd(sock, "\\ \\ \\/\\ \\ \\ \\     __\\//\\ \\     ___    ___     ___ ___      __    \\ \\ ,_\\   ___");
+	rpl_motd(sock, " \\ \\ \\ \\ \\ \\ \\  /'__`\\\\ \\ \\   /'___\\ / __`\\ /' __` __`\\  /'__`\\   \\ \\ \\/  / __`\\");
+	rpl_motd(sock, "  \\ \\ \\_/ \\_\\ \\/\\  __/ \\_\\ \\_/\\ \\__//\\ \\L\\ \\/\\ \\/\\ \\/\\ \\/\\  __/    \\ \\ \\_/\\ \\L\\ \\");
+	rpl_motd(sock, "   \\ `\\___x___/\\ \\____\\/\\____\\ \\____\\ \\____/\\ \\_\\ \\_\\ \\_\\ \\____\\    \\ \\__\\ \\____/");
+	rpl_motd(sock, "    '\\/__//__/  \\/____/\\/____/\\/____/\\/___/  \\/_/\\/_/\\/_/\\/____/     \\/__/\\/___/");
+	rpl_motd(sock, "");
+	rpl_motd(sock, "");
+	rpl_motd(sock, " __ __  ______   ____    ______  ____    __  __  ______      ______   ____    ____     __ __");
+	rpl_motd(sock, "/\\ \\\\ \\/\\__  _\\ /\\  _`\\ /\\__  _\\/\\  _`\\ /\\ \\/\\ \\/\\  _  \\    /\\__  _\\ /\\  _`\\ /\\  _`\\  /\\ \\\\ \\");
+	rpl_motd(sock, "\\ \\_\\\\_\\/_/\\ \\/ \\ \\ \\L\\ \\/_/\\ \\/\\ \\,\\L\\_\\ \\ \\_\\ \\ \\ \\L\\ \\   \\/_/\\ \\/ \\ \\ \\L\\ \\ \\ \\/\\_\\\\ \\_\\\\_\\");
+	rpl_motd(sock, " \\/_//_/  \\ \\ \\  \\ \\ ,  /  \\ \\ \\ \\/_\\__ \\\\ \\  _  \\ \\  __ \\     \\ \\ \\  \\ \\ ,  /\\ \\ \\/_/_\\/_//_/");
+	rpl_motd(sock, "           \\_\\ \\__\\ \\ \\\\ \\  \\_\\ \\__/\\ \\L\\ \\ \\ \\ \\ \\ \\ \\/\\ \\     \\_\\ \\__\\ \\ \\\\ \\\\ \\ \\L\\ \\");
+	rpl_motd(sock, "           /\\_____\\\\ \\_\\ \\_\\/\\_____\\ `\\____\\ \\_\\ \\_\\ \\_\\ \\_\\    /\\_____\\\\ \\_\\ \\_\\ \\____/");
+	rpl_motd(sock, "           \\/_____/ \\/_/\\/ /\\/_____/\\/_____/\\/_/\\/_/\\/_/\\/_/    \\/_____/ \\/_/\\/ /\\/___/");
+	rpl_motd(sock, "");
+	rpl_motd(sock, "");
+	rpl_motd(sock, "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@                                              @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+	rpl_motd(sock, "  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@                                                  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+	rpl_motd(sock, "	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@(          @@@@@@@@&                 /@@@@@@@@@          @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+	rpl_motd(sock, "	  @@@.                                   @@@@@@@@@@@@@@@@@@@@@&          (@@@  @@@@@@               @@@@@@@@@@@@           @@@@@@@@@@@@@@@@@@@@@*                                   #@@@");
+	rpl_motd(sock, "				*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ @@@@@@           @@@@  @@@@@ .@@@         @@@@  @@@@@  @@@@          @@@@@@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+	rpl_motd(sock, "		  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@      /@@@@@@@@@@@@@         @@@@         @@@@@@@@#  @@@@@@@@@         @@@@         @@@@@@@@@@@@@       @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+	rpl_motd(sock, "			@@@@@@@@@@@@@@@@@@@,          /@@@@@@@@@@@@@@@@@@@@@@           @           @@@@@@@    @@@@@@                        @@@@@@@@@@@@@@@@@@@@@@           @@@@@@@@@@@@@@@@@@@");
+	rpl_motd(sock, "			   @@@               ,@@@@@@@@@@@@@@@@@@@@@@  @@@@@@@@                    @   @@@@  @@  @@@   @,                    @@@@@@@   @@@@@@@@@@@@@@@@@@@@@@               %@@@");
+	rpl_motd(sock, "						.@@@@@@@@@@@@@@@@@@@@@@@@     @@@@@@@@@@@@@@           *@@@@@@@@@@  @  @@@@     @@@@@@@@@@           %@@@@@@@@@@@@@@    @@@@@@@@@@@@@@@@@@@@@@@@@");
+	rpl_motd(sock, "					@@@@@@@@@@@@@@@@@@@@@@@      @@@@@@@@@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@  @@@@@@  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ @@@@@@@@@&      @@@@@@@@@@@@@@@@@@@@@@@");
+	rpl_motd(sock, "					   @@@@@@@@@@@@@&       @@@@@@@@@@@@ /@@@@@@@@@@@@@@@@@@@@@@@@@@ &@@@@@  @@@@@@@@  @@@@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@  @@@@@@@@@@@        @@@@@@@@@@@@@@");
+	rpl_motd(sock, "						  @@@@          @@@@@@@@@@@@   @@@@@@@@ @@@@@@@@@@@@@@@@@@@  @@@@@  @@@@@@@@@@  @@@@@ @@@@@@@@@@@@@@@@@@@@ @@@@@@@   @@@@@@@@@@@@@         @@@@@");
+	rpl_motd(sock, "								   @@@@@@@@@@@@@@    @@@@@@@@ @@@@@@  @@@@ @@@@  @ @@@@@@  @@@@@@@@@@@@  @@@@@@ @ @@@@@@@@@@ @@@@@@  @@@@@@@@   @@@@@@@@@@@@@@");
+	rpl_motd(sock, "								@@@@@@@@@@@@@@    @@@@@@@@@  @@@@@@  @@@@@ @@@@  @@@@@@@  @@@@@@@@@@@@@@  @@@@@@  @@@@@ @@@@@ @@@@@@@  @@@@@@@@    @@@@@@@@@@@@@@@");
+	rpl_motd(sock, "								   @@@@@@@@     @@@@@@@@@  @@@@@@@  @@@@@  @@@  @@@@@@@  @@@@@@@@@@@@@@@.  @@@@@@@  @@@ @@@@@@  @@@@@@   @@@@@@@@@    @@@@@@@@@");
+	rpl_motd(sock, "									  @@      @@@@@@@@@   @@@@@@@  @@@@@@  @  @@@@@@@@  @@@@@@@@@@@@@@@@@   @@@@@@@@  @  @@@@@   @@@@@@@  @@@@@@@@@@      @@");
+	rpl_motd(sock, "										   @@@@@@@@@@   @@@@@@@@  @@@@@@         @@@@  @@@@@@@@@@@@@@@@@@@   @@@@         @@@@@   @@@@@@@   @@@@@@@@@@");
+	rpl_motd(sock, "											 @@@@@@    @@@@@@@@   @@@@                @@@@@@@@@@@@@@@@@@@@@                @@@@@   @@@@@@@@   @@@@@@");
+	rpl_motd(sock, "													  @@@@@@@@   @@                  @@@@@@@@@@@@@@@@@@@@@@@                   @@   @@@@@@@@");
+	rpl_motd(sock, "																					   @@@@@@@@@@@@@@@@@@@");
+	rpl_motd(sock, "																				    @@@   @@@@@@@@@@@@@    @@@");
+	rpl_motd(sock, "																				  @@@@@   @@@@@@@@@@@@@@  @@@@@");
+	rpl_motd(sock, "																				 @@@@@   @@, @@@@@@@@ @@@  @@@@@ ");
+	rpl_motd(sock, "																		 @@@@@@@@@@@@   @@  @@*@@@ @@@ @@@   @@@@@@@@@@@");
+	rpl_motd(sock, "																		  @@@@@@@@@@@  @@  @@@ @@@@ @@@ @@   @@@@@@@@@@@");
+	rpl_motd(sock, "																		  @  @@@@ @@@@     @@ @@@@@@ @@    @@@@@*@@@");
+	rpl_motd(sock, "																			@@@   @@@        @@@@@@@         @@@  @@@@");
+	rpl_motd(sock, "																		   @@@                 @@@@                 @@@");
+	rpl_motd(sock, "																		   @@@@                                    @@@@");
+
+	rpl_endofmotd(sock);
+}
+
+eResult Irisha::MOTD(const int sock)
+{
+	User*	user;
+	if (check_user(sock, user, cmd_.prefix_) == R_FAILURE)
+		return R_FAILURE;
+
+	if (cmd_.arguments_.empty() || cmd_.arguments_[0] == domain_)
+		send_motd(sock);
+	else
+	{
+		Server*	server = find_server(cmd_.arguments_[0]);
+		if (server == nullptr)
+		{
+			err_nosuchserver(sock, cmd_.arguments_[0]);
+			return R_FAILURE;
+		}
+		send_msg(choose_sock(server), user->nick(), "MOTD :" + cmd_.arguments_[0]);
+	}
+	return R_FAILURE;
+}
+
+/**
+ * @description	Handles MOTD reply
+ * @param		sock
+ * @return
+ */
+eResult Irisha::MOTD_REPLIES(const int sock)
+{
+	if (!is_enough_args(sock, cmd_.command_, 2))
+		return R_FAILURE;
+
+	User*	user = find_user(cmd_.arguments_[0]);
+	if (user == nullptr)
+	{
+		err_nosuchnick(sock, cmd_.arguments_[0]);
+		return R_FAILURE;
+	}
+	send_msg(choose_sock(user), domain_,cmd_.command_
+					+ " " + cmd_.arguments_[0] + " " + cmd_.arguments_[1]);
+	return R_SUCCESS;
+}
 
 /*
  * OPER

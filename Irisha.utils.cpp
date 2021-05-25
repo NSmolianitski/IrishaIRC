@@ -348,7 +348,7 @@ eResult Irisha::check_user(int sock, User*& user, const std::string& nick)
  */
 bool Irisha::is_enough_args(int sock, const std::string& command, int min_args_number)
 {
-    if (cmd_.arguments_.size() == min_args_number)
+    if (cmd_.arguments_.size() >= min_args_number)
         return true;
     else
     {
