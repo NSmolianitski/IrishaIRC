@@ -657,8 +657,8 @@ eResult Irisha::JOIN(const int sock)
                     send_msg(user->socket(), domain_, "366 " + user->nick() + " " + arr_channel[i] +" :End of NAMES list");
                     send_servers(user->nick(), "JOIN " + arr_channel[i]);
                 }
-//                else
-//                    send_servers(user->nick(), "JOIN " + arr_channel[i], sock);
+                else
+                    send_servers(user->nick(), "JOIN " + arr_channel[i], sock);
             }
             else{
                 if (cmd_.type_ == T_LOCAL_CLIENT) {
