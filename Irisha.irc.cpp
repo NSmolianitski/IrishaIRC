@@ -414,33 +414,26 @@ eResult Irisha::PING(const int sock)
 eResult Irisha::QUIT(const int sock)
 {
 	User*	user;
-	bool	local = true;
-	if (cmd_.prefix_.empty())
-		user = find_user(sock);
-	else
-	{
-		user = find_user(cmd_.prefix_);
-		local = false;
-	}
+	check_user(sock, user, cmd_.prefix_);
 
-	std::string	msg;
+	std::string	msg = "user disconnected";
 	if (user == nullptr)
 	{
 		sys_msg(E_CROSS, "Can't disconnect user", cmd_.prefix_, "(don't worry, not our problem)");
 		return R_FAILURE;
 	}
-	msg = sys_msg(E_SCULL, "User", user->nick(), "disconnected!");
+	sys_msg(E_SCULL, "User", user->nick(), "disconnected!");
 	if (!cmd_.arguments_.empty())
 		msg = cmd_.arguments_[0];
 
-	if (local)
+	if (user->socket() != U_EXTERNAL_CONNECTION) // If local user
 	{
-		send_servers(user->nick(), msg);
+		send_servers(user->nick(), "QUIT :" + msg);
 		FD_CLR(sock, &all_fds_);
 		close(sock);
 	}
 	else
-		send_servers(user->nick(), msg, sock);
+		send_servers(user->nick(), "QUIT :" + msg, sock);
 	remove_user(user->nick());
 	delete user;
 	return R_SUCCESS;
