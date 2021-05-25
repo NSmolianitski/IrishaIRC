@@ -966,23 +966,23 @@ eResult Irisha::TOPIC(const int sock)
 
 eResult Irisha::PRIVMSG(const int sock)
 {
-    User* user;
-
-    if (check_user(sock, user, cmd_.prefix_) == R_FAILURE)
+//    User* user;
+    User* sender;
+    if (check_user(sock, sender, cmd_.prefix_) == R_FAILURE)
         return R_FAILURE;
 
     if (cmd_.arguments_.size() == 0){
-        send_msg(sock, domain_, "411 " + user->nick() + " " + " :No recipient given (PRIVMSG)");
+        send_msg(sender->socket(), domain_, "411 " + sender->nick() + " " + " :No recipient given (PRIVMSG)");
         return R_SUCCESS;
     }
     if (cmd_.arguments_.size() == 1){
-        send_msg(sock, domain_, "412 " + user->nick() + " " + " :No text to send");
+        send_msg(sender->socket(), domain_, "412 " + sender->nick() + " " + " :No text to send");
         return R_SUCCESS;
     }
 
     std::list<std::string> arr_receiver;
     std::string str_receiver = cmd_.arguments_[0];
-//    User* user;
+    User* user;
 
     parse_arr_list(arr_receiver, str_receiver, ',');
     arr_receiver.sort();
@@ -1005,15 +1005,25 @@ eResult Irisha::PRIVMSG(const int sock)
                 arr_receiver.pop_front();
                 continue;
             }
-            send_channel((*itr).second, "PRIVMSG " + arr_receiver.front() + " " + cmd_.arguments_[1], find_user(sock)->nick(), sock);
+            if (cmd_.type_ == T_LOCAL_CLIENT)
+                send_channel((*itr).second, "PRIVMSG " + arr_receiver.front() + " " + cmd_.arguments_[1], sender->nick(), sock);
+            else
+                send_channel((*itr).second, "PRIVMSG " + arr_receiver.front() + " " + cmd_.arguments_[1], sender->nick(), choose_sock(sender));
         } else {
-            user = find_user(arr_receiver.front());
-            if (user != nullptr){
-                err_nosuchnick(sock, arr_receiver.front());
+//            user = find_user(arr_receiver.front());
+//            if (user != nullptr){
+//                err_nosuchnick(user->socket(), arr_receiver.front());
+//                arr_receiver.pop_front();
+//                continue;
+//            }
+            if (check_user(find_user(arr_receiver.front())->socket(), user, cmd_.prefix_) == R_FAILURE){
                 arr_receiver.pop_front();
                 continue;
             }
-            send_msg(sock, find_user(sock)->nick(), "PRIVMSG " + arr_receiver.front() + " " + cmd_.arguments_[1]);
+//            if (cmd_.type_ == T_LOCAL_CLIENT)
+//                send_msg(sender->socket(), sender->nick(), "PRIVMSG " + arr_receiver.front() + " " + cmd_.arguments_[1]);
+//            else
+                send_msg(choose_sock(user), sender->nick(), "PRIVMSG " + arr_receiver.front() + " " + cmd_.arguments_[1]);
         }
         arr_receiver.pop_front();
     }
