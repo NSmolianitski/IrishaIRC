@@ -39,7 +39,14 @@ void Irisha::add_user(int source_sock) // [0]<nick> [1]<hopcount> [2]<username> 
  */
 void Irisha::remove_user(const std::string& nick)
 {
+	User* user = find_user(nick);
+	if (user == nullptr)
+	{
+		std::cout << E_CROSS RED "Can't remove user " + nick + CLR << std::endl;
+		return;
+	}
 	connections_.erase(nick);
+	delete user;
 }
 
 /**

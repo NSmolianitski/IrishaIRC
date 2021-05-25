@@ -428,14 +428,13 @@ eResult Irisha::QUIT(const int sock)
 
 	if (user->socket() != U_EXTERNAL_CONNECTION) // If local user
 	{
-		send_servers(user->nick(), "QUIT :" + msg);
+		send_servers(user->nick(), "QUIT " + msg);
 		FD_CLR(sock, &all_fds_);
 		close(sock);
 	}
 	else
-		send_servers(user->nick(), "QUIT :" + msg, sock);
+		send_servers(user->nick(), "QUIT " + msg, sock);
 	remove_user(user->nick());
-	delete user;
 	return R_SUCCESS;
 }
 

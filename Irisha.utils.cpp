@@ -511,7 +511,7 @@ void Irisha::close_connection(const int sock, const std::string& comment)
 {
 	if (sock == U_EXTERNAL_CONNECTION)
 	{
-		std::cout << E_CROSS RED " ALARM! TRYING TO CLOSE EXTERNAL CONNECTION! " E_CROSS << std::endl;
+		std::cout << E_CROSS RED " ALARM! TRYING TO CLOSE EXTERNAL CONNECTION! " E_CROSS CLR << std::endl;
 		return;
 	}
 
