@@ -1341,9 +1341,12 @@ eResult Irisha::SQUIT(const int sock)
 	if (cmd_.prefix_ == "")
 		send_servers(connection_name(sock), cmd_.line_, sock);
 	else
-		send_servers(cmd_.line_, sock);
-	if (server->socket() != U_EXTERNAL_CONNECTION)
-		close_connection(choose_sock(server), cmd_.arguments_[1]);
+		send_msg(choose_sock(server), cmd_.line_);
+	if (server->name() == domain_)
+	{
+		send_servers(domain_, "SQUIT :received SQUIT command", sock);
+		exit(0);
+	}
 	else
 		sys_msg(E_BOOM, "Server", server->name(), "disconnected!");
 
