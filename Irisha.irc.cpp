@@ -316,6 +316,7 @@ eResult Irisha::SERVER(const int sock) ///TODO: 1. test server tokens! 2. Make s
 					send_msg(sock, domain_, createNICKmsg(usr));		//local client
 				}
 			}
+			send_channels(sock);
 		}
 		PING(sock);
 	}
