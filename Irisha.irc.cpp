@@ -938,13 +938,13 @@ eResult Irisha::KICK(const int sock)
     (*itr).second->delUser(user);
     if (user->socket() != U_EXTERNAL_CONNECTION)
         send_msg(user->socket(), sender->nick(), "KICK " + cmd_.arguments_[0] + " " + cmd_.arguments_[1] + " " + cmd_.arguments_[2]);
-    if (sender->socket() != U_EXTERNAL_CONNECTION){
-//        send_msg(sock, sender->nick(), "KICK " + cmd_.arguments_[0] + " " + cmd_.arguments_[1] + " " + cmd_.arguments_[2]);
+    if (sender->socket() != U_EXTERNAL_CONNECTION)
+        send_msg(sock, sender->nick(), "KICK " + cmd_.arguments_[0] + " " + cmd_.arguments_[1] + " " + cmd_.arguments_[2]);
 //        send_msg(user->socket(), sender->nick(), "KICK " + cmd_.arguments_[0] + " " + cmd_.arguments_[1] + " " + cmd_.arguments_[2]);
-        send_channel((*itr).second, "KICK " + cmd_.arguments_[0] + " " + cmd_.arguments_[1] + " " + cmd_.arguments_[2], sender->nick());
-    }
-    else
-        send_servers(sender->nick(), "KICK " + cmd_.arguments_[0] + " " + cmd_.arguments_[1] + " " + cmd_.arguments_[2], sock);
+    send_channel((*itr).second, "KICK " + cmd_.arguments_[0] + " " + cmd_.arguments_[1] + " " + cmd_.arguments_[2], sender->nick(), sock);
+//    }
+//    else
+//        send_servers(sender->nick(), "KICK " + cmd_.arguments_[0] + " " + cmd_.arguments_[1] + " " + cmd_.arguments_[2], sock);
     return R_SUCCESS;
 }
 //:WiZ KICK #Finnish John
