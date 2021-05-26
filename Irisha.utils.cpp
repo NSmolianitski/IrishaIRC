@@ -614,6 +614,41 @@ void Irisha::remove_server(const std::string& name)
 	delete server;
 }
 
+void Irisha::remove_server(Server*& server)
+{
+	if (server == nullptr)
+	{
+		std::cout << E_CROSS RED "Can't remove server " + server->name() + CLR << std::endl;
+		return;
+	}
+	if (server->socket() != U_EXTERNAL_CONNECTION)
+	{
+		FD_CLR(server->socket(), &all_fds_);
+		close(server->socket());
+	}
+	connections_.erase(server->name());
+	delete server;
+}
+
+/**
+ * @description	Removes servers that are connected to server
+ * @param		server: server pointer
+ */
+void Irisha::remove_far_servers(Server*& server)
+{
+	int sock = choose_sock(server); // Socket of the desired server
+
+	Server*	tmp;
+	for (con_it it = connections_.begin(); it != connections_.end(); ++it)
+	{
+		if (it->second->type() == T_SERVER && choose_sock(it->second) == sock)
+		{
+			tmp = static_cast<Server*>(it->second);
+			remove_server(tmp);
+		}
+	}
+}
+
 /// ‼️ ⚠️ DEVELOPMENT UTILS (REMOVE OR COMMENT WHEN PROJECT IS READY) ⚠️ ‼️ //! TODO: DEV -> REMOVE /////////////////////
 #define GUEST52 "Guest52" //! TODO: REMOVE
 

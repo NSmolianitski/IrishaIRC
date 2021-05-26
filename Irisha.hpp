@@ -118,11 +118,15 @@ private:
 	void			add_user			(const int sock, const std::string& nick);
 	void			add_user			(int source_sock);
 	void			remove_user			(const std::string& nick);
+	void			remove_user			(User*& user);
+	void			remove_server_users	(const std::string& name);
 	User*			find_user			(const std::string& nick) const;
 	User*			find_user			(const int sock) const;
 
 	/// Servers
 	void			remove_server		(const std::string& name);
+	void			remove_server		(Server*& server);
+	void			remove_far_servers	(Server*& server);
 	Server*			find_server			(const std::string& name) const;
 	Server*			find_server			(const int sock) const;
 
