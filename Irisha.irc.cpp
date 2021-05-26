@@ -1345,9 +1345,10 @@ eResult Irisha::SQUIT(const int sock)
 		return R_FAILURE;
 
 	if (cmd_.prefix_ == "")
-		send_msg(choose_sock(server), connection_name(sock), "SQUIT " + cmd_.arguments_[0] + " :" + cmd_.arguments_[1]); //! TODO: add is_irc_operator check
+		send_msg(choose_sock(server), connection_name(sock), "SQUIT "
+				+ cmd_.arguments_[0] + " :" + cmd_.arguments_[1]); //! TODO: add is_irc_operator check
 	else
-		send_msg(choose_sock(server), cmd_.prefix_, cmd_.line_);
+		send_msg(choose_sock(server), cmd_.line_);
 	sys_msg(E_BOOM, "Server", server->name(), "disconnected!");
 	remove_server(server->name());
 
