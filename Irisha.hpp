@@ -159,6 +159,7 @@ private:
     bool            is_enough_args      (int sock, const std::string& command, int min_args_number);
     User*			determine_user		(int sock);
 
+    void            send_channels       (int sock);
 	///	System messages
 	std::string		sys_msg				(const std::string& emoji, const std::string& str) const;
 	std::string		sys_msg				(const std::string& emoji, const std::string& str
@@ -201,6 +202,7 @@ private:
 	eResult			MOTD_REPLIES		(const int sock);
 	eResult			LUSERS				(const int sock);
 	eResult			SQUIT				(const int sock);
+    eResult         NJOIN               (const int sock);
 	eResult			VERSION				(const int sock);
 	eResult			CONNECT				(const int sock);
 	eResult			STATS				(const int sock);

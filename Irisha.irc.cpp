@@ -20,6 +20,7 @@ void	Irisha::prepare_commands()
 	commands_.insert(std::pair<std::string, func>("PING", &Irisha::PING));
 	commands_.insert(std::pair<std::string, func>("PONG", &Irisha::PONG));
 	commands_.insert(std::pair<std::string, func>("JOIN", &Irisha::JOIN));
+	commands_.insert(std::pair<std::string, func>("NJOIN", &Irisha::NJOIN));
 	commands_.insert(std::pair<std::string, func>("MODE", &Irisha::MODE));
 	commands_.insert(std::pair<std::string, func>("PART", &Irisha::PART));
 	commands_.insert(std::pair<std::string, func>("QUIT", &Irisha::QUIT));
@@ -665,6 +666,7 @@ eResult Irisha::MODE(const int sock) // Доделать !!!
                 return R_SUCCESS;
             }
             send_msg(user->socket(), domain_, "324 " + user->nick() + " " + cmd_.arguments_[0] + " +" + (*itr).second->getListMode());
+            send_channels(sock); // DELETE
             return R_SUCCESS;
         }
         if (!(*itr).second->isOperator(user)){ // Error is operator
@@ -884,6 +886,35 @@ eResult Irisha::JOIN(const int sock)
                 send_channel((*itr).second, "JOIN " + arr_channel[i], user->nick(), sock);
             }
         }
+    }
+    return R_SUCCESS;
+}
+
+eResult Irisha::NJOIN(const int sock)
+{
+    std::vector<std::string> arr_users;
+
+    if (cmd_.arguments_.size() == 0)
+        return R_SUCCESS;
+    cmd_.arguments_[1].erase(cmd_.arguments_[1].begin());
+    parse_arr(arr_users, cmd_.arguments_[1], ',');
+    std::map<std::string, Channel*>::iterator itr = channels_.find(cmd_.arguments_[0]);
+    if (itr == channels_.end())
+    {
+        Channel* channel = new Channel(cmd_.arguments_[0]);
+        channel->setType(cmd_.arguments_[0][0]);
+        for (int i = 0; i < arr_users.size(); ++i) {
+            if (arr_users[i][0] == '@'){
+                arr_users[i].erase(arr_users[i].begin());
+                channel->addOperators(find_user(arr_users[i]));
+            }
+            else if (arr_users[i][0] == '+'){
+                arr_users[i].erase(arr_users[i].begin());
+                channel->addModeratorUser(find_user(arr_users[i]));
+            }
+            channel->addUser(find_user(arr_users[i]));
+        }
+        channels_.insert(std::pair<std::string, Channel*>(cmd_.arguments_[0], channel));
     }
     return R_SUCCESS;
 }
