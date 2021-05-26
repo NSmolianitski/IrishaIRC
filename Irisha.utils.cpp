@@ -580,7 +580,7 @@ void Irisha::close_connection(const int sock, const std::string& comment)
 		{
 			name = server->name();
 			remove_server(server->name());
-			send_servers(name, "SQUIT :" + name + " " + comment);
+			send_servers(name, "SQUIT " + name + " :" + comment);
 		}
 		if (name == "unknown")
 			sys_msg(E_BOOM, "Unknown connection closed!"); // Handle non-registered connection

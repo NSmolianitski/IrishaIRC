@@ -217,7 +217,7 @@ void Irisha::handle_disconnection(const int sock)
 		{
 			name = server->name();
 			remove_server(server->name());
-			send_servers(name, "SQUIT :" + name + " connection lost");
+			send_servers(name, "SQUIT " + name + " :connection lost");
 		}
 		if (name == "unknown")
 			sys_msg(E_BOOM, "Unknown connection closed!"); // Handle non-registered connection
