@@ -1350,9 +1350,9 @@ eResult Irisha::SQUIT(const int sock)
 	}
 
 	if (cmd_.prefix_ == "")
-		send_msg(choose_sock(server), connection_name(sock), cmd_.arguments_[1]);
+		send_msg(choose_sock(server), connection_name(sock), " :" + cmd_.line_);
 	else
-		send_msg(choose_sock(server), cmd_.arguments_[1]);
+		send_msg(choose_sock(server), " :" + cmd_.line_);
 
 	return R_SUCCESS;
 }
