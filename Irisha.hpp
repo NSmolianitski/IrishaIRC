@@ -196,6 +196,7 @@ private:
 	eResult			MOTD_REPLIES		(const int sock);
 	eResult			LUSERS				(const int sock);
 	eResult			SQUIT				(const int sock);
+	eResult			VERSION				(const int sock);
 
 	/// IRC commands utils
 	void			admin_info			(const int sock, const std::string& receiver);
@@ -212,6 +213,7 @@ private:
 	void			count_global		(int& users, int& servers) const;
 	void			count_local			(int& users, int& servers) const;
 	void			send_lusers_replies	(const int sock) const;
+	eResult 		send_bounce_reply	(int sock);
 
 	/// Error replies
 	void			err_nosuchserver		(const int sock, const std::string& server) const;
@@ -267,7 +269,7 @@ private:
 	void			rpl_topic				(const int sock, const std::string& channel, const std::string& topic) const;
 	void			rpl_notopic				(const int sock, const std::string& channel) const;
 	void			rpl_inviting			(const int sock, const std::string& channel, const std::string& nick) const;
-	void			rpl_version				(const int sock, const std::string& version, const std::string& debug_lvl
+	void			rpl_version				(const int sock, const std::string& target, const std::string& version, const std::string& debug_lvl
 												, const std::string& server, const std::string& comments) const;
 	void			rpl_adminme				(const int sock, const std::string& target, const std::string& server) const;
 	void			rpl_adminloc1			(const int sock, const std::string& target, const std::string& info) const;

@@ -312,10 +312,11 @@ void Irisha::rpl_inviting(const int sock, const std::string& channel, const std:
 	send_rpl_msg(sock, RPL_INVITING, nick + " " + channel);
 }
 
-void Irisha::rpl_version(const int sock, const std::string& version, const std::string& debug_lvl
+void Irisha::rpl_version(const int sock, const std::string& target, const std::string& version, const std::string& debug_lvl
 						 	, const std::string& server, const std::string& comments) const
 {
-	send_rpl_msg(sock, RPL_VERSION, version + "." + debug_lvl + " " + server + " :" + comments);
+	send_msg(sock, domain_, rpl_code_to_str(RPL_VERSION) + " " + target + " " + version + "." +
+		debug_lvl + " " + server + " :" + comments);
 }
 
 void Irisha::rpl_adminme(const int sock, const std::string& target, const std::string& server) const

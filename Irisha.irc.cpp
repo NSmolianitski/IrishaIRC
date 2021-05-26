@@ -45,9 +45,58 @@ void	Irisha::prepare_commands()
 	commands_.insert(std::pair<std::string, func>("376", &Irisha::MOTD_REPLIES));
 	commands_.insert(std::pair<std::string, func>("LUSERS", &Irisha::LUSERS));
 	commands_.insert(std::pair<std::string, func>("SQUIT", &Irisha::SQUIT));
+	commands_.insert(std::pair<std::string, func>("VERSION", &Irisha::VERSION));
+	commands_.insert(std::pair<std::string, func>("351", &Irisha::VERSION));
+	commands_.insert(std::pair<std::string, func>("005", &Irisha::send_bounce_reply));
 }
 
 /**
+ * Handles IRC VERSION command
+ * send version info about this server or send VERSION message to the other server
+ * @param sock socket
+ * @return R_SUCCESS or R_FAILURE
+ */
+eResult Irisha::VERSION(const int sock)
+{
+	if (cmd_.command_ == "351") //reply
+	{
+		if (cmd_.arguments_.empty())
+			return R_FAILURE;
+		User* target = find_user(cmd_.arguments_[0]);
+		if (target == 0)
+			return R_FAILURE;
+		send_msg(choose_sock(target), cmd_.line_);
+		return R_SUCCESS;
+	}
+
+	AConnection* sender = find_connection(sock);
+	if (sender == 0)
+		return R_FAILURE;
+	std::string nick;
+	if (sender->type() == T_CLIENT)
+		nick = static_cast<User*>(sender)->nick();
+	else
+		nick = cmd_.prefix_;
+
+	//send info about current server
+	if (cmd_.arguments_.size() == 0 || (cmd_.arguments_[0] == this->domain_))
+	{
+		rpl_version(sock, nick, "Irisha-1.0", "1", this->domain_, "");
+		return R_SUCCESS;
+	}
+	//send query to other server
+	Server*	target = find_server(cmd_.arguments_[0]);
+	if (target == 0)
+	{
+		err_nosuchserver(sock, cmd_.arguments_[0]);
+		return R_FAILURE;
+	}
+	send_msg(choose_sock(target), nick, "VERSION " + cmd_.arguments_[0]);
+	return R_SUCCESS;
+}
+
+/**
+ * Handles IRC OPER command
  * make user operator of the network
  * @param sock soket
  * @return R_SUCCESS or R_FAILURE
