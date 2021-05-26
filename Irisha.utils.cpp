@@ -4,6 +4,20 @@
 #include "Channel.hpp"
 #include <sstream>
 
+eResult Irisha::send_bounce_reply(int sock)
+{
+	User* target = find_user(cmd_.arguments_[0]);
+	if (target == 0)
+		return R_FAILURE;
+	send_msg(choose_sock(target), cmd_.line_);
+	return R_SUCCESS;
+}
+
+/**
+ * returns socket to send message for connection
+ * @param where will message sent
+ * @return socket
+ */
 int Irisha::choose_sock(AConnection *connection)
 {
 	if (connection->socket() == U_EXTERNAL_CONNECTION)
