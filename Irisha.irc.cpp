@@ -1346,12 +1346,13 @@ eResult Irisha::SQUIT(const int sock)
 		if (check_server(sock, server) == R_FAILURE)
 			return R_FAILURE;
 		sys_msg(E_BOOM, "Server", server->name(), "disconnected!");
+		remove_server(server->name());
 	}
 
 	if (cmd_.prefix_ == "")
-		send_msg(choose_sock(server), connection_name(sock), cmd_.line_);
+		send_msg(choose_sock(server), connection_name(sock), cmd_.arguments_[1]);
 	else
-		send_msg(choose_sock(server), cmd_.line_);
+		send_msg(choose_sock(server), cmd_.arguments_[1]);
 
 	return R_SUCCESS;
 }

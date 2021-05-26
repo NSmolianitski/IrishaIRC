@@ -605,6 +605,11 @@ void Irisha::remove_server(const std::string& name)
 		std::cout << E_CROSS RED "Can't remove server " + name + CLR << std::endl;
 		return;
 	}
+	if (server->socket() != U_EXTERNAL_CONNECTION)
+	{
+		FD_CLR(server->socket(), &all_fds_);
+		close(server->socket());
+	}
 	connections_.erase(name);
 	delete server;
 }
