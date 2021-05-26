@@ -1303,6 +1303,27 @@ eResult Irisha::LUSERS(const int sock) //! TODO: handle replies to and from othe
 	return R_SUCCESS;
 }
 
+///**
+// * @description	Handles LUSERS replies
+// * @param		sock
+// * @return
+// */
+//eResult Irisha::LUSERS_REPLIES(const int sock)
+//{
+//	if (!is_enough_args(sock, cmd_.command_, 2))
+//		return R_FAILURE;
+//
+//	User*	user = find_user(cmd_.arguments_[0]);
+//	if (user == nullptr)
+//	{
+//		err_nosuchnick(sock, cmd_.arguments_[0]);
+//		return R_FAILURE;
+//	}
+//	send_msg(choose_sock(user), domain_,cmd_.command_
+//										+ " " + cmd_.arguments_[0] + " " + cmd_.arguments_[1]);
+//	return R_SUCCESS;
+//}
+
 /**
  * @description	Handles SQUIT command (disconnects servers)
  * @param		sock
