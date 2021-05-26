@@ -651,7 +651,12 @@ eResult Irisha::MODE(const int sock) // Доделать !!!
     int         flag_mode = 2; // 1 on 0 off
     std::map<char, int>::const_iterator itr_m;
     std::list<std::string> arr_param; // array param for mode
+    User* user;
 
+    if (check_user(sock, user, cmd_.prefix_) == R_FAILURE)
+        return R_FAILURE;
+    if (!is_enough_args(user->socket(), cmd_.command_, 1))
+        return R_FAILURE;
     if ((cmd_.arguments_[0][0] == '#' || cmd_.arguments_[0][0] == '&' || cmd_.arguments_[0][0] == '+' || cmd_.arguments_[0][0] == '!')){ // it's channel ?
         std::map<std::string, Channel*>::iterator itr = channels_.find(cmd_.arguments_[0]);
         if (cmd_.arguments_.size() == 1) {
@@ -826,6 +831,8 @@ eResult Irisha::JOIN(const int sock)
     User* user;
     if (check_user(sock, user, cmd_.prefix_) == R_FAILURE)
         return R_FAILURE;
+    if (!is_enough_args(user->socket(), cmd_.command_, 1))
+        return R_FAILURE;
     if (cmd_.arguments_.size() == 2){
         std::string str_keys = cmd_.arguments_[1]; // string keys "hello,world"
         parse_arr_list(arr_key, str_keys, ',');
@@ -887,7 +894,8 @@ eResult Irisha::PART(const int sock)
 
     if (check_user(sock, user, cmd_.prefix_) == R_FAILURE)
         return R_FAILURE;
-
+//    if (!is_enough_args(user->socket(), cmd_.command_, 1))
+//        return R_FAILURE;
     parse_arr(arr_channel, str_channels, ',');
     for (size_t i = 0; i < arr_channel.size(); ++i) {
         if ((arr_channel[i][0] == '#' || arr_channel[i][0] == '&' || arr_channel[i][0] == '+' || arr_channel[i][0] == '!')){
@@ -1037,6 +1045,10 @@ eResult Irisha::NAMES(const int sock) // list users channels
 {
     std::vector<std::string> arr_channel;
     std::string str_channels = cmd_.arguments_[0];
+    User* user;
+
+    if (check_user(sock, user, cmd_.prefix_) == R_FAILURE)
+        return R_FAILURE;
 
     parse_arr(arr_channel, str_channels, ',');
     for (size_t i = 0; i < arr_channel.size(); ++i) {
@@ -1046,8 +1058,8 @@ eResult Irisha::NAMES(const int sock) // list users channels
                 continue;
             if (itr->second->getMode().find('s')->second == 1 && !itr->second->isUser(find_user(sock)))
                     continue;
-            send_msg(sock, domain_, "353 " + find_user(sock)->nick() + " = " + arr_channel[i] +" :" + itr->second->getListUsers());
-            send_msg(sock, domain_, "366 " + find_user(sock)->nick() + " " + arr_channel[i] +" :End of NAMES list");
+            send_msg(user->socket(), domain_, "353 " + user->nick() + " = " + arr_channel[i] +" :" + itr->second->getListUsers());
+            send_msg(user->socket(), domain_, "366 " + user->nick() + " " + arr_channel[i] +" :End of NAMES list");
         }
     }
     return R_SUCCESS;
@@ -1101,9 +1113,11 @@ eResult Irisha::KICK(const int sock)
 {
     User* user;
     User* sender;
+
     if (check_user_sender(sock, sender, cmd_.prefix_, user, cmd_.arguments_[1]) == R_FAILURE)
         return R_FAILURE;
-
+    if (!is_enough_args(sock, cmd_.command_, 3))
+        return R_FAILURE;
     std::map<std::string, Channel *>::iterator itr = channels_.find(cmd_.arguments_[0]);
     if (itr == channels_.end()){
         err_nosuchchannel(sock, cmd_.arguments_[0]);
@@ -1117,12 +1131,16 @@ eResult Irisha::KICK(const int sock)
         err_notochannel(sock, cmd_.arguments_[0]);
         return R_SUCCESS;
     }
-    if (user->socket() != U_EXTERNAL_CONNECTION){
-        send_msg(sock, sender->nick(), "KICK " + cmd_.arguments_[0] + " " + cmd_.arguments_[1] + " " + cmd_.arguments_[2]);
+    (*itr).second->delUser(user);
+    if (user->socket() != U_EXTERNAL_CONNECTION)
         send_msg(user->socket(), sender->nick(), "KICK " + cmd_.arguments_[0] + " " + cmd_.arguments_[1] + " " + cmd_.arguments_[2]);
+    if (sender->socket() != U_EXTERNAL_CONNECTION){
+//        send_msg(sock, sender->nick(), "KICK " + cmd_.arguments_[0] + " " + cmd_.arguments_[1] + " " + cmd_.arguments_[2]);
+//        send_msg(user->socket(), sender->nick(), "KICK " + cmd_.arguments_[0] + " " + cmd_.arguments_[1] + " " + cmd_.arguments_[2]);
+        send_channel((*itr).second, "KICK " + cmd_.arguments_[0] + " " + cmd_.arguments_[1] + " " + cmd_.arguments_[2], sender->nick());
     }
     else
-        send_msg(choose_sock(user), sender->nick(), "KICK " + cmd_.arguments_[0] + " " + cmd_.arguments_[1] + " " + cmd_.arguments_[2]);
+        send_servers(sender->nick(), "KICK " + cmd_.arguments_[0] + " " + cmd_.arguments_[1] + " " + cmd_.arguments_[2], sock);
     return R_SUCCESS;
 }
 //:WiZ KICK #Finnish John
