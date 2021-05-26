@@ -962,6 +962,12 @@ eResult Irisha::TOPIC(const int sock)
 {
     User* user;
 
+    if (find_server(cmd_.prefix_)){
+        if (channels_.find(cmd_.arguments_[0]) != channels_.end()){
+            channels_.find(cmd_.arguments_[0])->second->setTopic(cmd_.arguments_[1]);
+            return R_SUCCESS;
+        }
+    }
     if (check_user(sock, user, cmd_.prefix_) == R_FAILURE)
         return R_FAILURE;
 
