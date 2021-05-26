@@ -809,7 +809,7 @@ void Irisha::send_channels(int sock)
         if (!users.empty())
             users.erase(users.size() - 1);
         send_msg(sock, domain_, "NJOIN " + itr->first + " :" + users);
-//        send_msg(sock, domain_, "TOPIC " + itr->first);
+        send_msg(sock, domain_, "TOPIC " + itr->first + " " + itr->second->getTopic());
 //        send_msg(sock, domain_, "MODE " + itr->first);
         itr++;
     }
