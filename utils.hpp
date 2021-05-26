@@ -42,6 +42,7 @@
 #define E_SCULL		"☠"
 #define E_BOOM		"🧨"
 #define E_CROSS		"❌"
+#define E_SLEEP		"💤"
 
 enum eUtils
 {

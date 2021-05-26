@@ -1335,20 +1335,23 @@ eResult Irisha::SQUIT(const int sock)
 		return R_FAILURE;
 
 	Server*	server = find_server(cmd_.arguments_[0]);
-	if (check_server(sock, server) == R_FAILURE)
-		return R_FAILURE;
+	if (cmd_.arguments_[0] == domain_)
+	{
+		send_servers(domain_, "SQUIT :received SQUIT command", sock);
+		sys_msg(E_SLEEP, "Shutting down.");
+		exit(0);
+	}
+	else
+	{
+		if (check_server(sock, server) == R_FAILURE)
+			return R_FAILURE;
+		sys_msg(E_BOOM, "Server", server->name(), "disconnected!");
+	}
 
 	if (cmd_.prefix_ == "")
 		send_servers(connection_name(sock), cmd_.line_, sock);
 	else
-		send_msg(choose_sock(server), cmd_.line_);
-	if (server->name() == domain_)
-	{
-		send_servers(domain_, "SQUIT :received SQUIT command", sock);
-		exit(0);
-	}
-	else
-		sys_msg(E_BOOM, "Server", server->name(), "disconnected!");
+		send_msg(choose_sock(server), " :" + cmd_.line_);
 
 	return R_SUCCESS;
 }
