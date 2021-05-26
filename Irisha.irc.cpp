@@ -1337,7 +1337,7 @@ eResult Irisha::SQUIT(const int sock)
 	Server*	server = find_server(cmd_.arguments_[0]);
 	if (cmd_.arguments_[0] == domain_)
 	{
-		send_servers(domain_, "SQUIT :received SQUIT command", sock);
+		send_servers(domain_, "SQUIT " + domain_ + " :received SQUIT command", sock);
 		sys_msg(E_SLEEP, "Shutting down.");
 		exit(0);
 	}
