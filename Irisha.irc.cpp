@@ -470,7 +470,7 @@ eResult Irisha::MODE(const int sock) // Доделать !!!
                 return R_SUCCESS;
             }
             send_msg(user->socket(), domain_, "324 " + user->nick() + " " + cmd_.arguments_[0] + " +" + (*itr).second->getListMode());
-            send_channels(sock); // DELETE
+            //send_channels(sock); // DELETE
             return R_SUCCESS;
         }
         if (!(*itr).second->isOperator(user)){ // Error is operator
