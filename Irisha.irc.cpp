@@ -1352,6 +1352,27 @@ eResult Irisha::LUSERS(const int sock) //! TODO: handle replies to and from othe
 	return R_SUCCESS;
 }
 
+///**
+// * @description	Handles LUSERS replies
+// * @param		sock
+// * @return
+// */
+//eResult Irisha::LUSERS_REPLIES(const int sock)
+//{
+//	if (!is_enough_args(sock, cmd_.command_, 2))
+//		return R_FAILURE;
+//
+//	User*	user = find_user(cmd_.arguments_[0]);
+//	if (user == nullptr)
+//	{
+//		err_nosuchnick(sock, cmd_.arguments_[0]);
+//		return R_FAILURE;
+//	}
+//	send_msg(choose_sock(user), domain_,cmd_.command_
+//										+ " " + cmd_.arguments_[0] + " " + cmd_.arguments_[1]);
+//	return R_SUCCESS;
+//}
+
 /**
  * @description	Handles SQUIT command (disconnects servers)
  * @param		sock
@@ -1363,14 +1384,22 @@ eResult Irisha::SQUIT(const int sock)
 		return R_FAILURE;
 
 	Server*	server = find_server(cmd_.arguments_[0]);
-	if (check_server(sock, server) == R_FAILURE)
+	if (cmd_.arguments_[0] == domain_)
+	{
+		send_servers(domain_, "SQUIT " + domain_ + " :received SQUIT command", sock);
+		sys_msg(E_SLEEP, "Shutting down.");
+		exit(0);
+	}
+	else if (check_server(sock, server) == R_FAILURE)
 		return R_FAILURE;
 
-	send_servers(cmd_.line_, sock);
-	if (server->socket() != U_EXTERNAL_CONNECTION)
-		close_connection(choose_sock(server), cmd_.arguments_[1]);
+	if (cmd_.prefix_ == "")
+		send_msg(choose_sock(server), connection_name(sock), "SQUIT "
+				+ cmd_.arguments_[0] + " :" + cmd_.arguments_[1]); //! TODO: add is_irc_operator check
 	else
-		sys_msg(E_BOOM, "Server", server->name(), "disconnected!");
+		send_msg(choose_sock(server), cmd_.line_);
+	sys_msg(E_BOOM, "Server", server->name(), "disconnected!");
+	remove_server(server->name());
 
 	return R_SUCCESS;
 }
