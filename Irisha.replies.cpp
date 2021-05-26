@@ -338,3 +338,46 @@ void Irisha::rpl_adminmail(const int sock, const std::string& target, const std:
 	send_rpl_msg(sock, RPL_ADMINEMAIL, ":" + info, target);
 }
 
+void Irisha::rpl_luserclient(const int sock) const
+{
+	int users, servers;
+
+	count_global(users, servers);
+	send_rpl_msg(sock, RPL_LUSERCLIENT, ":There are " + int_to_str(users)
+						+ " users on " + int_to_str(servers) + " servers"); //! TODO: services?
+}
+
+void Irisha::rpl_luserop(const int sock) const
+{
+	int operators;
+
+	count_operators(operators); //! TODO: check is_operator function
+	if (operators != 0)
+		send_rpl_msg(sock, RPL_LUSEROP, int_to_str(operators) + " operator(s) online");
+}
+
+void Irisha::rpl_luserchannels(const int sock) const
+{
+	int channels = static_cast<int>(channels_.size());
+
+	if (channels != 0)
+		send_rpl_msg(sock, RPL_LUSERCHANNELS, int_to_str(channels) + " :channels formed");
+}
+
+void Irisha::rpl_luserunknown(const int sock) const
+{
+	int unknown_connections = 0; //! TODO: count unknown connections (in registration)
+
+	if (unknown_connections != 0)
+		send_rpl_msg(sock, RPL_LUSERUNKNOWN, int_to_str(unknown_connections) + " :unknown connection(s)");
+}
+
+void Irisha::rpl_luserme(const int sock) const
+{
+	int users, servers;
+
+	count_local(users, servers);
+	send_rpl_msg(sock, RPL_LUSERCLIENT, ":I have " + int_to_str(users)
+										+ " clients and " + int_to_str(servers) + " servers");
+}
+

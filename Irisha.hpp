@@ -21,10 +21,11 @@
 
 struct Command
 {
+	std::string                 line_;		// Whole command line
 	std::string					prefix_;
 	std::string					command_;
 	std::vector<std::string>	arguments_;
-	eType                       type_;
+	eType                       type_;		// Sender connection type
 };
 
 enum eResult
@@ -109,6 +110,9 @@ private:
 	AConnection*	find_connection		(const int sock) const;
 	AConnection*	find_connection		(const std::string& name) const;
 	void			ping_connections	(time_t& last_ping);
+	void			close_connection	(const int sock, const std::string& comment);
+	std::string		connection_name		(const int sock) const;
+	std::string		connection_name		(AConnection* connection) const;
 
 	/// Users
 	void			add_user			(const int sock, const std::string& nick);
@@ -118,6 +122,7 @@ private:
 	User*			find_user			(const int sock) const;
 
 	/// Servers
+	void			remove_server		(const std::string& name);
 	Server*			find_server			(const std::string& name) const;
 	Server*			find_server			(const int sock) const;
 
@@ -128,6 +133,7 @@ private:
 	RegForm*	 	find_regform		(int sock, std::list<Irisha::RegForm*>& reg_expect);
 	bool			is_valid_prefix		(const int sock);
 	void			send_msg			(int sock, const std::string& prefix, const std::string& msg) const;
+	void			send_msg			(int sock, const std::string& msg) const;
 	void			send_rpl_msg		(int sock, eReply rpl, const std::string& msg) const;
 	void			send_rpl_msg		(int sock, eReply rpl, const std::string& msg
 											, const std::string& target) const;
@@ -136,27 +142,27 @@ private:
 											, const std::string& target) const;
 	void			send_servers		(const std::string& prefix, const std::string& msg) const;
 	void			send_servers		(const std::string& prefix, const std::string& msg, const int sock) const;
+	void			send_servers		(const std::string& msg, const int sock) const;
 	void			send_everyone		(const std::string& prefix, const std::string& msg) const;
 	void			print_info			() const;
-	std::string		connection_name		(const int sock) const;
 	int 			next_token			();
 	int 			choose_sock			(AConnection* connection);
     eType           connection_type     (int sock);
-    User*           get_sender          (int sock);
     eResult         check_user_sender   (int sender_sock, User*& sender, const std::string& sender_name
                                             , User*& user, const std::string& user_nick);
     eResult         check_user          (int sock, User*& user, const std::string& nick);
+	eResult			check_server		(int sock, Server*& server);
     bool            is_enough_args      (int sock, const std::string& command, int min_args_number);
 
 	///	System messages
-	std::string	sys_msg				(const std::string& emoji, const std::string& str) const;
-	std::string	sys_msg				(const std::string& emoji, const std::string& str
-										, const std::string& white_str) const;
-	std::string	sys_msg				(const std::string& emoji, const std::string& str
-										, const std::string& white_str, const std::string& ending) const;
-	std::string	sys_msg				(const std::string& emoji, const std::string& str
-										, const std::string& white_str, const std::string& str2
-										, const std::string& ending) const;
+	std::string		sys_msg				(const std::string& emoji, const std::string& str) const;
+	std::string		sys_msg				(const std::string& emoji, const std::string& str
+											, const std::string& white_str) const;
+	std::string		sys_msg				(const std::string& emoji, const std::string& str
+											, const std::string& white_str, const std::string& ending) const;
+	std::string		sys_msg				(const std::string& emoji, const std::string& str
+											, const std::string& white_str, const std::string& str2
+											, const std::string& ending) const;
 
 	/// IRC commands
 	eResult			NICK				(const int sock);
@@ -186,17 +192,26 @@ private:
 	eResult			LIST				(const int sock);
 	eResult			INVITE				(const int sock);
 	eResult			KICK				(const int sock);
+	eResult			MOTD				(const int sock);
+	eResult			MOTD_REPLIES		(const int sock);
+	eResult			LUSERS				(const int sock);
+	eResult			SQUIT				(const int sock);
 
 	/// IRC commands utils
 	void			admin_info			(const int sock, const std::string& receiver);
-	void            send_channel        (Channel *channel, std::string msg, std::string prefix);
-    void            send_channel        (Channel *channel, std::string msg, std::string prefix, int sock);
-	int             check_mode_channel  (const Channel* channel, const int sock, std::list<std::string>& arr_key, std::string& arr_channel);
+	void            send_channel    	(Channel *channel, std::string msg, std::string prefix);
+    void            send_channel		(Channel *channel, std::string msg, std::string prefix, int sock);
+	int             check_mode_channel	(const Channel* channel, const int sock, std::list<std::string>& arr_key, std::string& arr_channel);
 	eResult			NICK_user			(User* const connection, const int sock, const std::string& new_nick);
 	eResult			NICK_server			(const std::string& new_nick, int source_sock);
 	std::string		createPASSmsg		(std::string password) const ;
 	std::string		createSERVERmsg		(AConnection* server) const;
 	std::string		createNICKmsg		(User* usr) const;
+	void			send_motd			(const int sock);
+	void			count_operators		(int& operators) const;
+	void			count_global		(int& users, int& servers) const;
+	void			count_local			(int& users, int& servers) const;
+	void			send_lusers_replies	(const int sock) const;
 
 	/// Error replies
 	void			err_nosuchserver		(const int sock, const std::string& server) const;
@@ -258,6 +273,11 @@ private:
 	void			rpl_adminloc1			(const int sock, const std::string& target, const std::string& info) const;
 	void			rpl_adminloc2			(const int sock, const std::string& target, const std::string& info) const;
 	void			rpl_adminmail			(const int sock, const std::string& target, const std::string& info) const;
+	void			rpl_luserclient			(const int sock) const;
+	void			rpl_luserop				(const int sock) const;
+	void			rpl_luserchannels		(const int sock) const;
+	void			rpl_luserunknown		(const int sock) const;
+	void			rpl_luserme				(const int sock) const;
 
 	/// Unused constructors
 	Irisha				() {};

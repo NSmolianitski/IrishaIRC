@@ -214,9 +214,15 @@ void Irisha::handle_disconnection(const int sock)
 		Server*		server = find_server(sock);
 		std::string	name = "unknown";
 		if (server != nullptr)
+		{
 			name = server->name();
-		sys_msg(E_BOOM, "Server", name, "disconnected!");
-		send_servers(name, msg);
+			remove_server(server->name());
+			send_servers(name, "SQUIT " + name + " :connection lost");
+		}
+		if (name == "unknown")
+			sys_msg(E_BOOM, "Unknown connection closed!"); // Handle non-registered connection
+		else
+			sys_msg(E_BOOM, "Server", name, "disconnected!"); // Handle server connection
 	}
 	else
 	{

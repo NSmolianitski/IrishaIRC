@@ -16,6 +16,7 @@ void 	parse_msg(const std::string& msg, Command& cmd)
     std::istringstream is(msg);
     std::string s;
 
+    cmd.line_ = msg;
     cmd.prefix_.clear();
     cmd.command_.clear();
     cmd.arguments_.clear();
