@@ -768,7 +768,8 @@ eResult Irisha::TOPIC(const int sock)
 
     if (find_server(cmd_.prefix_)){
         if (channels_.find(cmd_.arguments_[0]) != channels_.end()){
-            channels_.find(cmd_.arguments_[0])->second->setTopic(cmd_.arguments_[1]);
+            if (cmd_.arguments_.size() != 1)
+                channels_.find(cmd_.arguments_[0])->second->setTopic(cmd_.arguments_[1]);
             return R_SUCCESS;
         }
     }
