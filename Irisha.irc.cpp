@@ -1338,7 +1338,10 @@ eResult Irisha::SQUIT(const int sock)
 	if (check_server(sock, server) == R_FAILURE)
 		return R_FAILURE;
 
-	send_servers(cmd_.line_, sock);
+	if (cmd_.prefix_ == "")
+		send_servers(connection_name(sock), cmd_.line_, sock);
+	else
+		send_servers(cmd_.line_, sock);
 	if (server->socket() != U_EXTERNAL_CONNECTION)
 		close_connection(choose_sock(server), cmd_.arguments_[1]);
 	else
