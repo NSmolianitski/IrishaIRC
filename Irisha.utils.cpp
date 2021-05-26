@@ -912,7 +912,7 @@ void Irisha::send_channels(int sock)
             users.erase(users.size() - 1);
         send_msg(sock, domain_, "NJOIN " + itr->first + " :" + users);
         send_msg(sock, domain_, "TOPIC " + itr->first + " " + itr->second->getTopic());
-//        send_msg(sock, domain_, "MODE " + itr->first);
+        send_msg(sock, domain_, "MODE " + itr->first + " +" + itr->second->getListMode());
         itr++;
     }
 }

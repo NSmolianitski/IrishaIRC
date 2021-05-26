@@ -654,6 +654,16 @@ eResult Irisha::MODE(const int sock) // Доделать !!!
     std::list<std::string> arr_param; // array param for mode
     User* user;
 
+    if (find_server(cmd_.prefix_)){
+        if (channels_.find(cmd_.arguments_[0]) != channels_.end()){
+            if (cmd_.arguments_.size() != 1){
+                for (int i = 1; i < cmd_.arguments_[1].size(); ++i) {
+                    channels_.find(cmd_.arguments_[0])->second->setMode(cmd_.arguments_[1][i], 1);
+                }
+            }
+            return R_SUCCESS;
+        }
+    }
     if (check_user(sock, user, cmd_.prefix_) == R_FAILURE)
         return R_FAILURE;
 //    if (!is_enough_args(user->socket(), cmd_.command_, 1))
