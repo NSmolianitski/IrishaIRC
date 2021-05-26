@@ -189,6 +189,23 @@ void Irisha::send_msg(int sock, const std::string& prefix, const std::string& ms
 }
 
 /**
+ * @description	Sends a message without prefix to socket
+ * @param		sock: receiver socket
+ * @param		msg: message
+ */
+void Irisha::send_msg(int sock, const std::string& msg) const
+{
+	std::string message = msg;
+
+	std::cout << time_stamp() + message + " " E_SPEECH PURPLE ITALIC " to "
+				 + connection_name(sock) << CLR << std::endl;
+	message.append("\r\n");
+
+	ssize_t n = send(sock, message.c_str(), message.length(), 0);
+	if (n == -1) throw std::runtime_error("Send error");
+}
+
+/**
  * @description	Sends a message to all servers
  * @param		prefix: sender
  * @param		msg: message
@@ -217,6 +234,22 @@ void Irisha::send_servers(const std::string& prefix, const std::string& msg, con
 		if (it->second->type() == T_SERVER)
 			if (it->second->socket() != sock && it->second->socket() != U_EXTERNAL_CONNECTION)
 				send_msg(it->second->socket(), prefix, msg);
+	}
+}
+
+/**
+ * @description	Sends a message without prefix to all servers except one with socket
+ * @param		msg: message
+ * @param		sock: exception socket
+ */
+void Irisha::send_servers(const std::string& msg, const int sock) const
+{
+	con_const_it	it = connections_.begin();
+	for (; it != connections_.end(); ++it)
+	{
+		if (it->second->type() == T_SERVER)
+			if (it->second->socket() != sock && it->second->socket() != U_EXTERNAL_CONNECTION)
+				send_msg(it->second->socket(), msg);
 	}
 }
 
@@ -324,6 +357,12 @@ eResult Irisha::check_user_sender(int sender_sock, User*& sender, const std::str
     return R_SUCCESS;
 }
 
+/**
+ * @description	Tries to find user by socket, then by nick
+ * @param		sock: socket to send err_nosuchnick if user doesn't exist
+ * @param		user: user pointer
+ * @return 		R_SUCCESS if user exists, R_FAILURE if not
+ */
 eResult Irisha::check_user(int sock, User*& user, const std::string& nick)
 {
     user = find_user(sock);
@@ -335,6 +374,22 @@ eResult Irisha::check_user(int sock, User*& user, const std::string& nick)
             err_nosuchnick(sock, nick);
             return R_FAILURE;
         }
+    }
+    return R_SUCCESS;
+}
+
+/**
+ * @description	Checks server for nullptr
+ * @param		sock: socket to send err_nosuchserver if server doesn't exist
+ * @param		server: server pointer to check
+ * @return 		R_SUCCESS if server exists, R_FAILURE if not
+ */
+eResult Irisha::check_server(int sock, Server*& server)
+{
+    if (server == nullptr)
+    {
+		err_nosuchserver(sock, server->name());
+		return R_FAILURE;
     }
     return R_SUCCESS;
 }
@@ -522,13 +577,15 @@ void Irisha::close_connection(const int sock, const std::string& comment)
 		Server*		server = find_server(sock);
 		std::string	name = "unknown";
 		if (server != nullptr)
+		{
 			name = server->name();
+			remove_server(server->name());
+		}
 		if (name == "unknown")
 			sys_msg(E_BOOM, "Unknown connection closed!"); // Handle non-registered connection
 		else
 			sys_msg(E_BOOM, "Server", name, "disconnected!"); // Handle server connection
 		send_servers(name, "SQUIT :" + comment);
-//		remove_server(); //! TODO: add remove_server()
 	}
 	else
 	{
@@ -538,6 +595,18 @@ void Irisha::close_connection(const int sock, const std::string& comment)
 	}
 	FD_CLR(sock, &all_fds_);
 	close(sock);
+}
+
+void Irisha::remove_server(const std::string& name)
+{
+	Server* server = find_server(name);
+	if (server == nullptr)
+	{
+		std::cout << E_CROSS RED "Can't remove server " + name + CLR << std::endl;
+		return;
+	}
+	connections_.erase(name);
+	delete server;
 }
 
 /// ‼️ ⚠️ DEVELOPMENT UTILS (REMOVE OR COMMENT WHEN PROJECT IS READY) ⚠️ ‼️ //! TODO: DEV -> REMOVE /////////////////////

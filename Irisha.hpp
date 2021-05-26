@@ -21,10 +21,11 @@
 
 struct Command
 {
+	std::string                 line_;		// Whole command line
 	std::string					prefix_;
 	std::string					command_;
 	std::vector<std::string>	arguments_;
-	eType                       type_;
+	eType                       type_;		// Sender connection type
 };
 
 enum eResult
@@ -121,6 +122,7 @@ private:
 	User*			find_user			(const int sock) const;
 
 	/// Servers
+	void			remove_server		(const std::string& name);
 	Server*			find_server			(const std::string& name) const;
 	Server*			find_server			(const int sock) const;
 
@@ -131,6 +133,7 @@ private:
 	RegForm*	 	find_regform		(int sock, std::list<Irisha::RegForm*>& reg_expect);
 	bool			is_valid_prefix		(const int sock);
 	void			send_msg			(int sock, const std::string& prefix, const std::string& msg) const;
+	void			send_msg			(int sock, const std::string& msg) const;
 	void			send_rpl_msg		(int sock, eReply rpl, const std::string& msg) const;
 	void			send_rpl_msg		(int sock, eReply rpl, const std::string& msg
 											, const std::string& target) const;
@@ -139,15 +142,16 @@ private:
 											, const std::string& target) const;
 	void			send_servers		(const std::string& prefix, const std::string& msg) const;
 	void			send_servers		(const std::string& prefix, const std::string& msg, const int sock) const;
+	void			send_servers		(const std::string& msg, const int sock) const;
 	void			send_everyone		(const std::string& prefix, const std::string& msg) const;
 	void			print_info			() const;
 	int 			next_token			();
 	int 			choose_sock			(AConnection* connection);
     eType           connection_type     (int sock);
-    User*           get_sender          (int sock);
     eResult         check_user_sender   (int sender_sock, User*& sender, const std::string& sender_name
                                             , User*& user, const std::string& user_nick);
     eResult         check_user          (int sock, User*& user, const std::string& nick);
+	eResult			check_server		(int sock, Server*& server);
     bool            is_enough_args      (int sock, const std::string& command, int min_args_number);
 
 	///	System messages
@@ -191,6 +195,7 @@ private:
 	eResult			MOTD				(const int sock);
 	eResult			MOTD_REPLIES		(const int sock);
 	eResult			LUSERS				(const int sock);
+	eResult			SQUIT				(const int sock);
 
 	/// IRC commands utils
 	void			admin_info			(const int sock, const std::string& receiver);

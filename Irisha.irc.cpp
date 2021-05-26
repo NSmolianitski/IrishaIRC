@@ -44,6 +44,7 @@ void	Irisha::prepare_commands()
 	commands_.insert(std::pair<std::string, func>("372", &Irisha::MOTD_REPLIES));
 	commands_.insert(std::pair<std::string, func>("376", &Irisha::MOTD_REPLIES));
 	commands_.insert(std::pair<std::string, func>("LUSERS", &Irisha::LUSERS));
+	commands_.insert(std::pair<std::string, func>("SQUIT", &Irisha::SQUIT));
 }
 
 /**
@@ -1295,13 +1296,33 @@ eResult Irisha::LUSERS(const int sock) //! TODO: handle replies to and from othe
 	else
 	{
 		Server*	server = find_server(cmd_.arguments_[0]);
-		if (server == nullptr)
-		{
-			err_nosuchserver(sock, cmd_.arguments_[0]);
+		if (check_server(sock, server) == R_FAILURE)
 			return R_FAILURE;
-		}
 		send_msg(choose_sock(server), user->nick(), "MOTD :" + cmd_.arguments_[0]);
 	}
+	return R_SUCCESS;
+}
+
+/**
+ * @description	Handles SQUIT command (disconnects servers)
+ * @param		sock
+ * @return		R_SUCCESS or R_FAILURE
+ */
+eResult Irisha::SQUIT(const int sock)
+{
+	if (!is_enough_args(sock, cmd_.command_, 2))
+		return R_FAILURE;
+
+	Server*	server = find_server(cmd_.arguments_[0]);
+	if (check_server(sock, server) == R_FAILURE)
+		return R_FAILURE;
+
+	send_servers(cmd_.line_, sock);
+	if (server->socket() != U_EXTERNAL_CONNECTION)
+		close_connection(choose_sock(server), cmd_.arguments_[1]);
+	else
+		sys_msg(E_BOOM, "Server", server->name(), "disconnected!");
+
 	return R_SUCCESS;
 }
 
