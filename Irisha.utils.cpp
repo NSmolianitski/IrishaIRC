@@ -774,4 +774,42 @@ std::string Irisha::time_stamp() const
 	std::string msg = int_to_str(time(nullptr) - launch_time_);
 	return "[" + msg + "] ";
 }
+
+void Irisha::send_channels(int sock)
+{
+    std::map<std::string ,Channel*>::iterator itr = channels_.begin();
+    std::vector<User*>::const_iterator itr_u;
+    std::string users;
+
+    while (itr != channels_.end())
+    {
+        itr_u = itr->second->getOperators().begin();
+        while (itr_u != itr->second->getOperators().end())
+        {
+            users.push_back('@');
+            users.append((*itr_u)->nick());
+            users.push_back(',');
+            itr_u++;
+        }
+        itr_u = itr->second->getModerators().begin();
+        while (itr_u != itr->second->getModerators().end())
+        {
+            users.push_back('+');
+            users.append((*itr_u)->nick());
+            users.push_back(',');
+            itr_u++;
+        }
+        itr_u = itr->second->getUsers().begin();
+        while (itr_u != itr->second->getUsers().end())
+        {
+            users.append((*itr_u)->nick());
+            users.push_back(',');
+            itr_u++;
+        }
+        if (!users.empty())
+            users.erase(users.size() - 1);
+        send_msg(sock, domain_, "NJOIN " + itr->first + " :" + users);
+        itr++;
+    }
+}
 /// ‼️ ⚠️ END OF DEVELOPMENT UTILS ⚠️ ‼️ //! TODO: DEV -> REMOVE //////////////////////////////////////////

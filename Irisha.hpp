@@ -153,7 +153,7 @@ private:
     eResult         check_user          (int sock, User*& user, const std::string& nick);
 	eResult			check_server		(int sock, Server*& server);
     bool            is_enough_args      (int sock, const std::string& command, int min_args_number);
-
+    void            send_channels       (int sock);
 	///	System messages
 	std::string		sys_msg				(const std::string& emoji, const std::string& str) const;
 	std::string		sys_msg				(const std::string& emoji, const std::string& str
@@ -196,6 +196,7 @@ private:
 	eResult			MOTD_REPLIES		(const int sock);
 	eResult			LUSERS				(const int sock);
 	eResult			SQUIT				(const int sock);
+    eResult         NJOIN               (const int sock);
 
 	/// IRC commands utils
 	void			admin_info			(const int sock, const std::string& receiver);
