@@ -691,11 +691,11 @@ eResult Irisha::MODE(const int sock) // Доделать !!!
 //        return R_FAILURE;
     if ((cmd_.arguments_[0][0] == '#' || cmd_.arguments_[0][0] == '&' || cmd_.arguments_[0][0] == '+' || cmd_.arguments_[0][0] == '!')){ // it's channel ?
         std::map<std::string, Channel*>::iterator itr = channels_.find(cmd_.arguments_[0]);
+        if (itr == channels_.end()){
+            err_nosuchchannel(user->socket(), cmd_.arguments_[0]);
+            return R_SUCCESS;
+        }
         if (cmd_.arguments_.size() == 1) {
-            if (itr == channels_.end()){
-                err_nosuchchannel(user->socket(), cmd_.arguments_[0]);
-                return R_SUCCESS;
-            }
             send_msg(user->socket(), domain_, "324 " + user->nick() + " " + cmd_.arguments_[0] + " +" + (*itr).second->getListMode());
             return R_SUCCESS;
         }
