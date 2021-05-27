@@ -22,6 +22,7 @@ private:
 	int 		source_socket_;
 	std::string	buff_;
 	time_t		last_msg_time_;
+	time_t 		launch_time_;
 
 	/// Unused constructors
 	AConnection();
@@ -37,6 +38,7 @@ public:
 	double			last_msg_time		() const;
 	int 			token				() const;
 	int 			source_socket		() const;
+	time_t 			launch_time			() const;
 };
 
 

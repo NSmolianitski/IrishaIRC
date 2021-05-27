@@ -6,7 +6,7 @@
 AConnection::AConnection() {}
 AConnection::AConnection(int socket, eType type, int hopcount, int source_socket, int token)
 	: socket_(socket), type_(type), hopcount_(hopcount), last_msg_time_(time(nullptr)), source_socket_(source_socket),
-		token_(token) {}
+		token_(token), launch_time_(time(0)) {}
 AConnection::~AConnection() {}
 
 int				AConnection::socket				() const { return socket_; }
@@ -21,3 +21,6 @@ double			AConnection::last_msg_time		() const
 {
 	return difftime(time(nullptr), last_msg_time_);
 }
+
+time_t			AConnection::launch_time() const { return launch_time_; }
+

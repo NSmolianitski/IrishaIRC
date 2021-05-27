@@ -206,6 +206,7 @@ void		check_config		(const std::string& path);
 bool		is_a_valid_nick		(const std::string& nick);
 int			str_to_int			(const std::string& str);
 std::string int_to_str          (int num);
+std::string double_to_str		(double num);
 std::string	rpl_code_to_str		(const eReply code);
 std::string	rpl_code_to_str		(const eError code);
 char* 		get_sock_host		(int sock);

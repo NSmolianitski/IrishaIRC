@@ -204,6 +204,7 @@ private:
     eResult         NJOIN               (const int sock);
 	eResult			VERSION				(const int sock);
 	eResult			CONNECT				(const int sock);
+	eResult			STATS				(const int sock);
 
 	/// IRC commands utils
 	void			admin_info			(const int sock, const std::string& receiver);
@@ -222,6 +223,7 @@ private:
 	void			count_local			(int& users, int& servers) const;
 	void			send_lusers_replies	(const int sock) const;
 	eResult 		send_bounce_reply	(int sock);
+	eResult			resend_msg			(int sock);
 	void 			connect_to_server	(const std::string& host_name, int port);
 	void 			send_reg_info		(const std::string& pass);
 	void 			send_servers_info	(int sock);
@@ -292,6 +294,8 @@ private:
 	void			rpl_luserchannels		(const int sock) const;
 	void			rpl_luserunknown		(const int sock) const;
 	void			rpl_luserme				(const int sock) const;
+	void 			rpl_endofstats			(const int sock, const std::string& letter) const;
+	void 			rpl_statslinkinfo		(const int sock, const std::string& msg);
 
 	/// Unused constructors
 	Irisha				() {};
