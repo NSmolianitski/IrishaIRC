@@ -46,4 +46,33 @@ const std::string & User::host			() const { return host_; }
 
 const std::string   &User::mode_str     () const {return mode_str_; }
 
+void User::set_channel(const std::string &channel) {
+    std::vector<std::string>::iterator itr = channels_.begin();
+
+    while (itr != channels_.end())
+    {
+        if (*itr == channel)
+            return;
+        itr++;
+    }
+    channels_.push_back(channel);
+}
+
+void User::del_channel(const std::string &channel) {
+    std::vector<std::string>::iterator itr = channels_.begin();
+
+    while (itr != channels_.end())
+    {
+        if (*itr == channel){
+            channels_.erase(itr);
+            return;
+        }
+        itr++;
+    }
+}
+
+std::vector<std::string> User::channels() const {
+    return channels_;
+}
+
 

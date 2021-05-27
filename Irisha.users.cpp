@@ -45,6 +45,12 @@ void Irisha::remove_user(const std::string& nick)
 		std::cout << E_CROSS RED "Can't remove user " + nick + CLR << std::endl;
 		return;
 	}
+	std::vector<std::string>::iterator itr = user->channels().begin();
+	while (itr != user->channels().end())
+    {
+        send_local_channel(channels_.find(*itr)->second, "PART " + *itr, user->nick(), user->socket());
+	    itr++;
+    }
 	connections_.erase(nick);
 	delete user;
 }
@@ -55,6 +61,12 @@ void Irisha::remove_user(const std::string& nick)
  */
 void Irisha::remove_user(User*& user)
 {
+    std::vector<std::string>::iterator itr = user->channels().begin();
+    while (itr != user->channels().end())
+    {
+        send_local_channel(channels_.find(*itr)->second, "PART " + *itr, user->nick(), user->socket());
+        itr++;
+    }
 	connections_.erase(user->nick());
 	delete user;
 }
@@ -76,7 +88,7 @@ void Irisha::remove_server_users(const std::string& name)
 		}
 	}
 	connections_.erase(name);
-	delete user;
+//	delete user; //! TODO: delete server?
 }
 
 /**

@@ -5,6 +5,7 @@
 #include "AConnection.hpp"
 #include "utils.hpp"
 #include <string>
+#include <vector>
 
 class User : public AConnection
 {
@@ -19,6 +20,7 @@ private:
 	std::string netwideID_;
 	std::string	server_;
 	std::string host_;
+	std::vector<std::string> channels_;
 
 	/// Unused constructors
 	User() : AConnection(0, T_CLIENT,0, 0, 0) {};
@@ -39,6 +41,8 @@ public:
 	void	del_mode_str	(char mode);
 	void	set_operator	(bool is_operator);
 	void	set_netwideID	(const std::string& netwideID);
+    void    set_channel     (const std::string& channel);
+    void    del_channel     (const std::string& channel);
 
 	const std::string&	nick		() const;
 	const std::string&	username	() const;
@@ -50,8 +54,7 @@ public:
 	const std::string&	netwideID	() const;
 	const std::string&	server		() const;
 	const std::string&	host		() const;
-
-
+    std::vector<std::string> channels() const;
 };
 
 

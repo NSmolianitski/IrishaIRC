@@ -209,6 +209,7 @@ private:
 	void			admin_info			(const int sock, const std::string& receiver);
 	void            send_channel    	(Channel *channel, std::string msg, std::string prefix);
     void            send_channel		(Channel *channel, std::string msg, std::string prefix, int sock);
+    void            send_local_channel  (Channel *channel, std::string msg, std::string prefix, int sock);
 	int             check_mode_channel	(const Channel* channel, const int sock, std::list<std::string>& arr_key, std::string& arr_channel);
 	eResult			NICK_user			(User* const connection, const int sock, const std::string& new_nick);
 	eResult			NICK_server			(const std::string& new_nick, int source_sock);
