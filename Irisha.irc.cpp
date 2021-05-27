@@ -459,36 +459,36 @@ eResult Irisha::MODE(const int sock) // Доделать !!!
     std::list<std::string> arr_param; // array param for mode
     User* user;
 
-    if (find_server(cmd_.prefix_)){
-        if (channels_.find(cmd_.arguments_[0]) != channels_.end()){
-            if (cmd_.arguments_.size() != 1){
-                if ((cmd_.arguments_[0][0] == '#' || cmd_.arguments_[0][0] == '&' || cmd_.arguments_[0][0] == '+' || cmd_.arguments_[0][0] == '!')){
-                    for (int i = 1; i < cmd_.arguments_[1].size(); ++i) {
-                        channels_.find(cmd_.arguments_[0])->second->setMode(cmd_.arguments_[1][i], 1);
-                    }
-                }
-                else
-                {
-                    for (int i = 0; i < cmd_.arguments_[1].size(); ++i) {
-                        if (cmd_.arguments_[1][i] == '+'){
-                            flag_mode = 1;
-                            continue;
-                        }
-                        if (cmd_.arguments_[1][i] == '-'){
-                            flag_mode = 0;
-                            continue;
-                        }
-                        if (flag_mode == 1)
-                            find_user(cmd_.arguments_[0])->set_mode_str(cmd_.arguments_[1][i]);
-                        else
-                            find_user(cmd_.arguments_[0])->del_mode_str(cmd_.arguments_[1][i]);
-                    }
-                }
-                send_servers(cmd_.line_, sock);
-            }
-            return R_SUCCESS;
-        }
-    }
+//    if (find_server(cmd_.prefix_)){
+//        if (channels_.find(cmd_.arguments_[0]) != channels_.end()){
+//            if (cmd_.arguments_.size() != 1){
+//                if ((cmd_.arguments_[0][0] == '#' || cmd_.arguments_[0][0] == '&' || cmd_.arguments_[0][0] == '+' || cmd_.arguments_[0][0] == '!')){
+//                    for (int i = 1; i < cmd_.arguments_[1].size(); ++i) {
+//                        channels_.find(cmd_.arguments_[0])->second->setMode(cmd_.arguments_[1][i], 1);
+//                    }
+//                }
+//                else
+//                {
+//                    for (int i = 0; i < cmd_.arguments_[1].size(); ++i) {
+//                        if (cmd_.arguments_[1][i] == '+'){
+//                            flag_mode = 1;
+//                            continue;
+//                        }
+//                        if (cmd_.arguments_[1][i] == '-'){
+//                            flag_mode = 0;
+//                            continue;
+//                        }
+//                        if (flag_mode == 1)
+//                            find_user(cmd_.arguments_[0])->set_mode_str(cmd_.arguments_[1][i]);
+//                        else
+//                            find_user(cmd_.arguments_[0])->del_mode_str(cmd_.arguments_[1][i]);
+//                    }
+//                }
+//                send_servers(cmd_.line_, sock);
+//            }
+//            return R_SUCCESS;
+//        }
+//    }
     if (check_user(sock, user, cmd_.prefix_) == R_FAILURE)
         return R_FAILURE;
 //    if (!is_enough_args(user->socket(), cmd_.command_, 1))
@@ -678,7 +678,7 @@ eResult Irisha::MODE(const int sock) // Доделать !!!
         }
         if (cmd_.type_ == T_LOCAL_CLIENT)
             send_msg(user->socket(), user->nick(), "MODE " + cmd_.arguments_[0] + " " + return_mode);
-        send_servers(user->nick(), "MODE " + cmd_.arguments_[0] + " " + return_mode);
+        send_servers(user->nick(), "MODE " + cmd_.arguments_[0] + " " + return_mode, sock);
     }
     return R_SUCCESS;
 }
