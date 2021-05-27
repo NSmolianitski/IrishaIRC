@@ -48,6 +48,57 @@ void	Irisha::prepare_commands()
 	commands_.insert(std::pair<std::string, func>("VERSION", &Irisha::VERSION));
 	commands_.insert(std::pair<std::string, func>("351", &Irisha::VERSION));
 	commands_.insert(std::pair<std::string, func>("005", &Irisha::send_bounce_reply));
+	commands_.insert(std::pair<std::string, func>("CONNECT", &Irisha::CONNECT));
+	commands_.insert(std::pair<std::string, func>("OPER", &Irisha::OPER));
+}
+
+eResult Irisha::CONNECT(const int sock)
+{
+	if (cmd_.arguments_.size() < 2)
+	{
+		err_needmoreparams(sock, "CONNECT");
+		return R_FAILURE;
+	}
+	if (cmd_.prefix_.empty()) //got command from user
+	{
+		User *user = find_user(sock);
+		if (user == 0)
+			return R_FAILURE;
+	}
+//	if (!user->is_operator())	//TODO:uncomment if
+//	{
+//		err_noprivileges(sock);
+//		return R_FAILURE;
+//	}
+	//send_servers(cmd_.prefix_, "MODE " + cmd_.prefix_ + " :+o"); ///TODO: delete this line
+
+	if (cmd_.arguments_.size() > 2)
+		cmd_.arguments_[2].erase(cmd_.arguments_[2].begin());
+	if (cmd_.arguments_.size() == 2 ||
+		(cmd_.arguments_.size() > 2 && cmd_.arguments_[2] == this->domain_)) //connect this server to other
+	{
+		try	{ connect_to_server(cmd_.arguments_[0], str_to_int(cmd_.arguments_[1])); }
+		catch (std::runtime_error &ex)
+		{
+			err_nosuchserver(sock, cmd_.arguments_[0] + ":" + cmd_.arguments_[1]);
+			return R_FAILURE;
+		}
+		//registration
+		send_reg_info(password_);
+		send_servers_info(parent_fd_);
+		send_clients_info(parent_fd_);
+	}
+	else //send command to other server
+	{
+		Server* remote_serv = find_server(cmd_.arguments_[2]);
+		if (remote_serv == 0)
+		{
+			err_nosuchserver(sock, cmd_.arguments_[2]);
+			return R_FAILURE;
+		}
+		send_msg(choose_sock(remote_serv), cmd_.line_);
+	}
+	return R_SUCCESS;
 }
 
 /**
@@ -116,7 +167,7 @@ eResult Irisha::OPER(const int sock)
 	if (oper_pass_ == cmd_.arguments_[1])
 	{
 
-		User* user = find_user(sock);
+		User* user = find_user(cmd_.arguments_[0]);
 		if (user == 0)
 			return R_FAILURE;
 		user->set_operator(true);
@@ -342,28 +393,16 @@ eResult Irisha::SERVER(const int sock) ///TODO: 1. test server tokens! 2. Make s
 			send_msg(sock, NO_PREFIX, createPASSmsg(password_));
 			send_msg(sock, NO_PREFIX, createSERVERmsg(nullptr));
 
-			//send information about other servers to connected serer
-			//and about connected server to other servers
+			send_servers_info(sock);
+			//send information about connected server to other servers
 			std::map<std::string, AConnection*>::iterator it = connections_.begin();
 			for (; it != connections_.end(); it++)
 			{
-				if (it->second->type() == T_SERVER && sock != it->second->socket() )
-				{
-					send_msg(sock, domain_, createSERVERmsg(it->second));
-					if (it->second->socket() != U_EXTERNAL_CONNECTION)
-						send_msg(it->second->socket(), domain_, createSERVERmsg(server));
-				}
+				int cur_sock = it->second->socket();
+				if (it->second->type() == T_SERVER && sock != cur_sock && cur_sock != U_EXTERNAL_CONNECTION)
+					send_msg(cur_sock, domain_, createSERVERmsg(server));
 			}
-			//send information about other clients to connected server TODO: send correct umode
-			it = connections_.begin();
-			for (; it != connections_.end(); it++)
-			{
-				if (it->second->type() == T_CLIENT)
-				{
-					User* usr = static_cast<User*>(it->second);
-					send_msg(sock, domain_, createNICKmsg(usr));		//local client
-				}
-			}
+			send_clients_info(sock);
 		}
 		PING(sock);
 	}

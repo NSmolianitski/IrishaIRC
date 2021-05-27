@@ -197,6 +197,7 @@ private:
 	eResult			LUSERS				(const int sock);
 	eResult			SQUIT				(const int sock);
 	eResult			VERSION				(const int sock);
+	eResult			CONNECT				(const int sock);
 
 	/// IRC commands utils
 	void			admin_info			(const int sock, const std::string& receiver);
@@ -214,6 +215,10 @@ private:
 	void			count_local			(int& users, int& servers) const;
 	void			send_lusers_replies	(const int sock) const;
 	eResult 		send_bounce_reply	(int sock);
+	void 			connect_to_server	(const std::string& host_name, int port);
+	void 			send_reg_info		(const std::string& pass);
+	void 			send_servers_info	(int sock);
+	void 			send_clients_info	(int sock);
 
 	/// Error replies
 	void			err_nosuchserver		(const int sock, const std::string& server) const;

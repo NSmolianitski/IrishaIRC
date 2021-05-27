@@ -4,6 +4,39 @@
 #include "Channel.hpp"
 #include <sstream>
 
+/**
+ * send information about all known servers to socket
+ * @param sock
+ */
+void Irisha::send_servers_info(int sock)
+{
+	std::map<std::string, AConnection*>::iterator it = connections_.begin();
+	for (; it != connections_.end(); it++)
+	{
+		if (it->second->type() == T_SERVER && sock != it->second->socket() )
+		{
+			send_msg(sock, domain_, createSERVERmsg(it->second));
+		}
+	}
+}
+
+/**
+ * send information about all known clients to socket TODO: send correct umode
+ * @param sock
+ */
+void Irisha::send_clients_info(int sock)
+{
+	std::map<std::string, AConnection*>::iterator it = connections_.begin();
+	for (; it != connections_.end(); it++)
+	{
+		if (it->second->type() == T_CLIENT)
+		{
+			User* usr = static_cast<User*>(it->second);
+			send_msg(sock, domain_, createNICKmsg(usr));
+		}
+	}
+}
+
 eResult Irisha::send_bounce_reply(int sock)
 {
 	User* target = find_user(cmd_.arguments_[0]);
