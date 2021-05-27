@@ -183,6 +183,7 @@ private:
     eResult         PART                (const int sock);
     eResult         TOPIC               (const int sock);
     eResult         PRIVMSG             (const int sock);
+    eResult         NOTICE              (const int sock);
 	eResult			TIME				(const int sock);
 	eResult			USERS				(const int sock);
 	eResult			KILL				(const int sock);

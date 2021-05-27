@@ -26,6 +26,7 @@ void	Irisha::prepare_commands()
 	commands_.insert(std::pair<std::string, func>("QUIT", &Irisha::QUIT));
 	commands_.insert(std::pair<std::string, func>("TOPIC", &Irisha::TOPIC));
 	commands_.insert(std::pair<std::string, func>("PRIVMSG", &Irisha::PRIVMSG));
+	commands_.insert(std::pair<std::string, func>("NOTICE", &Irisha::NOTICE));
 	commands_.insert(std::pair<std::string, func>("NAMES", &Irisha::NAMES));
 	commands_.insert(std::pair<std::string, func>("LIST", &Irisha::LIST));
 	commands_.insert(std::pair<std::string, func>("KICK", &Irisha::KICK));
@@ -657,9 +658,29 @@ eResult Irisha::MODE(const int sock) // Доделать !!!
     if (find_server(cmd_.prefix_)){
         if (channels_.find(cmd_.arguments_[0]) != channels_.end()){
             if (cmd_.arguments_.size() != 1){
-                for (int i = 1; i < cmd_.arguments_[1].size(); ++i) {
-                    channels_.find(cmd_.arguments_[0])->second->setMode(cmd_.arguments_[1][i], 1);
+                if ((cmd_.arguments_[0][0] == '#' || cmd_.arguments_[0][0] == '&' || cmd_.arguments_[0][0] == '+' || cmd_.arguments_[0][0] == '!')){
+                    for (int i = 1; i < cmd_.arguments_[1].size(); ++i) {
+                        channels_.find(cmd_.arguments_[0])->second->setMode(cmd_.arguments_[1][i], 1);
+                    }
                 }
+                else
+                {
+                    for (int i = 0; i < cmd_.arguments_[1].size(); ++i) {
+                        if (cmd_.arguments_[1][i] == '+'){
+                            flag_mode = 1;
+                            continue;
+                        }
+                        if (cmd_.arguments_[1][i] == '-'){
+                            flag_mode = 0;
+                            continue;
+                        }
+                        if (flag_mode == 1)
+                            find_user(cmd_.arguments_[0])->set_mode_str(cmd_.arguments_[1][i]);
+                        else
+                            find_user(cmd_.arguments_[0])->del_mode_str(cmd_.arguments_[1][i]);
+                    }
+                }
+                send_servers(cmd_.line_, sock);
             }
             return R_SUCCESS;
         }
@@ -676,7 +697,6 @@ eResult Irisha::MODE(const int sock) // Доделать !!!
                 return R_SUCCESS;
             }
             send_msg(user->socket(), domain_, "324 " + user->nick() + " " + cmd_.arguments_[0] + " +" + (*itr).second->getListMode());
-            //send_channels(sock); // DELETE
             return R_SUCCESS;
         }
         if (!(*itr).second->isOperator(user)){ // Error is operator
@@ -790,6 +810,71 @@ eResult Irisha::MODE(const int sock) // Доделать !!!
         if (cmd_.type_ == T_LOCAL_CLIENT)
             send_msg(user->socket(), user->nick(), "MODE " + cmd_.arguments_[0] + " " + return_mode);
         send_channel((*itr).second, "MODE " + cmd_.arguments_[0] + " " + return_mode, user->nick(), sock);
+    }
+    else{ // user mode
+        if (find_user(cmd_.arguments_[0]) == nullptr){
+            err_nosuchchannel(user->socket(), cmd_.arguments_[0]);
+            return R_SUCCESS;
+        }
+        if (user->nick() != cmd_.arguments_[0]){
+            send_msg(user->socket(), domain_, "502 :Cant change mode for other users");
+            return R_SUCCESS;
+        }
+        if (cmd_.arguments_.size() == 1){
+                if (!user->mode_str().empty())
+                    send_msg(user->socket(), domain_, "221 " + user->nick() + " +" + user->mode_str());
+                return R_SUCCESS;
+        }
+        for (size_t i = 0; i < cmd_.arguments_[1].size(); ++i) {
+            if (cmd_.arguments_[1][i] == '+') {
+                flag_mode = 1;
+                continue;
+            }
+            if (cmd_.arguments_[1][i] == '-') {
+                flag_mode = 0;
+                continue;
+            }
+            if (flag_mode == 2)
+                continue;
+            if (flag_mode == 1 && cmd_.arguments_[1][i] == 'o')
+                continue;
+            if (cmd_.arguments_[1][i] == 'o'){
+                if (user->mode_str().find(cmd_.arguments_[1][i]) != std::string::npos)
+                    continue;
+                user->del_mode_str('o');
+                if (add_flag == 0 || add_flag == 2) {
+                    return_mode.push_back('-');
+                    add_flag = 1;
+                }
+                return_mode.push_back(cmd_.arguments_[1][i]);
+                continue;
+            }
+            if (cmd_.arguments_[1][i] == 'i'){
+                if (flag_mode == 1){
+                    if (user->mode_str().find(cmd_.arguments_[1][i]) == std::string::npos){
+                        user->set_mode_str('i');
+                        if (add_flag == 0 || add_flag == 1) {
+                            return_mode.push_back('+');
+                            add_flag = 2;
+                        }
+                        return_mode.push_back(cmd_.arguments_[1][i]);
+                    }
+                } else {
+                    if (user->mode_str().find(cmd_.arguments_[1][i]) != std::string::npos){
+                        user->del_mode_str('i');
+                        if (add_flag == 0 || add_flag == 2) {
+                            return_mode.push_back('-');
+                            add_flag = 1;
+                        }
+                        return_mode.push_back(cmd_.arguments_[1][i]);
+                    }
+                }
+                continue;
+            }
+        }
+        if (cmd_.type_ == T_LOCAL_CLIENT)
+            send_msg(user->socket(), user->nick(), "MODE " + cmd_.arguments_[0] + " " + return_mode);
+        send_servers(user->nick(), "MODE " + cmd_.arguments_[0] + " " + return_mode);
     }
     return R_SUCCESS;
 }
@@ -1024,7 +1109,6 @@ eResult Irisha::TOPIC(const int sock)
 
 eResult Irisha::PRIVMSG(const int sock)
 {
-//    User* user;
     User* sender;
     if (check_user(sock, sender, cmd_.prefix_) == R_FAILURE)
         return R_FAILURE;
@@ -1049,17 +1133,17 @@ eResult Irisha::PRIVMSG(const int sock)
         if ((arr_receiver.front()[0] == '#' || arr_receiver.front()[0] == '&' || arr_receiver.front()[0] == '+' || arr_receiver.front()[0] == '!')){
             std::map<std::string, Channel*>::iterator itr = channels_.find(arr_receiver.front());
             if (itr == channels_.end()){
-                err_nosuchnick(user->socket(), arr_receiver.front());
+                err_nosuchnick(sender->socket(), arr_receiver.front());
                 arr_receiver.pop_front();
                 continue;
             }
-            if (!(*itr).second->isUser(user) && (*itr).second->getMode().find('n')->second == 1){
-                send_msg(sock, domain_, "404 " + find_user(sock)->nick() + " " + arr_receiver.front() + " :Cannot send to channel");
+            if (!(*itr).second->isUser(sender) && (*itr).second->getMode().find('n')->second == 1){
+                send_msg(sender->socket(), domain_, "404 " + sender->nick() + " " + arr_receiver.front() + " :Cannot send to channel");
                 arr_receiver.pop_front();
                 continue;
             }
-            if (!(*itr).second->isModerator(user) && (*itr).second->getMode().find('m')->second == 1){
-                send_msg(sock, domain_, "404 " + find_user(sock)->nick() + " " + arr_receiver.front() + " :Cannot send to channel");
+            if (!(*itr).second->isModerator(sender) && !(*itr).second->isOperator(sender) && (*itr).second->getMode().find('m')->second == 1){
+                send_msg(sender->socket(), domain_, "404 " + sender->nick() + " " + arr_receiver.front() + " :Cannot send to channel");
                 arr_receiver.pop_front();
                 continue;
             }
@@ -1090,6 +1174,49 @@ eResult Irisha::PRIVMSG(const int sock)
 
 //ERR_CANNOTSENDTOCHAN            ERR_NOTOPLEVEL
 //ERR_WILDTOPLEVEL
+
+eResult Irisha::NOTICE(const int sock)
+{
+    User* sender;
+    if (check_user(sock, sender, cmd_.prefix_) == R_FAILURE)
+        return R_FAILURE;
+    std::list<std::string> arr_receiver;
+    std::string str_receiver = cmd_.arguments_[0];
+    User* user;
+
+    parse_arr_list(arr_receiver, str_receiver, ',');
+    arr_receiver.sort();
+    arr_receiver.unique();
+    while (!arr_receiver.empty()){
+        if ((arr_receiver.front()[0] == '#' || arr_receiver.front()[0] == '&' || arr_receiver.front()[0] == '+' || arr_receiver.front()[0] == '!')){
+            std::map<std::string, Channel*>::iterator itr = channels_.find(arr_receiver.front());
+            if (itr == channels_.end()){
+                arr_receiver.pop_front();
+                continue;
+            }
+            if (!(*itr).second->isUser(sender) && (*itr).second->getMode().find('n')->second == 1){
+                arr_receiver.pop_front();
+                continue;
+            }
+            if (!(*itr).second->isModerator(sender) && !(*itr).second->isOperator(sender) && (*itr).second->getMode().find('m')->second == 1){
+                arr_receiver.pop_front();
+                continue;
+            }
+            if (cmd_.type_ == T_LOCAL_CLIENT)
+                send_channel((*itr).second, "PRIVMSG " + arr_receiver.front() + " " + cmd_.arguments_[1], sender->nick(), sock);
+            else
+                send_channel((*itr).second, "PRIVMSG " + arr_receiver.front() + " " + cmd_.arguments_[1], sender->nick(), choose_sock(sender));
+        } else {
+            if (check_user(find_user(arr_receiver.front())->socket(), user, cmd_.prefix_) == R_FAILURE){
+                arr_receiver.pop_front();
+                continue;
+            }
+            send_msg(choose_sock(user), sender->nick(), "PRIVMSG " + arr_receiver.front() + " " + cmd_.arguments_[1]);
+        }
+        arr_receiver.pop_front();
+    }
+    return R_SUCCESS;
+}
 
 eResult Irisha::NAMES(const int sock) // list users channels
 {

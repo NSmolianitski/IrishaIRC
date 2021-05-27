@@ -31,6 +31,8 @@ void	User::set_password	(const std::string& password)	{ password_ = password; }
 void	User::set_mode		(const int mode)				{ mode_ = mode; }
 void	User::set_operator	(bool is_operator)				{ operator_ = is_operator; }
 void	User::set_netwideID	(const std::string& netwideID)	{ netwideID_ = netwideID; }
+void    User::set_mode_str  (char mode)                     {mode_str_.push_back(mode ); }
+void    User::del_mode_str  (char mode)                     {mode_str_.erase(mode_str_.find(mode)); }
 
 const std::string&	User::nick			() const { return nick_; }
 const std::string&	User::username		() const { return username_; }
@@ -41,3 +43,7 @@ bool 				User::is_operator	() const { return operator_; }
 const std::string&	User::netwideID		() const { return netwideID_; }
 const std::string&	User::server		() const { return server_; }
 const std::string & User::host			() const { return host_; }
+
+const std::string   &User::mode_str     () const {return mode_str_; }
+
+
