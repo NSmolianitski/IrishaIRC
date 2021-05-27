@@ -9,9 +9,13 @@ void server_cycle(const std::string& host, int port_network, const std::string& 
 {
 	try
 	{
-//		Irisha server("et-b3", 2000, "psw", 2002, "psw");
-//		Irisha server("localhost", 6667, "psw", 8000, "psw");
-		Irisha server(6667, "psw");
+		//! NGIRCD TESTS
+//		Irisha server("localhost", 6667, "psw", 3000, "psw");
+
+		//! IRISHA TESTS
+//		Irisha server(8000, "psw");
+//		Irisha server("localhost", 8000, "psw", 7000, "psw");
+		Irisha server("localhost", 7000, "psw", 6000, "psw");
 	}
 	catch (std::exception& e)
 	{

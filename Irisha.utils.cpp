@@ -4,6 +4,53 @@
 #include "Channel.hpp"
 #include <sstream>
 
+/**
+ * send information about all known servers to socket
+ * @param sock
+ */
+void Irisha::send_servers_info(int sock)
+{
+	std::map<std::string, AConnection*>::iterator it = connections_.begin();
+	for (; it != connections_.end(); it++)
+	{
+		if (it->second->type() == T_SERVER && sock != it->second->socket() )
+		{
+			send_msg(sock, domain_, createSERVERmsg(it->second));
+		}
+	}
+}
+
+/**
+ * send information about all known clients to socket TODO: send correct umode
+ * @param sock
+ */
+void Irisha::send_clients_info(int sock)
+{
+	std::map<std::string, AConnection*>::iterator it = connections_.begin();
+	for (; it != connections_.end(); it++)
+	{
+		if (it->second->type() == T_CLIENT)
+		{
+			User* usr = static_cast<User*>(it->second);
+			send_msg(sock, domain_, createNICKmsg(usr));
+		}
+	}
+}
+
+eResult Irisha::send_bounce_reply(int sock)
+{
+	User* target = find_user(cmd_.arguments_[0]);
+	if (target == 0)
+		return R_FAILURE;
+	send_msg(choose_sock(target), cmd_.line_);
+	return R_SUCCESS;
+}
+
+/**
+ * returns socket to send message for connection
+ * @param where will message sent
+ * @return socket
+ */
 int Irisha::choose_sock(AConnection *connection)
 {
 	if (connection->socket() == U_EXTERNAL_CONNECTION)
@@ -606,8 +653,48 @@ void Irisha::remove_server(const std::string& name)
 		std::cout << E_CROSS RED "Can't remove server " + name + CLR << std::endl;
 		return;
 	}
+	if (server->socket() != U_EXTERNAL_CONNECTION)
+	{
+		FD_CLR(server->socket(), &all_fds_);
+		close(server->socket());
+	}
 	connections_.erase(name);
 	delete server;
+}
+
+void Irisha::remove_server(Server*& server)
+{
+	if (server == nullptr)
+	{
+		std::cout << E_CROSS RED "Can't remove server " + server->name() + CLR << std::endl;
+		return;
+	}
+	if (server->socket() != U_EXTERNAL_CONNECTION)
+	{
+		FD_CLR(server->socket(), &all_fds_);
+		close(server->socket());
+	}
+	connections_.erase(server->name());
+	delete server;
+}
+
+/**
+ * @description	Removes servers that are connected to server
+ * @param		server: server pointer
+ */
+void Irisha::remove_far_servers(Server*& server)
+{
+	int sock = choose_sock(server); // Socket of the desired server
+
+	Server*	tmp;
+	for (con_it it = connections_.begin(); it != connections_.end(); ++it)
+	{
+		if (it->second->type() == T_SERVER && choose_sock(it->second) == sock)
+		{
+			tmp = static_cast<Server*>(it->second);
+			remove_server(tmp);
+		}
+	}
 }
 
 /// ‼️ ⚠️ DEVELOPMENT UTILS (REMOVE OR COMMENT WHEN PROJECT IS READY) ⚠️ ‼️ //! TODO: DEV -> REMOVE /////////////////////

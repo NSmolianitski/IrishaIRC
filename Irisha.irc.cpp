@@ -47,9 +47,109 @@ void	Irisha::prepare_commands()
 	commands_.insert(std::pair<std::string, func>("376", &Irisha::MOTD_REPLIES));
 	commands_.insert(std::pair<std::string, func>("LUSERS", &Irisha::LUSERS));
 	commands_.insert(std::pair<std::string, func>("SQUIT", &Irisha::SQUIT));
+	commands_.insert(std::pair<std::string, func>("VERSION", &Irisha::VERSION));
+	commands_.insert(std::pair<std::string, func>("351", &Irisha::VERSION));
+	commands_.insert(std::pair<std::string, func>("005", &Irisha::send_bounce_reply));
+	commands_.insert(std::pair<std::string, func>("CONNECT", &Irisha::CONNECT));
+	commands_.insert(std::pair<std::string, func>("OPER", &Irisha::OPER));
+}
+
+eResult Irisha::CONNECT(const int sock)
+{
+	if (cmd_.arguments_.size() < 2)
+	{
+		err_needmoreparams(sock, "CONNECT");
+		return R_FAILURE;
+	}
+	if (cmd_.prefix_.empty()) //got command from user
+	{
+		User *user = find_user(sock);
+		if (user == 0)
+			return R_FAILURE;
+	}
+//	if (!user->is_operator())	//TODO:uncomment if
+//	{
+//		err_noprivileges(sock);
+//		return R_FAILURE;
+//	}
+	//send_servers(cmd_.prefix_, "MODE " + cmd_.prefix_ + " :+o"); ///TODO: delete this line
+
+	if (cmd_.arguments_.size() > 2)
+		cmd_.arguments_[2].erase(cmd_.arguments_[2].begin());
+	if (cmd_.arguments_.size() == 2 ||
+		(cmd_.arguments_.size() > 2 && cmd_.arguments_[2] == this->domain_)) //connect this server to other
+	{
+		try	{ connect_to_server(cmd_.arguments_[0], str_to_int(cmd_.arguments_[1])); }
+		catch (std::runtime_error &ex)
+		{
+			err_nosuchserver(sock, cmd_.arguments_[0] + ":" + cmd_.arguments_[1]);
+			return R_FAILURE;
+		}
+		//registration
+		send_reg_info(password_);
+		send_servers_info(parent_fd_);
+		send_clients_info(parent_fd_);
+	}
+	else //send command to other server
+	{
+		Server* remote_serv = find_server(cmd_.arguments_[2]);
+		if (remote_serv == 0)
+		{
+			err_nosuchserver(sock, cmd_.arguments_[2]);
+			return R_FAILURE;
+		}
+		send_msg(choose_sock(remote_serv), cmd_.line_);
+	}
+	return R_SUCCESS;
 }
 
 /**
+ * Handles IRC VERSION command
+ * send version info about this server or send VERSION message to the other server
+ * @param sock socket
+ * @return R_SUCCESS or R_FAILURE
+ */
+eResult Irisha::VERSION(const int sock)
+{
+	if (cmd_.command_ == "351") //reply
+	{
+		if (cmd_.arguments_.empty())
+			return R_FAILURE;
+		User* target = find_user(cmd_.arguments_[0]);
+		if (target == 0)
+			return R_FAILURE;
+		send_msg(choose_sock(target), cmd_.line_);
+		return R_SUCCESS;
+	}
+
+	AConnection* sender = find_connection(sock);
+	if (sender == 0)
+		return R_FAILURE;
+	std::string nick;
+	if (sender->type() == T_CLIENT)
+		nick = static_cast<User*>(sender)->nick();
+	else
+		nick = cmd_.prefix_;
+
+	//send info about current server
+	if (cmd_.arguments_.size() == 0 || (cmd_.arguments_[0] == this->domain_))
+	{
+		rpl_version(sock, nick, "Irisha-1.0", "1", this->domain_, "");
+		return R_SUCCESS;
+	}
+	//send query to other server
+	Server*	target = find_server(cmd_.arguments_[0]);
+	if (target == 0)
+	{
+		err_nosuchserver(sock, cmd_.arguments_[0]);
+		return R_FAILURE;
+	}
+	send_msg(choose_sock(target), nick, "VERSION " + cmd_.arguments_[0]);
+	return R_SUCCESS;
+}
+
+/**
+ * Handles IRC OPER command
  * make user operator of the network
  * @param sock soket
  * @return R_SUCCESS or R_FAILURE
@@ -69,7 +169,7 @@ eResult Irisha::OPER(const int sock)
 	if (oper_pass_ == cmd_.arguments_[1])
 	{
 
-		User* user = find_user(sock);
+		User* user = find_user(cmd_.arguments_[0]);
 		if (user == 0)
 			return R_FAILURE;
 		user->set_operator(true);
@@ -295,29 +395,16 @@ eResult Irisha::SERVER(const int sock) ///TODO: 1. test server tokens! 2. Make s
 			send_msg(sock, NO_PREFIX, createPASSmsg(password_));
 			send_msg(sock, NO_PREFIX, createSERVERmsg(nullptr));
 
-			//send information about other servers to connected serer
-			//and about connected server to other servers
+			send_servers_info(sock);
+			//send information about connected server to other servers
 			std::map<std::string, AConnection*>::iterator it = connections_.begin();
 			for (; it != connections_.end(); it++)
 			{
-				if (it->second->type() == T_SERVER && sock != it->second->socket() )
-				{
-					send_msg(sock, domain_, createSERVERmsg(it->second));
-					if (it->second->socket() != U_EXTERNAL_CONNECTION)
-						send_msg(it->second->socket(), domain_, createSERVERmsg(server));
-				}
+				int cur_sock = it->second->socket();
+				if (it->second->type() == T_SERVER && sock != cur_sock && cur_sock != U_EXTERNAL_CONNECTION)
+					send_msg(cur_sock, domain_, createSERVERmsg(server));
 			}
-			//send information about other clients to connected server TODO: send correct umode
-			it = connections_.begin();
-			for (; it != connections_.end(); it++)
-			{
-				if (it->second->type() == T_CLIENT)
-				{
-					User* usr = static_cast<User*>(it->second);
-					send_msg(sock, domain_, createNICKmsg(usr));		//local client
-				}
-			}
-			send_channels(sock);
+			send_clients_info(sock);
 		}
 		PING(sock);
 	}
@@ -1500,6 +1587,27 @@ eResult Irisha::LUSERS(const int sock) //! TODO: handle replies to and from othe
 	return R_SUCCESS;
 }
 
+///**
+// * @description	Handles LUSERS replies
+// * @param		sock
+// * @return
+// */
+//eResult Irisha::LUSERS_REPLIES(const int sock)
+//{
+//	if (!is_enough_args(sock, cmd_.command_, 2))
+//		return R_FAILURE;
+//
+//	User*	user = find_user(cmd_.arguments_[0]);
+//	if (user == nullptr)
+//	{
+//		err_nosuchnick(sock, cmd_.arguments_[0]);
+//		return R_FAILURE;
+//	}
+//	send_msg(choose_sock(user), domain_,cmd_.command_
+//										+ " " + cmd_.arguments_[0] + " " + cmd_.arguments_[1]);
+//	return R_SUCCESS;
+//}
+
 /**
  * @description	Handles SQUIT command (disconnects servers)
  * @param		sock
@@ -1511,14 +1619,24 @@ eResult Irisha::SQUIT(const int sock)
 		return R_FAILURE;
 
 	Server*	server = find_server(cmd_.arguments_[0]);
-	if (check_server(sock, server) == R_FAILURE)
+	if (cmd_.arguments_[0] == domain_)
+	{
+		send_servers(domain_, "SQUIT " + domain_ + " :received SQUIT command", sock);
+		sys_msg(E_SLEEP, "Shutting down.");
+		exit(0);
+	}
+	else if (check_server(sock, server) == R_FAILURE)
 		return R_FAILURE;
 
-	send_servers(cmd_.line_, sock);
-	if (server->socket() != U_EXTERNAL_CONNECTION)
-		close_connection(choose_sock(server), cmd_.arguments_[1]);
+	if (cmd_.prefix_ == "")
+		send_msg(choose_sock(server), connection_name(sock), "SQUIT "
+				+ cmd_.arguments_[0] + " :" + cmd_.arguments_[1]); //! TODO: add is_irc_operator check
 	else
-		sys_msg(E_BOOM, "Server", server->name(), "disconnected!");
+		send_msg(choose_sock(server), cmd_.line_);
+	sys_msg(E_BOOM, "Server", server->name(), "disconnected!");
+	remove_server(server->name()); //! TODO: remove users, far servers
+	remove_server_users(server->name());
+	remove_far_servers(server);
 
 	return R_SUCCESS;
 }
