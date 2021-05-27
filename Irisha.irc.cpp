@@ -1438,7 +1438,9 @@ eResult Irisha::SQUIT(const int sock)
 	else
 		send_msg(choose_sock(server), cmd_.line_);
 	sys_msg(E_BOOM, "Server", server->name(), "disconnected!");
-	remove_server(server->name());
+	remove_server(server->name()); //! TODO: remove users, far servers
+	remove_server_users(server->name());
+	remove_far_servers(server);
 
 	return R_SUCCESS;
 }

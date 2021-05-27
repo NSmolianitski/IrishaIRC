@@ -50,6 +50,36 @@ void Irisha::remove_user(const std::string& nick)
 }
 
 /**
+ * @description	Removes user by pointer
+ * @param		user: pointer to User
+ */
+void Irisha::remove_user(User*& user)
+{
+	connections_.erase(user->nick());
+	delete user;
+}
+
+/**
+ * @description	Removes all users by server name
+ * @param		name: name of the server
+ */
+void Irisha::remove_server_users(const std::string& name)
+{
+	User* user;
+	for (con_it it = connections_.begin(); it != connections_.end(); ++it)
+	{
+		if (it->second->type() == T_CLIENT)
+		{
+			user = static_cast<User*>(it->second);
+			if (user->server() == name)
+				remove_user(user);
+		}
+	}
+	connections_.erase(name);
+	delete user;
+}
+
+/**
  * @description	Finds user by nick
  * @param		nick
  * @return		user pointer or nullptr
