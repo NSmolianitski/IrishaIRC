@@ -37,14 +37,9 @@ Irisha::Irisha(int port, const std::string& password)
 	loop();
 }
 
-Irisha::Irisha(const std::string& host_name, int network_port, const std::string& network_password,
-			   int port, const std::string& password)
+void Irisha::connect_to_server(const std::string &host_name, int port)
 {
 	struct sockaddr_in	server_address;
-
-	init(port);
-	launch();
-	password_ = password;
 	host_name_ = host_name;
 
 	parent_fd_ = socket(PF_INET, SOCK_STREAM, 0); //socket to connect with parent server
@@ -55,7 +50,7 @@ Irisha::Irisha(const std::string& host_name, int network_port, const std::string
 		max_fd_ = parent_fd_;
 
 	server_address.sin_family = AF_INET;
-	server_address.sin_port = htons(network_port);
+	server_address.sin_port = htons(port);
 
 	struct hostent	*host = gethostbyname(host_name.c_str());
 	if (host == nullptr) throw std::runtime_error("No such host");
@@ -66,13 +61,31 @@ Irisha::Irisha(const std::string& host_name, int network_port, const std::string
 
 	int c = ::connect(parent_fd_, reinterpret_cast<struct sockaddr *>(&server_address), sizeof(server_address));
 	if (c < 0) throw std::runtime_error("Connection error");
+}
+
+void Irisha::send_reg_info(const std::string& pass)
+{
+	//registration
+	send_msg(parent_fd_, NO_PREFIX, createPASSmsg(pass));
+	send_msg(parent_fd_, NO_PREFIX, "SERVER " + domain_ + " :Irisha server");
+}
+
+Irisha::Irisha(const std::string& host_name, int network_port, const std::string& network_password,
+			   int port, const std::string& password)
+{
+	if (network_port == port)
+		throw std::runtime_error("ERROR: network_port and port can't be same!");
+	init(port);
+	launch();
+	password_ = password;
+
+	connect_to_server(host_name, network_port);
+
 	std::cout << "Connection established! " E_FIRE "\n" << std::endl;
 	print_info();
 	std::cout << BOLD BWHITE "\n" E_STAR " Server started. Waiting for the client connection. " E_STAR "\n" CLR << std::endl;
 
-	//registration
-	send_msg(parent_fd_, NO_PREFIX, createPASSmsg(network_password));
-	send_msg(parent_fd_, NO_PREFIX, "SERVER " + domain_ + " :Irisha server");
+	send_reg_info(network_password);
 	loop();
 }
 
