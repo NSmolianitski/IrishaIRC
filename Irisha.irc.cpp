@@ -47,9 +47,64 @@ void	Irisha::prepare_commands()
 	commands_.insert(std::pair<std::string, func>("SQUIT", &Irisha::SQUIT));
 	commands_.insert(std::pair<std::string, func>("VERSION", &Irisha::VERSION));
 	commands_.insert(std::pair<std::string, func>("351", &Irisha::VERSION));
-	commands_.insert(std::pair<std::string, func>("005", &Irisha::send_bounce_reply));
+	commands_.insert(std::pair<std::string, func>("005", &Irisha::resend_msg));
+	commands_.insert(std::pair<std::string, func>("481", &Irisha::resend_msg));
 	commands_.insert(std::pair<std::string, func>("CONNECT", &Irisha::CONNECT));
 	commands_.insert(std::pair<std::string, func>("OPER", &Irisha::OPER));
+}
+
+eResult Irisha::STATS(const int sock)
+{
+	User* user;
+	if (cmd_.prefix_.empty())
+		user = find_user(sock);
+	else
+		user = find_user(cmd_.prefix_);
+	if (user == 0 || !(user->is_operator()))
+	{
+		err_noprivileges(sock);
+		return R_FAILURE;
+	}
+
+	if (cmd_.arguments_.size() == 2 && (cmd_.arguments_[1] != domain_))	//send to next server
+	{
+		Server* server = find_server(cmd_.arguments_[1]);
+		if (server == 0)
+		{
+			err_nosuchserver(sock, cmd_.arguments_[1]);
+			return R_FAILURE;
+		}
+		send_msg(choose_sock(server), user->nick(), cmd_.command_ + " " + cmd_.arguments_[0] + " " +
+			cmd_.arguments_[1]);
+		return R_SUCCESS;
+	}
+
+	if (cmd_.arguments_.size() == 0)
+	{
+		rpl_endofstats(sock, "*");
+		return R_SUCCESS;
+	}
+
+	if (cmd_.arguments_[0] == "l")
+	{
+		time_t cur_time = time(0);
+		for(std::map<std::string, AConnection*>::iterator it = connections_.begin(); it != connections_.end(); it++)
+		{
+			std::string launch_time = double_to_str(difftime(cur_time, it->second->launch_time()));
+			if (it->second->type() == T_SERVER)
+			{
+				Server *server = static_cast<Server*>(it->second);
+				rpl_statslinkinfo(sock, server->name() + " " + launch_time + " sec ");
+			}
+			else
+			{
+				User *user = static_cast<User*>(it->second);
+				rpl_statslinkinfo(sock, user->nick() + "@" + user->host() + " " + launch_time + " sec ");
+			}
+		}
+	}
+	rpl_endofstats(sock, cmd_.arguments_[0]);
+	return R_SUCCESS;
 }
 
 eResult Irisha::CONNECT(const int sock)
@@ -59,20 +114,21 @@ eResult Irisha::CONNECT(const int sock)
 		err_needmoreparams(sock, "CONNECT");
 		return R_FAILURE;
 	}
+	User *user;
 	if (cmd_.prefix_.empty()) //got command from user
+		user = find_user(sock);
+	else
+		user = find_user(cmd_.prefix_[0]);
+	if (user == 0)
+		return R_FAILURE;
+	if (!user->is_operator())	//TODO:uncomment if
 	{
-		User *user = find_user(sock);
-		if (user == 0)
-			return R_FAILURE;
+		err_noprivileges(sock);
+		return R_FAILURE;
 	}
-//	if (!user->is_operator())	//TODO:uncomment if
-//	{
-//		err_noprivileges(sock);
-//		return R_FAILURE;
-//	}
 	//send_servers(cmd_.prefix_, "MODE " + cmd_.prefix_ + " :+o"); ///TODO: delete this line
 
-	if (cmd_.arguments_.size() > 2)
+	if (cmd_.arguments_.size() > 2 && cmd_.arguments_[2][0] == ':')
 		cmd_.arguments_[2].erase(cmd_.arguments_[2].begin());
 	if (cmd_.arguments_.size() == 2 ||
 		(cmd_.arguments_.size() > 2 && cmd_.arguments_[2] == this->domain_)) //connect this server to other
@@ -90,13 +146,17 @@ eResult Irisha::CONNECT(const int sock)
 	}
 	else //send command to other server
 	{
+		AConnection* sender = find_connection(sock);
 		Server* remote_serv = find_server(cmd_.arguments_[2]);
 		if (remote_serv == 0)
 		{
 			err_nosuchserver(sock, cmd_.arguments_[2]);
 			return R_FAILURE;
 		}
-		send_msg(choose_sock(remote_serv), cmd_.line_);
+		if (sender->type() == T_CLIENT)
+			send_msg(choose_sock(remote_serv), static_cast<User*>(sender)->nick(), cmd_.line_);
+		else
+			send_msg(choose_sock(remote_serv), cmd_.line_);
 	}
 	return R_SUCCESS;
 }

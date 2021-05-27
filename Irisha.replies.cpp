@@ -382,3 +382,12 @@ void Irisha::rpl_luserme(const int sock) const
 										+ " clients and " + int_to_str(servers) + " servers");
 }
 
+void Irisha::rpl_endofstats(const int sock, const std::string& letter) const
+{
+	send_rpl_msg(sock, RPL_ENDOFSTATS,letter + " :End of /STATS report");
+}
+
+void Irisha::rpl_statslinkinfo(const int sock, const std::string &msg)
+{
+	send_rpl_msg(sock, RPL_STATSLINKINFO, msg);
+}

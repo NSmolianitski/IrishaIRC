@@ -142,6 +142,14 @@ std::string int_to_str(int num)
 	return str.str();
 }
 
+std::string double_to_str(double num)
+{
+	std::ostringstream str; //! TODO: change to other itoa thing
+
+	str << num;
+	return str.str();
+}
+
 std::string	rpl_code_to_str(const eReply code)
 {
 	std::ostringstream rpl_code; //! TODO: change to other itoa thing

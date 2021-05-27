@@ -37,9 +37,9 @@ void Irisha::send_clients_info(int sock)
 	}
 }
 
-eResult Irisha::send_bounce_reply(int sock)
+eResult Irisha::resend_msg(int sock)
 {
-	User* target = find_user(cmd_.arguments_[0]);
+	AConnection* target = find_connection(cmd_.arguments_[0]);
 	if (target == 0)
 		return R_FAILURE;
 	send_msg(choose_sock(target), cmd_.line_);
