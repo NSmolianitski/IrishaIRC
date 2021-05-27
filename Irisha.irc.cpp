@@ -37,6 +37,8 @@ void	Irisha::prepare_commands()
 	commands_.insert(std::pair<std::string, func>("ADMIN", &Irisha::ADMIN));
 	commands_.insert(std::pair<std::string, func>("ERROR", &Irisha::ERROR));
 	commands_.insert(std::pair<std::string, func>("MOTD", &Irisha::MOTD));
+	commands_.insert(std::pair<std::string, func>("211", &Irisha::resend_msg));
+	commands_.insert(std::pair<std::string, func>("219", &Irisha::resend_msg));
 	commands_.insert(std::pair<std::string, func>("256", &Irisha::RPL_256));
 	commands_.insert(std::pair<std::string, func>("257", &Irisha::RPL_257));
 	commands_.insert(std::pair<std::string, func>("258", &Irisha::RPL_258));
@@ -53,6 +55,7 @@ void	Irisha::prepare_commands()
 	commands_.insert(std::pair<std::string, func>("481", &Irisha::resend_msg));
 	commands_.insert(std::pair<std::string, func>("CONNECT", &Irisha::CONNECT));
 	commands_.insert(std::pair<std::string, func>("OPER", &Irisha::OPER));
+	commands_.insert(std::pair<std::string, func>("STATS", &Irisha::STATS));
 }
 
 eResult Irisha::STATS(const int sock)
@@ -62,11 +65,11 @@ eResult Irisha::STATS(const int sock)
 		user = find_user(sock);
 	else
 		user = find_user(cmd_.prefix_);
-	if (user == 0 || !(user->is_operator()))
-	{
-		err_noprivileges(sock);
-		return R_FAILURE;
-	}
+//	if (user == 0 || !(user->is_operator())) ///TODO: uncomment if
+//	{
+//		err_noprivileges(sock);
+//		return R_FAILURE;
+//	}
 
 	if (cmd_.arguments_.size() == 2 && (cmd_.arguments_[1] != domain_))	//send to next server
 	{
@@ -83,7 +86,7 @@ eResult Irisha::STATS(const int sock)
 
 	if (cmd_.arguments_.size() == 0)
 	{
-		rpl_endofstats(sock, "*");
+		rpl_endofstats(sock, "*", user->nick());
 		return R_SUCCESS;
 	}
 
@@ -92,20 +95,22 @@ eResult Irisha::STATS(const int sock)
 		time_t cur_time = time(0);
 		for(std::map<std::string, AConnection*>::iterator it = connections_.begin(); it != connections_.end(); it++)
 		{
+			if (it->second->socket() == U_EXTERNAL_CONNECTION)
+				continue;
 			std::string launch_time = double_to_str(difftime(cur_time, it->second->launch_time()));
 			if (it->second->type() == T_SERVER)
 			{
 				Server *server = static_cast<Server*>(it->second);
-				rpl_statslinkinfo(sock, server->name() + " " + launch_time + " sec ");
+				rpl_statslinkinfo(sock, server->name() + " " + launch_time + " sec ", user->nick());
 			}
 			else
 			{
-				User *user = static_cast<User*>(it->second);
-				rpl_statslinkinfo(sock, user->nick() + "@" + user->host() + " " + launch_time + " sec ");
+				User *client = static_cast<User*>(it->second);
+				rpl_statslinkinfo(sock, user->nick() + "@" + client->host() + " " + launch_time + " sec ", user->nick());
 			}
 		}
 	}
-	rpl_endofstats(sock, cmd_.arguments_[0]);
+	rpl_endofstats(sock, cmd_.arguments_[0], user->nick());
 	return R_SUCCESS;
 }
 

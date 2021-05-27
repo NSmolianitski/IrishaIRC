@@ -294,8 +294,8 @@ private:
 	void			rpl_luserchannels		(const int sock) const;
 	void			rpl_luserunknown		(const int sock) const;
 	void			rpl_luserme				(const int sock) const;
-	void 			rpl_endofstats			(const int sock, const std::string& letter) const;
-	void 			rpl_statslinkinfo		(const int sock, const std::string& msg);
+	void 			rpl_endofstats			(const int sock, const std::string& letter, const std::string &target) const;
+	void 			rpl_statslinkinfo		(const int sock, const std::string &msg, const std::string &target);
 
 	/// Unused constructors
 	Irisha				() {};
