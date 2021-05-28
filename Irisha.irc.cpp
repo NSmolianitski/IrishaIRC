@@ -39,6 +39,7 @@ void	Irisha::prepare_commands()
 	commands_.insert(std::pair<std::string, func>("MOTD", &Irisha::MOTD));
 	commands_.insert(std::pair<std::string, func>("211", &Irisha::resend_msg));
 	commands_.insert(std::pair<std::string, func>("219", &Irisha::resend_msg));
+	commands_.insert(std::pair<std::string, func>("242", &Irisha::resend_msg));
 	commands_.insert(std::pair<std::string, func>("256", &Irisha::RPL_256));
 	commands_.insert(std::pair<std::string, func>("257", &Irisha::RPL_257));
 	commands_.insert(std::pair<std::string, func>("258", &Irisha::RPL_258));
@@ -110,6 +111,11 @@ eResult Irisha::STATS(const int sock)
 			}
 		}
 	}
+	else if (cmd_.arguments_[0] == "u")
+	{
+		std::string up_time = double_to_str(time(0) - this->launch_time_);
+		rpl_statsuptime(sock, "Server up " + up_time + " sec", user->nick());
+	}
 	rpl_endofstats(sock, cmd_.arguments_[0], user->nick());
 	return R_SUCCESS;
 }
@@ -128,12 +134,11 @@ eResult Irisha::CONNECT(const int sock)
 		user = find_user(cmd_.prefix_[0]);
 	if (user == 0)
 		return R_FAILURE;
-	if (!user->is_operator())	//TODO:uncomment if
+	if (!user->is_operator())
 	{
 		err_noprivileges(sock);
 		return R_FAILURE;
 	}
-	//send_servers(cmd_.prefix_, "MODE " + cmd_.prefix_ + " :+o"); ///TODO: delete this line
 
 	if (cmd_.arguments_.size() > 2 && cmd_.arguments_[2][0] == ':')
 		cmd_.arguments_[2].erase(cmd_.arguments_[2].begin());
