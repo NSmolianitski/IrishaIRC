@@ -157,6 +157,8 @@ private:
     eResult         check_user          (int sock, User*& user, const std::string& nick);
 	eResult			check_server		(int sock, Server*& server);
     bool            is_enough_args      (int sock, const std::string& command, int min_args_number);
+    User*			determine_user		(int sock);
+
     void            send_channels       (int sock);
 	///	System messages
 	std::string		sys_msg				(const std::string& emoji, const std::string& str) const;
@@ -205,6 +207,7 @@ private:
 	eResult			VERSION				(const int sock);
 	eResult			CONNECT				(const int sock);
 	eResult			STATS				(const int sock);
+	eResult			LINKS				(const int sock);
 
 	/// IRC commands utils
 	void			admin_info			(const int sock, const std::string& receiver);
@@ -296,7 +299,9 @@ private:
 	void			rpl_luserme				(const int sock) const;
 	void 			rpl_endofstats			(const int sock, const std::string& letter, const std::string &target) const;
 	void 			rpl_statslinkinfo		(const int sock, const std::string &msg, const std::string &target);
-	void 			rpl_statsuptime		(const int sock, const std::string &msg, const std::string &target);
+	void 			rpl_statsuptime			(const int sock, const std::string &msg, const std::string &target);
+	void 			rpl_links				(const int sock, const std::string &serv_name, int hopcount, const std::string &target);
+	void 			rpl_endoflinks			(const int sock, const std::string &serv_name, const std::string &target);
 
 	/// Unused constructors
 	Irisha				() {};

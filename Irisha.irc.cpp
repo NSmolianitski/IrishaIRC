@@ -45,6 +45,8 @@ void	Irisha::prepare_commands()
 	commands_.insert(std::pair<std::string, func>("258", &Irisha::RPL_258));
 	commands_.insert(std::pair<std::string, func>("259", &Irisha::RPL_259));
 	commands_.insert(std::pair<std::string, func>("421", &Irisha::RPL_421));
+	commands_.insert(std::pair<std::string, func>("364", &Irisha::resend_msg));
+	commands_.insert(std::pair<std::string, func>("365", &Irisha::resend_msg));
 	commands_.insert(std::pair<std::string, func>("375", &Irisha::MOTD_REPLIES));
 	commands_.insert(std::pair<std::string, func>("372", &Irisha::MOTD_REPLIES));
 	commands_.insert(std::pair<std::string, func>("376", &Irisha::MOTD_REPLIES));
@@ -57,20 +59,56 @@ void	Irisha::prepare_commands()
 	commands_.insert(std::pair<std::string, func>("CONNECT", &Irisha::CONNECT));
 	commands_.insert(std::pair<std::string, func>("OPER", &Irisha::OPER));
 	commands_.insert(std::pair<std::string, func>("STATS", &Irisha::STATS));
+	commands_.insert(std::pair<std::string, func>("LINKS", &Irisha::LINKS));
 }
 
+/**
+ * Handles IRC LINKS command
+ * show list of known servers or send this message to other server
+ */
+eResult Irisha::LINKS(const int sock)
+{
+	User* user = determine_user(sock);
+	if (user == 0)
+		return R_FAILURE;
+	if (cmd_.arguments_.size() > 0 && cmd_.arguments_[0] != this->domain_)
+	{
+		//send message to other server
+		Server* server = find_server(cmd_.arguments_[0]);
+		if (server == 0)
+		{
+			err_nosuchserver(sock, cmd_.arguments_[0]);
+			return R_FAILURE;
+		}
+		send_msg(choose_sock(server), user->nick(), cmd_.command_ + " " + cmd_.arguments_[0]);
+		return R_SUCCESS;
+	}
+
+	std::map<std::string,AConnection*>::iterator it = connections_.begin();
+	for (; it != connections_.end(); it++)
+	{
+		if (it->second->type() == T_SERVER)
+		{
+			Server* server = static_cast<Server*>(it->second);
+			rpl_links(sock, server->name(), server->hopcount(), user->nick());
+		}
+	}
+	rpl_endoflinks(sock, this->domain_, user->nick());
+	return R_SUCCESS;
+}
+
+/**
+ * Handles IRC STATS command
+ * show statistic of this server or send STATS message to other server
+ */
 eResult Irisha::STATS(const int sock)
 {
-	User* user;
-	if (cmd_.prefix_.empty())
-		user = find_user(sock);
-	else
-		user = find_user(cmd_.prefix_);
-//	if (user == 0 || !(user->is_operator())) ///TODO: uncomment if
-//	{
-//		err_noprivileges(sock);
-//		return R_FAILURE;
-//	}
+	User* user = determine_user(sock);
+	if (user == 0 || !(user->is_operator()))
+	{
+		err_noprivileges(sock);
+		return R_FAILURE;
+	}
 
 	if (cmd_.arguments_.size() == 2 && (cmd_.arguments_[1] != domain_))	//send to next server
 	{
@@ -120,6 +158,11 @@ eResult Irisha::STATS(const int sock)
 	return R_SUCCESS;
 }
 
+
+/**
+ * Handles IRC CONNECT command
+ * connect this server to other or send CONNECT message to other server
+ */
 eResult Irisha::CONNECT(const int sock)
 {
 	if (cmd_.arguments_.size() < 2)
@@ -127,11 +170,7 @@ eResult Irisha::CONNECT(const int sock)
 		err_needmoreparams(sock, "CONNECT");
 		return R_FAILURE;
 	}
-	User *user;
-	if (cmd_.prefix_.empty()) //got command from user
-		user = find_user(sock);
-	else
-		user = find_user(cmd_.prefix_[0]);
+	User *user = determine_user(sock);
 	if (user == 0)
 		return R_FAILURE;
 	if (!user->is_operator())

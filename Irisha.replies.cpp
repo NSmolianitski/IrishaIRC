@@ -396,3 +396,13 @@ void Irisha::rpl_statsuptime(const int sock, const std::string &msg, const std::
 {
 	send_rpl_msg(sock, RPL_STATSUPTIME, msg, target);
 }
+
+void Irisha::rpl_links(const int sock, const std::string &serv_name, int hopcount, const std::string &target)
+{
+	send_rpl_msg(sock, RPL_LINKS, serv_name + " :" + int_to_str(hopcount), target);
+}
+
+void Irisha::rpl_endoflinks(const int sock, const std::string &serv_name, const std::string &target)
+{
+	send_rpl_msg(sock, RPL_ENDOFLINK, serv_name + " :End of /LINKS list", target);
+}

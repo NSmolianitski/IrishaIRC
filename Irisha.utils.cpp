@@ -5,6 +5,21 @@
 #include <sstream>
 
 /**
+ * Determines user which sent message. If command prefix is empty determines by socket, else by prefix
+ * @param sock
+ * @return user pointer if it found, else 0
+ */
+User* Irisha::determine_user(int sock)
+{
+	User* user;
+	if (cmd_.prefix_.empty()) //got command from user
+		user = find_user(sock);
+	else
+		user = find_user(cmd_.prefix_);
+	return user;
+}
+
+/**
  * send information about all known servers to socket
  * @param sock
  */
