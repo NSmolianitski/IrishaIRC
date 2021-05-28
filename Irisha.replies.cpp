@@ -391,3 +391,8 @@ void Irisha::rpl_statslinkinfo(const int sock, const std::string &msg, const std
 {
 	send_rpl_msg(sock, RPL_STATSLINKINFO, msg, target);
 }
+
+void Irisha::rpl_statsuptime(const int sock, const std::string &msg, const std::string &target)
+{
+	send_rpl_msg(sock, RPL_STATSUPTIME, msg, target);
+}
