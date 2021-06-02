@@ -28,7 +28,8 @@ void 	parse_msg(const std::string& msg, Command& cmd)
             array.pop_front();
         }
         cmd.command_.append(array.front());
-		array.pop_front();
+        if (!array.empty())
+		    array.pop_front();
 		while (!array.empty()) {
 			if (array.front()[0] == ':')
 				break;
@@ -53,6 +54,8 @@ void parse_arr_msg(std::deque<std::string>& arr_msg, std::string& buff)
     std::string s;
     std::istringstream is(buff);
 
+    if (buff.find('\n') == std::string::npos)
+        return;
     while (std::getline(is, s, '\r'))
         arr_msg.push_back(s);
     if (!arr_msg.empty())
@@ -67,7 +70,7 @@ void parse_arr_msg(std::deque<std::string>& arr_msg, std::string& buff)
             itr++;
         }
     }
-    buff.clear(); //! TODO: add check for command concatenation
+    buff.clear();
 }
 
 void parse_argv(int argc, char *argv[], std::string& host, int& port_network, std::string& password_network, int& port, std::string& password)

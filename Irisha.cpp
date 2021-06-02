@@ -189,7 +189,7 @@ void Irisha::loop()
                     parse_arr_msg(arr_msg, *buff);
                     while (!arr_msg.empty())
                     {
-                        parse_msg(arr_msg[0], cmd_); //! TODO: fix EXC_BAD_ACCESS in cases: ":prefix", ":", "::"
+                        parse_msg(arr_msg[0], cmd_);
 						print_cmd(PM_LINE, i);
 						arr_msg.pop_front();
 						std::list<RegForm*>::iterator it = expecting_registration(i, reg_expect);	// Is this connection waiting for registration? TODO: add timeout handling to registration
