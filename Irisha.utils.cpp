@@ -711,6 +711,24 @@ void Irisha::remove_far_servers(Server*& server)
 	}
 }
 
+/**
+ * @description	Checks if user is IRC-operator by socket, sends err_noprivileges if not
+ * @param		sock
+ * @return		true if user is IRC-operator
+ */
+bool Irisha::is_user_operator(const int sock)
+{
+	User*	user = find_user(sock);
+	if (user == nullptr)
+		return false;
+	else if (!user->is_operator())
+	{
+		err_noprivileges(sock);
+		return false;
+	}
+	return true;
+}
+
 /// ‼️ ⚠️ DEVELOPMENT UTILS (REMOVE OR COMMENT WHEN PROJECT IS READY) ⚠️ ‼️ //! TODO: DEV -> REMOVE /////////////////////
 #define GUEST52 "Guest52" //! TODO: REMOVE
 

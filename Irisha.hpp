@@ -122,6 +122,7 @@ private:
 	void			remove_server_users	(const std::string& name);
 	User*			find_user			(const std::string& nick) const;
 	User*			find_user			(const int sock) const;
+	bool			is_user_operator	(const int sock);
 
 	/// Servers
 	void			remove_server		(const std::string& name);
