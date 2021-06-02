@@ -146,7 +146,7 @@ std::string* Irisha::get_msg(int sock, std::list<Irisha::RegForm*>& reg_expect)
 		throw std::runtime_error("Recv error in get_msg()");
 
 	if (read_bytes == 0)
-		handle_disconnection(sock);
+		close_connection(sock, "connection lost");
 	else if (read_bytes > 510)
 	{
 		send_msg(sock, domain_, "Error! Request is too long");
@@ -560,7 +560,7 @@ void Irisha::ping_connections(time_t& last_ping)
 			if (connection->last_msg_time() >= conn_timeout_)
 			{
 				--it;
-				handle_disconnection(connection->socket());
+				close_connection(connection->socket(), "timeout");
 				continue;
 			}
 			send_msg(it->second->socket(), domain_, "PING " + domain_); // Send PING message
@@ -577,7 +577,7 @@ bool Irisha::is_valid_prefix(const int sock)
 		if (find_connection(cmd_.prefix_))
 		{
 			send_msg(sock, domain_, "Error! Cheater! Closing connection...");
-			handle_disconnection(sock);
+			close_connection(sock, "using someone's prefix");
 		}
 		else
 			send_msg(sock, domain_, "Error! Wrong prefix!");
@@ -668,7 +668,7 @@ void Irisha::close_connection(const int sock, const std::string& comment)
 		if (server != nullptr)
 		{
 			name = server->name();
-			remove_server(server->name());
+			remove_local_server(server);
 			send_servers(name, "SQUIT " + name + " :" + comment, sock);
 		}
 		if (name == "unknown")

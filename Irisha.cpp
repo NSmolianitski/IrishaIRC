@@ -212,44 +212,6 @@ void Irisha::loop()
 	sender.detach(); //! TODO: REMOVE ////<======///////////////////////////////////////////////////////////////////////////////
 }
 
-/**
- * @description	Closes client socket and removes it from connections map
- * 				from the all_fds_ member
- * @param		client_socket
- */
-void Irisha::handle_disconnection(const int sock)
-{
-	User*		user = find_user(sock);
-	std::string msg;
-
-	if (user == nullptr)
-	{
-		Server*		server = find_server(sock);
-		std::string	name = "unknown";
-		if (server != nullptr)
-		{
-			name = server->name();
-			remove_server(server->name());
-			send_servers(name, "SQUIT " + name + " :connection lost", sock);
-		}
-		if (name == "unknown")
-			sys_msg(E_BOOM, "Unknown connection closed!"); // Handle non-registered connection
-		else
-			sys_msg(E_BOOM, "Server", name, "disconnected!"); // Handle server connection
-	}
-	else
-	{
-		msg = sys_msg(E_SCULL, "User", user->nick(), "disconnected!");
-		send_servers(user->nick(), msg);
-		remove_user(user->nick());
-	}
-	if (sock != U_EXTERNAL_CONNECTION)
-	{
-		FD_CLR(sock, &all_fds_);
-		close(sock);
-	}
-}
-
 /// Commands+
 
 
