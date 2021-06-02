@@ -416,6 +416,7 @@ eResult Irisha::USER(const int sock)
 		return R_FAILURE;
 	}
 	user->set_username(cmd_.arguments_[0]);
+	user->set_realname(cmd_.arguments_[3]);
 
 	if (cmd_.arguments_[1].length() > 1) //! TODO: don't forget to handle modes
 		user->set_mode(0);

@@ -201,9 +201,9 @@ void Irisha::loop()
 								reg_expect.erase(it);
 								delete rf;
 							}
-							handle_command(i);
+							continue;
 						}
-						handle_command(i);															// No, handle not registration command
+						handle_command(i);																// No, handle not registration command
 					}
 				}
 			}
