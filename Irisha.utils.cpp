@@ -661,7 +661,6 @@ void Irisha::close_connection(const int sock, const std::string& comment)
 	}
 
 	User*		user = find_user(sock);
-
 	if (user == nullptr)
 	{
 		Server*		server = find_server(sock);
@@ -670,7 +669,7 @@ void Irisha::close_connection(const int sock, const std::string& comment)
 		{
 			name = server->name();
 			remove_server(server->name());
-			send_servers(name, "SQUIT " + name + " :" + comment);
+			send_servers(name, "SQUIT " + name + " :" + comment, sock);
 		}
 		if (name == "unknown")
 			sys_msg(E_BOOM, "Unknown connection closed!"); // Handle non-registered connection
@@ -724,7 +723,7 @@ void Irisha::remove_server(Server*& server)
  * @description	Removes servers that are connected to server
  * @param		server: server pointer
  */
-void Irisha::remove_far_servers(Server*& server)
+void Irisha::remove_local_server(Server*& server)
 {
 	int sock = choose_sock(server); // Socket of the desired server
 
@@ -737,6 +736,7 @@ void Irisha::remove_far_servers(Server*& server)
 			remove_server(tmp);
 		}
 	}
+	remove_server(server);
 }
 
 /**

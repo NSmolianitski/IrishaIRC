@@ -852,17 +852,28 @@ eResult Irisha::MODE(const int sock) // Доделать !!!
             }
             if (flag_mode == 2)
                 continue;
-            if (flag_mode == 1 && cmd_.arguments_[1][i] == 'o')
+            if (flag_mode == 1 && cmd_.arguments_[1][i] == 'o' && find_server(sock) == nullptr)
                 continue;
             if (cmd_.arguments_[1][i] == 'o'){
-                if (user->mode_str().find(cmd_.arguments_[1][i]) != std::string::npos)
-                    continue;
-                user->del_mode_str('o');
-                if (add_flag == 0 || add_flag == 2) {
-                    return_mode.push_back('-');
-                    add_flag = 1;
+                if (flag_mode == 1){
+                    if (user->mode_str().find(cmd_.arguments_[1][i]) == std::string::npos){
+                        user->set_mode_str('o');
+                        if (add_flag == 0 || add_flag == 1) {
+                            return_mode.push_back('+');
+                            add_flag = 2;
+                        }
+                        return_mode.push_back(cmd_.arguments_[1][i]);
+                    }
+                } else {
+                    if (user->mode_str().find(cmd_.arguments_[1][i]) != std::string::npos){
+                        user->del_mode_str('o');
+                        if (add_flag == 0 || add_flag == 2) {
+                            return_mode.push_back('-');
+                            add_flag = 1;
+                        }
+                        return_mode.push_back(cmd_.arguments_[1][i]);
+                    }
                 }
-                return_mode.push_back(cmd_.arguments_[1][i]);
                 continue;
             }
             if (cmd_.arguments_[1][i] == 'i'){
@@ -888,6 +899,8 @@ eResult Irisha::MODE(const int sock) // Доделать !!!
                 continue;
             }
         }
+        if (return_mode.empty())
+            return R_SUCCESS;
         if (cmd_.type_ == T_LOCAL_CLIENT)
             send_msg(user->socket(), user->nick(), "MODE " + cmd_.arguments_[0] + " " + return_mode);
         send_servers(user->nick(), "MODE " + cmd_.arguments_[0] + " " + return_mode, sock);
@@ -1726,7 +1739,9 @@ eResult Irisha::SQUIT(const int sock)
 	else if (check_server(sock, server) == R_FAILURE)
 		return R_FAILURE;
 
-	if (cmd_.prefix_ == "")
+	if (cmd_.type_ == T_SERVER)
+		send_servers(cmd_.line_, sock);
+	else if (cmd_.prefix_ == "")
 	{
 		if (!is_user_operator(sock))
 			return R_FAILURE;
@@ -1736,9 +1751,10 @@ eResult Irisha::SQUIT(const int sock)
 	else
 		send_msg(choose_sock(server), cmd_.line_);
 	sys_msg(E_BOOM, "Server", server->name(), "disconnected!");
-	remove_server(server->name()); //! TODO: remove users, far servers
-	remove_server_users(server->name());
-	remove_far_servers(server);
+	if (server->socket() != U_EXTERNAL_CONNECTION)
+		remove_local_server(server);
+	else
+		remove_server(server);
 
 	return R_SUCCESS;
 }
