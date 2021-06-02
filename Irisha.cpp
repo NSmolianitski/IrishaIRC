@@ -61,7 +61,7 @@ void Irisha::connect_to_server(const std::string &host_name, int port)
 
 void Irisha::send_reg_info(const std::string& pass)
 {
-	//registration
+	// Registration
 	send_msg(parent_fd_, NO_PREFIX, createPASSmsg(pass));
 	send_msg(parent_fd_, NO_PREFIX, "SERVER " + domain_ + " :Irisha server");
 }
@@ -91,7 +91,7 @@ Irisha::~Irisha()
 }
 
 /**
- * @description	The launch() function binds socket and starts to listen
+ * @description	Binds socket and starts to listen
  */
 void Irisha::launch()
 {
@@ -206,6 +206,8 @@ void Irisha::loop()
 	}
 }
 
+//! TODO: fix "MODE #124 --------------o", "MODE #124 +o" crash
+
 /// Commands+
 
 
@@ -213,10 +215,10 @@ void Irisha::loop()
 ///Commands-
 
 /**
- *
- * @param i - socket to identify connection
- * @param reg_expect - list of not registered connections
- * @return	node iterator, if socket in list, else end iterator
+ * @description
+ * @param		i - socket to identify connection
+ * @param		reg_expect - list of not registered connections
+ * @return		node iterator, if socket in list, else end iterator
  */
 std::list<Irisha::RegForm*>::iterator Irisha::expecting_registration(int i, std::list<RegForm*>& reg_expect)
 {
