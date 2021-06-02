@@ -837,17 +837,28 @@ eResult Irisha::MODE(const int sock) // Доделать !!!
             }
             if (flag_mode == 2)
                 continue;
-            if (flag_mode == 1 && cmd_.arguments_[1][i] == 'o')
+            if (flag_mode == 1 && cmd_.arguments_[1][i] == 'o' && find_server(sock) == nullptr)
                 continue;
             if (cmd_.arguments_[1][i] == 'o'){
-                if (user->mode_str().find(cmd_.arguments_[1][i]) != std::string::npos)
-                    continue;
-                user->del_mode_str('o');
-                if (add_flag == 0 || add_flag == 2) {
-                    return_mode.push_back('-');
-                    add_flag = 1;
+                if (flag_mode == 1){
+                    if (user->mode_str().find(cmd_.arguments_[1][i]) == std::string::npos){
+                        user->set_mode_str('o');
+                        if (add_flag == 0 || add_flag == 1) {
+                            return_mode.push_back('+');
+                            add_flag = 2;
+                        }
+                        return_mode.push_back(cmd_.arguments_[1][i]);
+                    }
+                } else {
+                    if (user->mode_str().find(cmd_.arguments_[1][i]) != std::string::npos){
+                        user->del_mode_str('o');
+                        if (add_flag == 0 || add_flag == 2) {
+                            return_mode.push_back('-');
+                            add_flag = 1;
+                        }
+                        return_mode.push_back(cmd_.arguments_[1][i]);
+                    }
                 }
-                return_mode.push_back(cmd_.arguments_[1][i]);
                 continue;
             }
             if (cmd_.arguments_[1][i] == 'i'){
@@ -873,6 +884,8 @@ eResult Irisha::MODE(const int sock) // Доделать !!!
                 continue;
             }
         }
+        if (return_mode.empty())
+            return R_SUCCESS;
         if (cmd_.type_ == T_LOCAL_CLIENT)
             send_msg(user->socket(), user->nick(), "MODE " + cmd_.arguments_[0] + " " + return_mode);
         send_servers(user->nick(), "MODE " + cmd_.arguments_[0] + " " + return_mode, sock);
