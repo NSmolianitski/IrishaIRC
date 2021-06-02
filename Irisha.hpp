@@ -105,7 +105,7 @@ private:
 
 	/// Connections
 	int				accept_connection	();
-	void			close_connection	(const int sock, const std::string& comment);
+	void			close_connection	(const int sock, const std::string& comment, std::list<Irisha::RegForm*>* reg_expect);
 	void			handle_command		(const int sock);
 	AConnection*	find_connection		(const int sock) const;
 	AConnection*	find_connection		(const std::string& name) const;

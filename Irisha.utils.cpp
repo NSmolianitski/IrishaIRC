@@ -7,19 +7,6 @@
 #include <iomanip>
 
 /**
- * return user's modes as string like "+io"
- * @param user
- * @return string with modes
- */
-const std::string& Irisha::get_user_modes(const User &user)
-{
-	std::string result = "+";
-	if (user.is_operator())
-		result.append("o");
-//	if (user->)
-}
-
-/**
  * Determines user which sent message. If command prefix is empty determines by socket, else by prefix
  * @param sock
  * @return user pointer if it found, else 0
@@ -148,7 +135,7 @@ std::string* Irisha::get_msg(int sock, std::list<Irisha::RegForm*>& reg_expect)
 		throw std::runtime_error("Recv error in get_msg()");
 
 	if (read_bytes == 0)
-		close_connection(sock, "connection lost");
+		close_connection(sock, "connection lost", &reg_expect);
 	else if (read_bytes > 510)
 	{
 		send_msg(sock, domain_, "Error! Request is too long");
@@ -562,7 +549,7 @@ void Irisha::ping_connections(time_t& last_ping)
 			if (connection->last_msg_time() >= conn_timeout_)
 			{
 				--it;
-				close_connection(connection->socket(), "timeout");
+				close_connection(connection->socket(), "timeout", nullptr);
 				continue;
 			}
 			send_msg(it->second->socket(), domain_, "PING " + domain_); // Send PING message
@@ -579,7 +566,7 @@ bool Irisha::is_valid_prefix(const int sock)
 		if (find_connection(cmd_.prefix_))
 		{
 			send_msg(sock, domain_, "Error! Cheater! Closing connection...");
-			close_connection(sock, "using someone's prefix");
+			close_connection(sock, "using someone's prefix", nullptr);
 		}
 		else
 			send_msg(sock, domain_, "Error! Wrong prefix!");
@@ -654,12 +641,23 @@ std::string	Irisha::sys_msg(const std::string& emoji, const std::string& str
 	return msg;
 }
 
-void Irisha::close_connection(const int sock, const std::string& comment)
+void Irisha::close_connection(const int sock, const std::string& comment, std::list<Irisha::RegForm*>* reg_expect)
 {
 	if (sock == U_EXTERNAL_CONNECTION)
 	{
 		std::cout << E_CROSS RED " ALARM! TRYING TO CLOSE EXTERNAL CONNECTION! " E_CROSS CLR << std::endl;
 		return;
+	}
+
+	//check registration expecting connections
+	if (reg_expect != nullptr)
+	{
+		std::list<RegForm*>::iterator it = expecting_registration(sock, *reg_expect);
+		if (it != reg_expect->end())
+		{
+			reg_expect->erase(it);
+			delete *it;
+		}
 	}
 
 	User*		user = find_user(sock);

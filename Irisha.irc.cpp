@@ -1430,7 +1430,7 @@ eResult Irisha::KILL(const int sock)
 		send_msg(victim->socket(), connection_name(killer), "KILL "
 				+ cmd_.arguments_[0] + " :KILLed by " + connection_name(killer) + ": " + msg);
 		send_msg(victim->socket(), domain_, "ERROR :Killed by " + connection_name(killer) + ": " + msg);
-		close_connection(victim->socket(), "Killed by " + connection_name(killer));
+		close_connection(victim->socket(), "Killed by " + connection_name(killer), nullptr);
 		return R_SUCCESS;
 	}
 	else
