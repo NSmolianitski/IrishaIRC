@@ -345,7 +345,7 @@ void Irisha::rpl_luserclient(const int sock) const
 
 	count_global(users, servers);
 	send_rpl_msg(sock, RPL_LUSERCLIENT, ":There are " + int_to_str(users)
-						+ " users on " + int_to_str(servers) + " servers"); //! TODO: services?
+						+ " users on " + int_to_str(servers) + " servers");
 }
 
 void Irisha::rpl_luserop(const int sock) const

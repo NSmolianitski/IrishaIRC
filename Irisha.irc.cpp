@@ -456,7 +456,7 @@ eResult Irisha::USER(const int sock)
 
 	sys_msg(E_MAN, "New local user", user->nick(), "registered!");
 	// NICK <nickname> <hopcount> <username> <host> <servertoken> <umode> <realname>
-	//send_servers(domain_, "NICK " + user->nick() + " 1 " + user->username() + " " + user->server() + " 1 + " + user->realname()); //! TODO: add user modes
+	//send_servers(domain_, "NICK " + user->nick() + " 1 " + user->username() + " " + user->server() + " 1 + " + user->realname()); //!
 	send_servers(domain_, createNICKmsg(user));
 	return R_SUCCESS;
 }
@@ -487,7 +487,7 @@ eResult Irisha::PASS(const int sock)
  * @param		sock: command sender socket
  * @return		R_FAILURE if registration successfully, else R_FAILURE
  */
-eResult Irisha::SERVER(const int sock) ///TODO: 1. test server tokens! 2. Make sending information about new server to all network (not only neighbours)
+eResult Irisha::SERVER(const int sock)
 {
 	//validation+
 	if (cmd_.arguments_.empty())

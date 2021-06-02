@@ -14,7 +14,7 @@ private:
 	std::string	username_;
 	std::string realname_;
 	std::string password_;
-	int			mode_;		//! TODO: make mode number parsing
+	int			mode_;
 	std::string mode_str_;
 	bool 		operator_;
 	std::string netwideID_;
