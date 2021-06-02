@@ -132,34 +132,35 @@ private:
 	Server*			find_server			(const int sock) const;
 
 	/// Utils
-	std::string*	choose_buff			(int sock, std::list<Irisha::RegForm*>& reg_expect);
-	std::string* 	get_msg				(int sock, std::list<Irisha::RegForm*>& reg_expect);
-	std::string 	time_stamp			() const;
-	RegForm*	 	find_regform		(int sock, std::list<Irisha::RegForm*>& reg_expect);
-	bool			is_valid_prefix		(const int sock);
-	void			send_msg			(int sock, const std::string& prefix, const std::string& msg) const;
-	void			send_msg			(int sock, const std::string& msg) const;
-	void			send_rpl_msg		(int sock, eReply rpl, const std::string& msg) const;
-	void			send_rpl_msg		(int sock, eReply rpl, const std::string& msg
-											, const std::string& target) const;
-	void			send_rpl_msg		(int sock, eError rpl, const std::string& msg) const;
-	void			send_rpl_msg		(int sock, eError rpl, const std::string& msg
-											, const std::string& target) const;
-	void			send_servers		(const std::string& prefix, const std::string& msg) const;
-	void			send_servers		(const std::string& prefix, const std::string& msg, const int sock) const;
-	void			send_servers		(const std::string& msg, const int sock) const;
-	void			send_everyone		(const std::string& prefix, const std::string& msg) const;
-	void			print_info			() const;
-	int 			next_token			();
-	int 			choose_sock			(AConnection* connection);
-    eType           connection_type     (int sock);
-    eResult         check_user_sender   (int sender_sock, User*& sender, const std::string& sender_name
-                                            , User*& user, const std::string& user_nick);
-    eResult         check_user          (int sock, User*& user, const std::string& nick);
-	eResult			check_server		(int sock, Server*& server);
-    bool            is_enough_args      (int sock, const std::string& command, int min_args_number);
-    void            send_channels       (int sock);
-    User*			determine_user		(int sock);
+	std::string*		choose_buff			(int sock, std::list<Irisha::RegForm*>& reg_expect);
+	std::string* 		get_msg				(int sock, std::list<Irisha::RegForm*>& reg_expect);
+	std::string 		time_stamp			() const;
+	RegForm*	 		find_regform		(int sock, std::list<Irisha::RegForm*>& reg_expect);
+	bool				is_valid_prefix		(const int sock);
+	void				send_msg			(int sock, const std::string& prefix, const std::string& msg) const;
+	void				send_msg			(int sock, const std::string& msg) const;
+	void				send_rpl_msg		(int sock, eReply rpl, const std::string& msg) const;
+	void				send_rpl_msg		(int sock, eReply rpl, const std::string& msg
+												, const std::string& target) const;
+	void				send_rpl_msg		(int sock, eError rpl, const std::string& msg) const;
+	void				send_rpl_msg		(int sock, eError rpl, const std::string& msg
+												, const std::string& target) const;
+	void				send_servers		(const std::string& prefix, const std::string& msg) const;
+	void				send_servers		(const std::string& prefix, const std::string& msg, const int sock) const;
+	void				send_servers		(const std::string& msg, const int sock) const;
+	void				send_everyone		(const std::string& prefix, const std::string& msg) const;
+	void				print_info			() const;
+	int 				next_token			();
+	int 				choose_sock			(AConnection* connection);
+    eType           	connection_type     (int sock);
+    eResult         	check_user_sender   (int sender_sock, User*& sender, const std::string& sender_name
+                    	                        , User*& user, const std::string& user_nick);
+    eResult         	check_user          (int sock, User*& user, const std::string& nick);
+	eResult				check_server		(int sock, Server*& server);
+    bool            	is_enough_args      (int sock, const std::string& command, int min_args_number);
+    void            	send_channels       (int sock);
+    User*				determine_user		(int sock);
+	const std::string& 	get_user_modes		(const User& user);
 
 	///	System messages
 	std::string		sys_msg				(const std::string& emoji, const std::string& str) const;

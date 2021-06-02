@@ -275,18 +275,24 @@ eResult Irisha::OPER(const int sock)
 		err_nooperhost(sock);
 		return R_FAILURE;
 	}
+	User* sender = find_user(sock);
+	if (sender == nullptr)
+		return R_FAILURE;
 	if (oper_pass_ == cmd_.arguments_[1])
 	{
-
 		User* user = find_user(cmd_.arguments_[0]);
-		if (user == nullptr || user->nick() != connection_name(sock))
+		if (user == nullptr)
 		{
 			err_usersdontmatch(sock);
 			return R_FAILURE;
 		}
+		if (user->is_operator())
+			return R_SUCCESS;
 		user->set_operator(true);
-		//TODO: add mode +o to user
+		user->set_mode_str('o');
 		rpl_youreoper(sock);
+		//send msg to other servers to make user operator
+		send_servers(sender->nick(), "MODE " + user->nick() + " +o");
 		return R_SUCCESS;
 	}
 	else
@@ -416,6 +422,12 @@ eResult Irisha::USER(const int sock)
 		return R_FAILURE;
 	}
 	user->set_username(cmd_.arguments_[0]);
+
+	//set real name
+	if (!cmd_.arguments_[3].empty() && cmd_.arguments_[3][0] == ':')
+		cmd_.arguments_[3].erase(cmd_.arguments_[3].begin());
+	else
+		return R_FAILURE;
 	user->set_realname(cmd_.arguments_[3]);
 
 	if (cmd_.arguments_[1].length() > 1) //! TODO: don't forget to handle modes
@@ -427,7 +439,8 @@ eResult Irisha::USER(const int sock)
 
 	sys_msg(E_MAN, "New local user", user->nick(), "registered!");
 	// NICK <nickname> <hopcount> <username> <host> <servertoken> <umode> <realname>
-	send_servers(domain_, "NICK " + user->nick() + " 1 " + user->username() + " " + user->server() + " 1 + " + user->realname()); //! TODO: add user modes
+	//send_servers(domain_, "NICK " + user->nick() + " 1 " + user->username() + " " + user->server() + " 1 + " + user->realname()); //! TODO: add user modes
+	send_servers(domain_, createNICKmsg(user));
 	return R_SUCCESS;
 }
 
@@ -580,16 +593,17 @@ std::string Irisha::createSERVERmsg(AConnection* server) const
  */
 std::string Irisha::createNICKmsg(User* usr) const
 {
+	//TODO: add usermode
 	if (usr->socket() != U_EXTERNAL_CONNECTION) //local client
 	{
 		return ("NICK " + usr->nick() + " 1 " + usr->username() + " " +
-								usr->host() + " 1 + :" + usr->realname());
+								usr->host() + " 1 +" + usr->mode_str() + " :" + usr->realname());
 	}
 	else //remote client
 	{
 		return("NICK " + usr->nick() + " " + std::to_string(usr->hopcount() + 1) +
 				 " " + usr->username() + " " + usr->host() + " " + std::to_string(usr->token() + 1) +
-				 " + :" + usr->realname());
+				 " +" + usr->mode_str() + " :" + usr->realname());
 	}
 }
 

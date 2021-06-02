@@ -5,6 +5,19 @@
 #include <sstream>
 
 /**
+ * return user's modes as string like "+io"
+ * @param user
+ * @return string with modes
+ */
+const std::string& Irisha::get_user_modes(const User &user)
+{
+	std::string result = "+";
+	if (user.is_operator())
+		result.append("o");
+//	if (user->)
+}
+
+/**
  * Determines user which sent message. If command prefix is empty determines by socket, else by prefix
  * @param sock
  * @return user pointer if it found, else 0
