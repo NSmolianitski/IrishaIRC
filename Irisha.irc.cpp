@@ -1725,7 +1725,9 @@ eResult Irisha::SQUIT(const int sock)
 	else if (check_server(sock, server) == R_FAILURE)
 		return R_FAILURE;
 
-	if (cmd_.prefix_ == "")
+	if (cmd_.type_ == T_SERVER)
+		send_servers(cmd_.line_, sock);
+	else if (cmd_.prefix_ == "")
 	{
 		if (!is_user_operator(sock))
 			return R_FAILURE;
@@ -1735,9 +1737,10 @@ eResult Irisha::SQUIT(const int sock)
 	else
 		send_msg(choose_sock(server), cmd_.line_);
 	sys_msg(E_BOOM, "Server", server->name(), "disconnected!");
-	remove_server(server->name()); //! TODO: remove users, far servers
-	remove_server_users(server->name());
-	remove_far_servers(server);
+	if (server->socket() != U_EXTERNAL_CONNECTION)
+		remove_local_server(server);
+	else
+		remove_server(server);
 
 	return R_SUCCESS;
 }

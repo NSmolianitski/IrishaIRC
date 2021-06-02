@@ -127,7 +127,7 @@ private:
 	/// Servers
 	void			remove_server		(const std::string& name);
 	void			remove_server		(Server*& server);
-	void			remove_far_servers	(Server*& server);
+	void			remove_local_server	(Server*& server);
 	Server*			find_server			(const std::string& name) const;
 	Server*			find_server			(const int sock) const;
 
