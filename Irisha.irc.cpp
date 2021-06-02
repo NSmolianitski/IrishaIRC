@@ -732,8 +732,7 @@ eResult Irisha::MODE(const int sock) // Доделать !!!
                     return_mode.push_back(cmd_.arguments_[1][i]);
                 } else if (flag_mode == 1 && (*itr).second->getMode().find(cmd_.arguments_[1][i])->second == 0) { // if off flag
                     (*itr).second->setMode(cmd_.arguments_[1][i], flag_mode);
-                    if (add_flag == 0 || add_flag == 1) {
-                        return_mode.push_back('+');
+                    if (add_flag == 0 || add_flag == 1) {                        return_mode.push_back('+');
                         add_flag = 2;
                     }
                     return_mode.push_back(cmd_.arguments_[1][i]);
@@ -950,6 +949,7 @@ eResult Irisha::JOIN(const int sock)
                 channel->setType(arr_channel[i][0]);
                 channel->addOperators(user);
                 channel->addUser(user);
+                user->set_channel(arr_channel[i]);
                 if (!arr_key.empty())
                     channel->setKey(arr_key.front());
                 channels_.insert(std::pair<std::string, Channel*>(arr_channel[i], channel));
@@ -966,6 +966,7 @@ eResult Irisha::JOIN(const int sock)
 				if (check_mode_channel((*itr).second, sock, arr_key, arr_channel[i]) == 1)
 					continue;
 				itr->second->addUser(user);
+                user->set_channel(arr_channel[i]);
                 if (cmd_.type_ == T_LOCAL_CLIENT) {
                     send_msg(user->socket(), "", ":" + user->nick() + " JOIN " + arr_channel[i]);
                     if (itr->second->getTopic().empty())
@@ -1008,6 +1009,7 @@ eResult Irisha::NJOIN(const int sock)
                 channel->addModeratorUser(find_user(arr_users[i]));
             }
             channel->addUser(find_user(arr_users[i]));
+            find_user(arr_users[i])->set_channel(cmd_.arguments_[0]);
         }
         channels_.insert(std::pair<std::string, Channel*>(cmd_.arguments_[0], channel));
     }
@@ -1044,6 +1046,7 @@ eResult Irisha::PART(const int sock)
                 send_channel((*itr).second, "PART " + arr_channel[i], user->nick(), choose_sock(user));
             (*itr).second->delUser(user);
             (*itr).second->delOperators(user);
+            user->del_channel(arr_channel[i]);
             if ((*itr).second->getUsers().size() == 0) {
                 delete ((*itr).second);
                 channels_.erase(itr);

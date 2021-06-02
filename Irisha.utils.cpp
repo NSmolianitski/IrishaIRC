@@ -344,6 +344,20 @@ void Irisha::handle_command(const int sock)
 	else
 		err_unknowncommand(sock, cmd_.command_);
 }
+
+void Irisha::send_local_channel(Channel *channel, std::string msg, std::string prefix, int sock)
+{
+    std::vector<User*>::const_iterator itr = channel->getUsers().begin();
+    std::vector<User*>::const_iterator ite = channel->getUsers().end();
+
+    while (itr != ite)
+    {
+        if ((*itr)->socket() != U_EXTERNAL_CONNECTION && (*itr)->socket() != sock) {
+            send_msg((*itr)->socket(), prefix, msg);
+        }
+        itr++;
+    }
+}
 /// Send msg channel all users and operators
 void Irisha::send_channel(Channel *channel, std::string msg, std::string prefix)
 {

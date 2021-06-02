@@ -157,9 +157,9 @@ private:
     eResult         check_user          (int sock, User*& user, const std::string& nick);
 	eResult			check_server		(int sock, Server*& server);
     bool            is_enough_args      (int sock, const std::string& command, int min_args_number);
+    void            send_channels       (int sock);
     User*			determine_user		(int sock);
 
-    void            send_channels       (int sock);
 	///	System messages
 	std::string		sys_msg				(const std::string& emoji, const std::string& str) const;
 	std::string		sys_msg				(const std::string& emoji, const std::string& str
@@ -213,6 +213,7 @@ private:
 	void			admin_info			(const int sock, const std::string& receiver);
 	void            send_channel    	(Channel *channel, std::string msg, std::string prefix);
     void            send_channel		(Channel *channel, std::string msg, std::string prefix, int sock);
+    void            send_local_channel  (Channel *channel, std::string msg, std::string prefix, int sock);
 	int             check_mode_channel	(const Channel* channel, const int sock, std::list<std::string>& arr_key, std::string& arr_channel);
 	eResult			NICK_user			(User* const connection, const int sock, const std::string& new_nick);
 	eResult			NICK_server			(const std::string& new_nick, int source_sock);
