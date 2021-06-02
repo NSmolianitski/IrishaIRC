@@ -277,8 +277,11 @@ eResult Irisha::OPER(const int sock)
 	{
 
 		User* user = find_user(cmd_.arguments_[0]);
-		if (user == 0)
+		if (user == nullptr || user->nick() != connection_name(sock))
+		{
+			err_usersdontmatch(sock);
 			return R_FAILURE;
+		}
 		user->set_operator(true);
 		//TODO: add mode +o to user
 		rpl_youreoper(sock);
@@ -1166,7 +1169,7 @@ eResult Irisha::KILL(const int sock)
 	AConnection* killer = find_connection(cmd_.prefix_);
 	if (killer == nullptr)
 		killer = find_connection(sock);
-	if (killer == nullptr) //! TODO: change !sender->is_operator() to function which shows if user is IRC-operator
+	if (killer == nullptr || (killer->type() == T_CLIENT && !static_cast<User*>(killer)->is_operator()))
 	{
 		err_noprivileges(sock);
 		return R_FAILURE;

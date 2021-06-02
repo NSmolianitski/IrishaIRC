@@ -163,7 +163,7 @@ void Irisha::err_unknownmode(const int sock, const std::string& mode_char) const
 
 void Irisha::err_usersdontmatch(const int sock) const
 {
-	send_rpl_msg(sock, ERR_USERSDONTMATCH, ":Cant change mode for other users");
+	send_rpl_msg(sock, ERR_USERSDONTMATCH, ":Cannot change mode for other users");
 }
 
 void Irisha::err_umodeunknownflag(const int sock) const
