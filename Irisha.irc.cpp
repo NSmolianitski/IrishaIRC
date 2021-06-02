@@ -8,6 +8,7 @@
 
 #include "parser.hpp"
 #include "Channel.hpp"
+
 /**
  * @description	Inserts all supported IRC commands to map
  */
@@ -60,6 +61,23 @@ void	Irisha::prepare_commands()
 	commands_.insert(std::pair<std::string, func>("OPER", &Irisha::OPER));
 	commands_.insert(std::pair<std::string, func>("STATS", &Irisha::STATS));
 	commands_.insert(std::pair<std::string, func>("LINKS", &Irisha::LINKS));
+	commands_.insert(std::pair<std::string, func>("ISON", &Irisha::ISON));
+}
+
+eResult Irisha::ISON(const int sock)
+{
+	if (cmd_.arguments_.size() < 1)
+	{
+		err_needmoreparams(sock, "ISON");
+		return R_FAILURE;
+	}
+	for (int i = 0; i < cmd_.arguments_.size(); i++)
+	{
+		User* user = find_user(cmd_.arguments_[i]);
+		if (user != nullptr)
+			rpl_ison(sock, user->nick());
+	}
+	return R_SUCCESS;
 }
 
 /**
@@ -158,7 +176,6 @@ eResult Irisha::STATS(const int sock)
 	return R_SUCCESS;
 }
 
-
 /**
  * Handles IRC CONNECT command
  * connect this server to other or send CONNECT message to other server
@@ -194,6 +211,7 @@ eResult Irisha::CONNECT(const int sock)
 		send_reg_info(password_);
 		send_servers_info(parent_fd_);
 		send_clients_info(parent_fd_);
+		send_channels(parent_fd_);
 	}
 	else //send command to other server
 	{
@@ -530,6 +548,7 @@ eResult Irisha::SERVER(const int sock) ///TODO: 1. test server tokens! 2. Make s
 					send_msg(cur_sock, domain_, createSERVERmsg(server));
 			}
 			send_clients_info(sock);
+			send_channels(sock);
 		}
 		PING(sock);
 	}
@@ -593,7 +612,6 @@ std::string Irisha::createSERVERmsg(AConnection* server) const
  */
 std::string Irisha::createNICKmsg(User* usr) const
 {
-	//TODO: add usermode
 	if (usr->socket() != U_EXTERNAL_CONNECTION) //local client
 	{
 		return ("NICK " + usr->nick() + " 1 " + usr->username() + " " +

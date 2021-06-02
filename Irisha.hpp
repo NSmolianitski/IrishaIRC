@@ -210,6 +210,7 @@ private:
 	eResult			CONNECT				(const int sock);
 	eResult			STATS				(const int sock);
 	eResult			LINKS				(const int sock);
+	eResult			ISON				(const int sock);
 
 	/// IRC commands utils
 	void			admin_info			(const int sock, const std::string& receiver);
@@ -304,6 +305,7 @@ private:
 	void 			rpl_statsuptime			(const int sock, const std::string &msg, const std::string &target);
 	void 			rpl_links				(const int sock, const std::string &serv_name, int hopcount, const std::string &target);
 	void 			rpl_endoflinks			(const int sock, const std::string &serv_name, const std::string &target);
+	void 			rpl_ison				(const int sock, const std::string &nick);
 
 	/// Unused constructors
 	Irisha				() {};

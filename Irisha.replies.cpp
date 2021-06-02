@@ -406,3 +406,8 @@ void Irisha::rpl_endoflinks(const int sock, const std::string &serv_name, const 
 {
 	send_rpl_msg(sock, RPL_ENDOFLINK, serv_name + " :End of /LINKS list", target);
 }
+
+void Irisha::rpl_ison(const int sock, const std::string &nick)
+{
+	send_rpl_msg(sock, RPL_ISON, nick);
+}
