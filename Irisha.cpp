@@ -136,7 +136,7 @@ int Irisha::accept_connection()
 {
 	sockaddr_in con_addr;
 	socklen_t con_addr_size = sizeof (con_addr);
-	//int sock = accept(listener_, nullptr, nullptr);
+	//int sock = accept(listener_, nullptr, nullptr); //! TODO: remove?
 	int sock = accept(listener_, reinterpret_cast<struct sockaddr*>(&con_addr), &con_addr_size);
 		if (sock == -1) throw std::runtime_error("Accepting failed");
 
@@ -201,7 +201,7 @@ void Irisha::loop()
 								reg_expect.erase(it);
 								delete rf;
 							}
-							continue;
+							handle_command(i);
 						}
 						handle_command(i);															// No, handle not registration command
 					}
