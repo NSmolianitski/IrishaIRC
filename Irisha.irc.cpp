@@ -1218,7 +1218,7 @@ eResult Irisha::ADMIN(const int sock)
 	{
 		server = find_server(cmd_.arguments_[i]);
 		if (cmd_.arguments_[i] == domain_)
-			admin_info(sock, cmd_.prefix_);
+			admin_info(sock, prefix);
 		else if (server == nullptr)
 			err_nosuchserver(sock, cmd_.arguments_[i]);
 		else
