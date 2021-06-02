@@ -105,12 +105,11 @@ private:
 
 	/// Connections
 	int				accept_connection	();
-	void			handle_disconnection(const int sock);
+	void			close_connection	(const int sock, const std::string& comment);
 	void			handle_command		(const int sock);
 	AConnection*	find_connection		(const int sock) const;
 	AConnection*	find_connection		(const std::string& name) const;
 	void			ping_connections	(time_t& last_ping);
-	void			close_connection	(const int sock, const std::string& comment);
 	std::string		connection_name		(const int sock) const;
 	std::string		connection_name		(AConnection* connection) const;
 
