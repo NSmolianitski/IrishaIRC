@@ -26,7 +26,12 @@ void Irisha::add_user(int source_sock) // [0]<nick> [1]<hopcount> [2]<username> 
 
 	user->set_nick(cmd_.arguments_[0]);
 	user->set_username(cmd_.arguments_[2]);
-//	user->set_mode(cmd_.arguments_[2]);	//! TODO: make mode parsing function
+	//mode
+	if (cmd_.arguments_.size() >= 6 && !cmd_.arguments_[5].empty() && cmd_.arguments_[5][0] == '+')
+	{
+		cmd_.arguments_[5].erase(cmd_.arguments_[5].begin());
+		user->set_mode_str(cmd_.arguments_[5]);
+	}
 	user->set_realname(cmd_.arguments_[2]);
 	connections_.insert(std::pair<std::string, AConnection*>(cmd_.arguments_[0], user));
 

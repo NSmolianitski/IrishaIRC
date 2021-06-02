@@ -384,7 +384,7 @@ eResult	Irisha::NICK_server(const std::string& new_nick, int source_sock)
  * @description	Handles NICK command
  * @param		sock: command sender socket
  */
-eResult	Irisha::NICK(const int sock) //! TODO: handle hopcount
+eResult	Irisha::NICK(const int sock)
 {
 	if (cmd_.arguments_.empty())	// NICK command without params
 	{
@@ -447,16 +447,26 @@ eResult Irisha::USER(const int sock)
 		return R_FAILURE;
 	user->set_realname(cmd_.arguments_[3]);
 
-	if (cmd_.arguments_[1].length() > 1) //! TODO: don't forget to handle modes
-		user->set_mode(0);
+	if (cmd_.arguments_[1].length() > 1)
+	{
+		for (int i = 0; i < cmd_.arguments_[1].length(); i++)
+		{
+			if (cmd_.arguments_[1][i] == '8')
+				user->set_mode_str('i');
+		}
+	}
 	else
+	{
 		user->set_mode(str_to_int(cmd_.arguments_[1]));
+		if (user->mode() == 8)
+			user->set_mode_str('i');
+	}
 	rpl_welcome(sock);
 	send_motd(sock);
 
 	sys_msg(E_MAN, "New local user", user->nick(), "registered!");
 	// NICK <nickname> <hopcount> <username> <host> <servertoken> <umode> <realname>
-	//send_servers(domain_, "NICK " + user->nick() + " 1 " + user->username() + " " + user->server() + " 1 + " + user->realname()); //!
+	//send_servers(domain_, "NICK " + user->nick() + " 1 " + user->username() + " " + user->server() + " 1 + " + user->realname());
 	send_servers(domain_, createNICKmsg(user));
 	return R_SUCCESS;
 }
@@ -477,7 +487,7 @@ eResult Irisha::PASS(const int sock)
 		return R_SUCCESS;
 	else
 	{
-		send_msg(sock, domain_, "ERROR :Access denied! Bad password"); //! TODO: fix unknown user disconnection with sending message to other servers (in reg form)
+		send_msg(sock, domain_, "ERROR :Access denied! Bad password");
 		return R_FAILURE;
 	}
 }

@@ -38,6 +38,7 @@ public:
 	void	set_password	(const std::string& password);
 	void	set_mode		(const int mode);
 	void	set_mode_str	(char mode);
+	void 	set_mode_str	(const std::string& mode_str);
 	void	del_mode_str	(char mode);
 	void	set_operator	(bool is_operator);
 	void	set_netwideID	(const std::string& netwideID);
