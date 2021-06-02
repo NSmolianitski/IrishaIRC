@@ -88,7 +88,7 @@ void Irisha::remove_server_users(const std::string& name)
 		}
 	}
 	connections_.erase(name);
-//	delete user; //! TODO: delete server?
+	delete user;
 }
 
 /**

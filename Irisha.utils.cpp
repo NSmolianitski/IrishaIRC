@@ -51,7 +51,7 @@ void Irisha::send_servers_info(int sock)
 }
 
 /**
- * send information about all known clients to socket TODO: send correct umode
+ * send information about all known clients to socket
  * @param sock
  */
 void Irisha::send_clients_info(int sock)

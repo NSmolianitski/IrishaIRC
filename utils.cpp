@@ -2,8 +2,8 @@
 #include "utils.hpp"
 #include <arpa/inet.h>
 
-#include <fstream> //! TODO: remove fstream!
-#include <sstream> //! TODO: remove sstream!
+#include <fstream>
+#include <sstream>
 
 ///	Config
 /**
@@ -136,7 +136,7 @@ int str_to_int(const std::string& str)
 
 std::string int_to_str(int num)
 {
-	std::ostringstream str; //! TODO: change to other itoa thing
+	std::ostringstream str;
 
 	str << num;
 	return str.str();
@@ -144,7 +144,7 @@ std::string int_to_str(int num)
 
 std::string double_to_str(double num)
 {
-	std::ostringstream str; //! TODO: change to other itoa thing
+	std::ostringstream str;
 
 	str << num;
 	return str.str();
@@ -152,7 +152,7 @@ std::string double_to_str(double num)
 
 std::string	rpl_code_to_str(const eReply code)
 {
-	std::ostringstream rpl_code; //! TODO: change to other itoa thing
+	std::ostringstream rpl_code;
 	if (code < 100)
 	{
 		if (code < 10)
@@ -165,7 +165,7 @@ std::string	rpl_code_to_str(const eReply code)
 
 std::string	rpl_code_to_str(const eError code)
 {
-	std::ostringstream rpl_code; //! TODO: change to other itoa thing
+	std::ostringstream rpl_code;
 	if (code < 100)
 	{
 		if (code < 10)
