@@ -279,8 +279,11 @@ eResult Irisha::OPER(const int sock)
 	{
 
 		User* user = find_user(cmd_.arguments_[0]);
-		if (user == 0)
+		if (user == nullptr || user->nick() != connection_name(sock))
+		{
+			err_usersdontmatch(sock);
 			return R_FAILURE;
+		}
 		user->set_operator(true);
 		//TODO: add mode +o to user
 		rpl_youreoper(sock);
@@ -337,8 +340,8 @@ eResult	Irisha::NICK_server(const std::string& new_nick, int source_sock)
 
 	user = find_user(cmd_.prefix_);
 	Server* serv = static_cast<Server*>(find_server(source_sock));
-	send_servers(cmd_.prefix_, "NICK " + cmd_.arguments_[0] + " " + std::to_string(serv->hopcount() + 1) +
-		" " + cmd_.arguments_[2] + " " + cmd_.arguments_[3] + " " + std::to_string(serv->token() + 1) +
+	send_servers(cmd_.prefix_, "NICK " + cmd_.arguments_[0] + " " + int_to_str(serv->hopcount() + 1) +
+		" " + cmd_.arguments_[2] + " " + cmd_.arguments_[3] + " " + int_to_str(serv->token() + 1) +
 		" " + cmd_.arguments_[5] + cmd_.arguments_[6], source_sock);
 
 	if (user == nullptr)		// Add new external user
@@ -387,7 +390,6 @@ eResult	Irisha::NICK(const int sock) //! TODO: handle hopcount
 			return NICK_server(new_nick, sock);
 		return NICK_user(connection, sock, new_nick); // Change local user nickname
 	}
-	print_user_list(); //! TODO: remove
 	return R_SUCCESS;
 }
 
@@ -424,7 +426,7 @@ eResult Irisha::USER(const int sock)
 
 	sys_msg(E_MAN, "New local user", user->nick(), "registered!");
 	// NICK <nickname> <hopcount> <username> <host> <servertoken> <umode> <realname>
-	send_servers(domain_, "NICK " + user->nick() + " 1 " + user->username() + " " + user->server() + " 1 + " + user->username()); //! TODO: add user modes, fix realname
+	send_servers(domain_, "NICK " + user->nick() + " 1 " + user->username() + " " + user->server() + " 1 + " + user->realname()); //! TODO: add user modes
 	return R_SUCCESS;
 }
 
@@ -1366,7 +1368,7 @@ eResult Irisha::KILL(const int sock)
 	AConnection* killer = find_connection(cmd_.prefix_);
 	if (killer == nullptr)
 		killer = find_connection(sock);
-	if (killer == nullptr) //! TODO: change !sender->is_operator() to function which shows if user is IRC-operator
+	if (killer == nullptr || (killer->type() == T_CLIENT && !static_cast<User*>(killer)->is_operator()))
 	{
 		err_noprivileges(sock);
 		return R_FAILURE;
@@ -1411,17 +1413,18 @@ eResult Irisha::ADMIN(const int sock)
 		return R_SUCCESS;
 	}
 	Server* server;
+	std::string prefix = cmd_.prefix_;
+	if (prefix.empty())
+		prefix = connection_name(sock);
 	for (int i = 0; i < cmd_.arguments_.size(); ++i)
 	{
 		server = find_server(cmd_.arguments_[i]);
-		if (sock != U_EXTERNAL_CONNECTION && find_connection(sock)->type() == T_CLIENT)
-			admin_info(sock, connection_name(sock));
-		else if (cmd_.arguments_[i] == domain_)
-			admin_info(sock, cmd_.prefix_);
+		if (cmd_.arguments_[i] == domain_)
+			admin_info(sock, prefix);
 		else if (server == nullptr)
 			err_nosuchserver(sock, cmd_.arguments_[i]);
 		else
-			send_msg(choose_sock(server), connection_name(sock), "ADMIN " + cmd_.arguments_[i]);
+			send_msg(choose_sock(server), prefix, "ADMIN " + cmd_.arguments_[i]);
 	}
 	return R_SUCCESS;
 }
@@ -1441,16 +1444,8 @@ eResult Irisha::RPL_256(const int sock)
 	AConnection*	user = find_user(cmd_.arguments_[0]);
 	if (user == nullptr)
 		return R_FAILURE;
-	if (user->socket() != U_EXTERNAL_CONNECTION)
-	{
-		send_msg(user->socket(), domain_, cmd_.command_ + " " + cmd_.arguments_[0]
-							+ " " + cmd_.arguments_[1] + " " + cmd_.arguments_[2]);
-	}
-	else
-	{
-		send_msg(choose_sock(user), domain_, cmd_.command_ + " " + cmd_.arguments_[0]		//! TODO: check in network (with at least 3 servers)
-							+ " " + cmd_.arguments_[1] + " " + cmd_.arguments_[2]);
-	}
+	send_msg(choose_sock(user), domain_, cmd_.command_ + " " + cmd_.arguments_[0]
+						+ " " + cmd_.arguments_[1] + " " + cmd_.arguments_[2]);
 	return R_SUCCESS;
 }
 
@@ -1462,16 +1457,8 @@ eResult Irisha::RPL_257(const int sock)
 	AConnection*	user = find_user(cmd_.arguments_[0]);
 	if (user == nullptr)
 		return R_FAILURE;
-	if (user->socket() != U_EXTERNAL_CONNECTION)
-	{
-		send_msg(user->socket(), domain_, cmd_.command_ + " " + cmd_.arguments_[0]
-							+ " " + cmd_.arguments_[1]);
-	}
-	else
-	{
-		send_msg(choose_sock(user), domain_, cmd_.command_ + " " + cmd_.arguments_[0]		//! TODO: check in network (with at least 3 servers)
-							+ " " + cmd_.arguments_[1]);
-	}
+	send_msg(choose_sock(user), domain_, cmd_.command_ + " " + cmd_.arguments_[0]
+						+ " " + cmd_.arguments_[1]);
 	return R_SUCCESS;
 }
 
@@ -1483,16 +1470,8 @@ eResult Irisha::RPL_258(const int sock)
 	AConnection*	user = find_user(cmd_.arguments_[0]);
 	if (user == nullptr)
 		return R_FAILURE;
-	if (user->socket() != U_EXTERNAL_CONNECTION)
-	{
-		send_msg(user->socket(), domain_, cmd_.command_ + " " + cmd_.arguments_[0]
-										  + " " + cmd_.arguments_[1]);
-	}
-	else
-	{
-		send_msg(choose_sock(user), domain_, cmd_.command_ + " " + cmd_.arguments_[0]		//! TODO: check in network (with at least 3 servers)
-											 + " " + cmd_.arguments_[1]);
-	}
+	send_msg(choose_sock(user), domain_, cmd_.command_ + " " + cmd_.arguments_[0]
+										 + " " + cmd_.arguments_[1]);
 	return R_SUCCESS;
 }
 
@@ -1504,16 +1483,8 @@ eResult Irisha::RPL_259(const int sock)
 	AConnection*	user = find_user(cmd_.arguments_[0]);
 	if (user == nullptr)
 		return R_FAILURE;
-	if (user->socket() != U_EXTERNAL_CONNECTION)
-	{
-		send_msg(user->socket(), domain_, cmd_.command_ + " " + cmd_.arguments_[0]
-										  + " " + cmd_.arguments_[1]);
-	}
-	else
-	{
-		send_msg(choose_sock(user), domain_, cmd_.command_ + " " + cmd_.arguments_[0]		//! TODO: check in network (with at least 3 servers)
-											 + " " + cmd_.arguments_[1]);
-	}
+	send_msg(choose_sock(user), domain_, cmd_.command_ + " " + cmd_.arguments_[0]
+										 + " " + cmd_.arguments_[1]);
 	return R_SUCCESS;
 }
 
@@ -1741,8 +1712,12 @@ eResult Irisha::SQUIT(const int sock)
 		return R_FAILURE;
 
 	if (cmd_.prefix_ == "")
+	{
+		if (!is_user_operator(sock))
+			return R_FAILURE;
 		send_msg(choose_sock(server), connection_name(sock), "SQUIT "
-				+ cmd_.arguments_[0] + " :" + cmd_.arguments_[1]); //! TODO: add is_irc_operator check
+			+ cmd_.arguments_[0] + " :" + cmd_.arguments_[1]);
+	}
 	else
 		send_msg(choose_sock(server), cmd_.line_);
 	sys_msg(E_BOOM, "Server", server->name(), "disconnected!");
