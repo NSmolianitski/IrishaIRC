@@ -1,20 +1,16 @@
 
 #include "Irisha.hpp"
-#include "User.hpp"
 #include "utils.hpp"
-#include "Server.hpp"
 #include "parser.hpp"
+
 #include <sys/socket.h>
 #include <netinet/in.h>
-
-
-#include <stdio.h>
-#include <string.h>
-#include <thread>     //! TODO: REMOVE ///////////////////////////////////////////////////////////////////////////////////////////
-#include <list>
-
 #include <netdb.h>
 #include <fcntl.h>
+
+#include <cstring>
+#include <list>
+
 
 Irisha::Irisha(int port)
 {
@@ -165,7 +161,6 @@ void Irisha::loop()
 
 	timeout.tv_sec	= ping_timeout_;
 	timeout.tv_usec	= 0;
-	std::thread	sender(sending_loop, this); //! TODO: REMOVE ////////////////////////////////////////////////////////////////////////////////////////////
 	while (true)
 	{
 		read_fds_ = all_fds_;
@@ -209,7 +204,6 @@ void Irisha::loop()
 			}
 		}
 	}
-	sender.detach(); //! TODO: REMOVE ////<======///////////////////////////////////////////////////////////////////////////////
 }
 
 /// Commands+
@@ -257,8 +251,6 @@ int			Irisha::register_connection	(std::list<Irisha::RegForm*>::iterator rf)
 }
 
 /***************Creating message strings***************/
-
-
 
 /*
  * COMMANDS:

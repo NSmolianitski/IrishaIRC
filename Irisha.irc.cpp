@@ -2,12 +2,11 @@
 #include "Irisha.hpp"
 #include "User.hpp"
 #include "Server.hpp"
+#include "Channel.hpp"
 #include "utils.hpp"
+#include "parser.hpp"
 
 #include <sstream>
-
-#include "parser.hpp"
-#include "Channel.hpp"
 
 /**
  * @description	Inserts all supported IRC commands to map

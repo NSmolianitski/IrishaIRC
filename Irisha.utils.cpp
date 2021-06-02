@@ -1,8 +1,10 @@
 
 #include "Irisha.hpp"
-#include "utils.hpp"
 #include "Channel.hpp"
+#include "utils.hpp"
+
 #include <sstream>
+#include <iomanip>
 
 /**
  * return user's modes as string like "+io"
@@ -758,44 +760,6 @@ bool Irisha::is_user_operator(const int sock)
 }
 
 /// ‼️ ⚠️ DEVELOPMENT UTILS (REMOVE OR COMMENT WHEN PROJECT IS READY) ⚠️ ‼️ //! TODO: DEV -> REMOVE /////////////////////
-#define GUEST52 "Guest52" //! TODO: REMOVE
-
-/**
- * @description	Thread loop for sending custom messages for all connections
- * @param		server: current server
- */
-void sending_loop(const Irisha* server)
-{
-	std::string serv_prefix = ":" + server->domain_ + " ";
-	std::string input;
-	while (true)
-	{
-		getline(std::cin, input);
-		if (input == "/exit" || input == "/EXIT")
-			exit(0);
-		if (input[0] == '!' && input[1] == ' ') // Change ! to domain name
-			input = input.replace(0, 2, serv_prefix);
-		else if (input[0] == 'W' && input[1] == ' ')
-		{
-			input = input.replace(0, 2, serv_prefix + "001 ");
-			input.append(" " + server->welcome_);
-		}
-		else if (input == "W")
-			input = serv_prefix + "001 " + GUEST52 + " ⭐ Welcome to Irisha server! ⭐";
-		else if (input[0] == 'U' && input[1] == ' ')
-			server->user_info(input.substr(2));
-		else if (input[0] == 'U')
-			server->print_user_list();
-		else
-		{
-			for (int i = 3; i < server->max_fd_ + 1; ++i)
-			{
-				if (FD_ISSET(i, &server->all_fds_) && i != server->listener_)
-					server->send_msg(i, NO_PREFIX, input);
-			}
-		}
-	}
-}
 
 /**
  * @description	Prints command structure (has three modes: PM_LINE, PM_LIST and PM_ALL(both))
@@ -838,8 +802,6 @@ void Irisha::print_cmd(ePrintMode mode, const int sock) const
 	std::cout << CLR << std::endl;
 }
 
-#include <iomanip>
-
 /**
  * @description	Prints user information
  * @param		nick
@@ -880,27 +842,6 @@ void Irisha::print_user_list() const
 		}
 	}
 	std::cout << CLR << std::endl;
-}
-
-/** (unused)
- * @description	Sends a message from input
- * @param		sock: receiver socket
- */
-void Irisha::send_input_msg(int sock) const
-{
-	std::string input;
-	getline(std::cin, input);
-	if (input == "/exit" || input == "/EXIT")
-	{
-		std::cout << ITALIC PURPLE "Server shutdown." CLR << std::endl;
-		exit(0);
-	}
-
-	std::string message = ":" + domain_ + " " + input;
-	message.append("\r\n");
-
-	ssize_t n = send(sock, message.c_str(), message.length(), 0);
-	if (n == -1) throw std::runtime_error("Send error");
 }
 
 Irisha::RegForm* Irisha::find_regform(int sock, std::list<Irisha::RegForm*>& reg_expect)

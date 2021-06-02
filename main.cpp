@@ -15,7 +15,7 @@ void server_cycle(const std::string& host, int port_network, const std::string& 
 		//! IRISHA TESTS
 		Irisha server(6668, "psw");
 //		Irisha server("localhost", 8000, "psw", 7000, "psw");
-		Irisha server("localhost", 7000, "psw", 6000, "psw");
+//		Irisha server("localhost", 7000, "psw", 6000, "psw");
 	}
 	catch (std::exception& e)
 	{

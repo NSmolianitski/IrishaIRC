@@ -7,14 +7,14 @@
 #include "Server.hpp"
 #include "utils.hpp"
 
+#include <unistd.h>
+#include <netinet/in.h>
+
 #include <iostream>
 #include <sstream>
 #include <map>
 #include <vector>
 #include <list>
-
-#include <unistd.h>
-#include <netinet/in.h>
 
 #define CONFIG_PATH "irisha.conf"
 #define NO_PREFIX	""
@@ -312,11 +312,11 @@ private:
 	Irisha& operator=	(const Irisha& other) { return *this; };
 
 public:
-	explicit Irisha	(int port);
-	Irisha			(int port, const std::string& password);
-	Irisha			(const std::string& host_name, int network_port, const std::string& network_password
+	explicit Irisha		(int port);
+	Irisha				(int port, const std::string& password);
+	Irisha				(const std::string& host_name, int network_port, const std::string& network_password
 		   						, int port, const std::string& password);
-	~Irisha			();
+	~Irisha				();
 
 
 	/// ‼️ ⚠️ DEVELOPMENT UTILS (REMOVE OR COMMENT WHEN PROJECT IS READY) ⚠️ ‼️ //! TODO: DEV -> REMOVE ///
@@ -327,16 +327,10 @@ public:
 		PM_ALL
 	};
 
-	friend void	sending_loop(const Irisha* server);
-	void		print_cmd	(ePrintMode mode, const int sock) const;
-	void		user_info	(const std::string& nick) const;
+	void		print_cmd			(ePrintMode mode, const int sock) const;
+	void		user_info			(const std::string& nick) const;
 	void		print_user_list		() const;
-	void		send_input_msg		(int sock) const;
 	/// ‼️ ⚠️ END OF DEVELOPMENT UTILS ⚠️ ‼️ //! TODO: DEV -> REMOVE //////////////////////////////////////
 };
-
-/// ‼️ ⚠️ DEVELOPMENT UTILS (REMOVE OR COMMENT WHEN PROJECT IS READY) ⚠️ ‼️ //! TODO: DEV -> REMOVE ///////
-void sending_loop(const Irisha* server);
-/// ‼️ ⚠️ END OF DEVELOPMENT UTILS ⚠️ ‼️ //! TODO: DEV -> REMOVE //////////////////////////////////////////
 
 #endif //FT_IRC_IRISHA_HPP
