@@ -14,7 +14,7 @@ private:
 	std::string	username_;
 	std::string realname_;
 	std::string password_;
-	int			mode_;		//! TODO: make mode number parsing
+	int			mode_;
 	std::string mode_str_;
 	bool 		operator_;
 	std::string netwideID_;
@@ -38,6 +38,7 @@ public:
 	void	set_password	(const std::string& password);
 	void	set_mode		(const int mode);
 	void	set_mode_str	(char mode);
+	void 	set_mode_str	(const std::string& mode_str);
 	void	del_mode_str	(char mode);
 	void	set_operator	(bool is_operator);
 	void	set_netwideID	(const std::string& netwideID);

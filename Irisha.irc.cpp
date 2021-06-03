@@ -2,12 +2,12 @@
 #include "Irisha.hpp"
 #include "User.hpp"
 #include "Server.hpp"
+#include "Channel.hpp"
 #include "utils.hpp"
+#include "parser.hpp"
 
 #include <sstream>
 
-#include "parser.hpp"
-#include "Channel.hpp"
 /**
  * @description	Inserts all supported IRC commands to map
  */
@@ -60,6 +60,23 @@ void	Irisha::prepare_commands()
 	commands_.insert(std::pair<std::string, func>("OPER", &Irisha::OPER));
 	commands_.insert(std::pair<std::string, func>("STATS", &Irisha::STATS));
 	commands_.insert(std::pair<std::string, func>("LINKS", &Irisha::LINKS));
+	commands_.insert(std::pair<std::string, func>("ISON", &Irisha::ISON));
+}
+
+eResult Irisha::ISON(const int sock)
+{
+	if (cmd_.arguments_.size() < 1)
+	{
+		err_needmoreparams(sock, "ISON");
+		return R_FAILURE;
+	}
+	for (int i = 0; i < cmd_.arguments_.size(); i++)
+	{
+		User* user = find_user(cmd_.arguments_[i]);
+		if (user != nullptr)
+			rpl_ison(sock, user->nick());
+	}
+	return R_SUCCESS;
 }
 
 /**
@@ -158,7 +175,6 @@ eResult Irisha::STATS(const int sock)
 	return R_SUCCESS;
 }
 
-
 /**
  * Handles IRC CONNECT command
  * connect this server to other or send CONNECT message to other server
@@ -194,6 +210,7 @@ eResult Irisha::CONNECT(const int sock)
 		send_reg_info(password_);
 		send_servers_info(parent_fd_);
 		send_clients_info(parent_fd_);
+		send_channels(parent_fd_);
 	}
 	else //send command to other server
 	{
@@ -275,18 +292,24 @@ eResult Irisha::OPER(const int sock)
 		err_nooperhost(sock);
 		return R_FAILURE;
 	}
+	User* sender = find_user(sock);
+	if (sender == nullptr)
+		return R_FAILURE;
 	if (oper_pass_ == cmd_.arguments_[1])
 	{
-
 		User* user = find_user(cmd_.arguments_[0]);
-		if (user == nullptr || user->nick() != connection_name(sock))
+		if (user == nullptr)
 		{
 			err_usersdontmatch(sock);
 			return R_FAILURE;
 		}
+		if (user->is_operator())
+			return R_SUCCESS;
 		user->set_operator(true);
-		//TODO: add mode +o to user
+		user->set_mode_str('o');
 		rpl_youreoper(sock);
+		//send msg to other servers to make user operator
+		send_servers(sender->nick(), "MODE " + user->nick() + " +o");
 		return R_SUCCESS;
 	}
 	else
@@ -361,7 +384,7 @@ eResult	Irisha::NICK_server(const std::string& new_nick, int source_sock)
  * @description	Handles NICK command
  * @param		sock: command sender socket
  */
-eResult	Irisha::NICK(const int sock) //! TODO: handle hopcount
+eResult	Irisha::NICK(const int sock)
 {
 	if (cmd_.arguments_.empty())	// NICK command without params
 	{
@@ -416,18 +439,35 @@ eResult Irisha::USER(const int sock)
 		return R_FAILURE;
 	}
 	user->set_username(cmd_.arguments_[0]);
+
+	//set real name
+	if (!cmd_.arguments_[3].empty() && cmd_.arguments_[3][0] == ':')
+		cmd_.arguments_[3].erase(cmd_.arguments_[3].begin());
+	else
+		return R_FAILURE;
 	user->set_realname(cmd_.arguments_[3]);
 
-	if (cmd_.arguments_[1].length() > 1) //! TODO: don't forget to handle modes
-		user->set_mode(0);
+	if (cmd_.arguments_[1].length() > 1)
+	{
+		for (int i = 0; i < cmd_.arguments_[1].length(); i++)
+		{
+			if (cmd_.arguments_[1][i] == '8')
+				user->set_mode_str('i');
+		}
+	}
 	else
+	{
 		user->set_mode(str_to_int(cmd_.arguments_[1]));
+		if (user->mode() == 8)
+			user->set_mode_str('i');
+	}
 	rpl_welcome(sock);
 	send_motd(sock);
 
 	sys_msg(E_MAN, "New local user", user->nick(), "registered!");
 	// NICK <nickname> <hopcount> <username> <host> <servertoken> <umode> <realname>
-	send_servers(domain_, "NICK " + user->nick() + " 1 " + user->username() + " " + user->server() + " 1 + " + user->realname()); //! TODO: add user modes
+	//send_servers(domain_, "NICK " + user->nick() + " 1 " + user->username() + " " + user->server() + " 1 + " + user->realname());
+	send_servers(domain_, createNICKmsg(user));
 	return R_SUCCESS;
 }
 
@@ -447,7 +487,7 @@ eResult Irisha::PASS(const int sock)
 		return R_SUCCESS;
 	else
 	{
-		send_msg(sock, domain_, "ERROR :Access denied! Bad password"); //! TODO: fix unknown user disconnection with sending message to other servers (in reg form)
+		send_msg(sock, domain_, "ERROR :Access denied! Bad password");
 		return R_FAILURE;
 	}
 }
@@ -457,7 +497,7 @@ eResult Irisha::PASS(const int sock)
  * @param		sock: command sender socket
  * @return		R_FAILURE if registration successfully, else R_FAILURE
  */
-eResult Irisha::SERVER(const int sock) ///TODO: 1. test server tokens! 2. Make sending information about new server to all network (not only neighbours)
+eResult Irisha::SERVER(const int sock)
 {
 	//validation+
 	if (cmd_.arguments_.empty())
@@ -517,6 +557,7 @@ eResult Irisha::SERVER(const int sock) ///TODO: 1. test server tokens! 2. Make s
 					send_msg(cur_sock, domain_, createSERVERmsg(server));
 			}
 			send_clients_info(sock);
+			send_channels(sock);
 		}
 		PING(sock);
 	}
@@ -583,13 +624,13 @@ std::string Irisha::createNICKmsg(User* usr) const
 	if (usr->socket() != U_EXTERNAL_CONNECTION) //local client
 	{
 		return ("NICK " + usr->nick() + " 1 " + usr->username() + " " +
-								usr->host() + " 1 + :" + usr->realname());
+								usr->host() + " 1 +" + usr->mode_str() + " :" + usr->realname());
 	}
 	else //remote client
 	{
 		return("NICK " + usr->nick() + " " + std::to_string(usr->hopcount() + 1) +
 				 " " + usr->username() + " " + usr->host() + " " + std::to_string(usr->token() + 1) +
-				 " + :" + usr->realname());
+				 " +" + usr->mode_str() + " :" + usr->realname());
 	}
 }
 
@@ -1399,7 +1440,7 @@ eResult Irisha::KILL(const int sock)
 		send_msg(victim->socket(), connection_name(killer), "KILL "
 				+ cmd_.arguments_[0] + " :KILLed by " + connection_name(killer) + ": " + msg);
 		send_msg(victim->socket(), domain_, "ERROR :Killed by " + connection_name(killer) + ": " + msg);
-		close_connection(victim->socket(), "Killed by " + connection_name(killer));
+		close_connection(victim->socket(), "Killed by " + connection_name(killer), nullptr);
 		return R_SUCCESS;
 	}
 	else
@@ -1725,7 +1766,9 @@ eResult Irisha::SQUIT(const int sock)
 	else if (check_server(sock, server) == R_FAILURE)
 		return R_FAILURE;
 
-	if (cmd_.prefix_ == "")
+	if (cmd_.type_ == T_SERVER)
+		send_servers(cmd_.line_, sock);
+	else if (cmd_.prefix_ == "")
 	{
 		if (!is_user_operator(sock))
 			return R_FAILURE;
@@ -1735,9 +1778,10 @@ eResult Irisha::SQUIT(const int sock)
 	else
 		send_msg(choose_sock(server), cmd_.line_);
 	sys_msg(E_BOOM, "Server", server->name(), "disconnected!");
-	remove_server(server->name()); //! TODO: remove users, far servers
-	remove_server_users(server->name());
-	remove_far_servers(server);
+	if (server->socket() != U_EXTERNAL_CONNECTION)
+		remove_local_server(server);
+	else
+		remove_server(server);
 
 	return R_SUCCESS;
 }

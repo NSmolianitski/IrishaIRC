@@ -7,14 +7,14 @@
 #include "Server.hpp"
 #include "utils.hpp"
 
+#include <unistd.h>
+#include <netinet/in.h>
+
 #include <iostream>
 #include <sstream>
 #include <map>
 #include <vector>
 #include <list>
-
-#include <unistd.h>
-#include <netinet/in.h>
 
 #define CONFIG_PATH "irisha.conf"
 #define NO_PREFIX	""
@@ -105,12 +105,11 @@ private:
 
 	/// Connections
 	int				accept_connection	();
-	void			handle_disconnection(const int sock);
+	void			close_connection	(const int sock, const std::string& comment, std::list<Irisha::RegForm*>* reg_expect);
 	void			handle_command		(const int sock);
 	AConnection*	find_connection		(const int sock) const;
 	AConnection*	find_connection		(const std::string& name) const;
 	void			ping_connections	(time_t& last_ping);
-	void			close_connection	(const int sock, const std::string& comment);
 	std::string		connection_name		(const int sock) const;
 	std::string		connection_name		(AConnection* connection) const;
 
@@ -127,41 +126,40 @@ private:
 	/// Servers
 	void			remove_server		(const std::string& name);
 	void			remove_server		(Server*& server);
-	void			remove_far_servers	(Server*& server);
+	void			remove_local_server	(Server*& server);
 	Server*			find_server			(const std::string& name) const;
 	Server*			find_server			(const int sock) const;
 
 	/// Utils
-	std::string*	choose_buff			(int sock, std::list<Irisha::RegForm*>& reg_expect);
-	std::string* 	get_msg				(int sock, std::list<Irisha::RegForm*>& reg_expect);
-	std::string 	time_stamp			() const;
-	RegForm*	 	find_regform		(int sock, std::list<Irisha::RegForm*>& reg_expect);
-	bool			is_valid_prefix		(const int sock);
-	void			send_msg			(int sock, const std::string& prefix, const std::string& msg) const;
-	void			send_msg			(int sock, const std::string& msg) const;
-	void			send_rpl_msg		(int sock, eReply rpl, const std::string& msg) const;
-	void			send_rpl_msg		(int sock, eReply rpl, const std::string& msg
-											, const std::string& target) const;
-	void			send_rpl_msg		(int sock, eError rpl, const std::string& msg) const;
-	void			send_rpl_msg		(int sock, eError rpl, const std::string& msg
-											, const std::string& target) const;
-	void			send_servers		(const std::string& prefix, const std::string& msg) const;
-	void			send_servers		(const std::string& prefix, const std::string& msg, const int sock) const;
-	void			send_servers		(const std::string& msg, const int sock) const;
-	void			send_everyone		(const std::string& prefix, const std::string& msg) const;
-	void			print_info			() const;
-	int 			next_token			();
-	int 			choose_sock			(AConnection* connection);
-    eType           connection_type     (int sock);
-    eResult         check_user_sender   (int sender_sock, User*& sender, const std::string& sender_name
-                                            , User*& user, const std::string& user_nick);
-    eResult         check_user          (int sock, User*& user, const std::string& nick);
-	eResult			check_server		(int sock, Server*& server);
-    bool            is_enough_args      (int sock, const std::string& command, int min_args_number);
-    User*			determine_user		(int sock);
-
-    void            send_channels       (int sock);
-    User*			determine_user		(int sock);
+	std::string*		choose_buff			(int sock, std::list<Irisha::RegForm*>& reg_expect);
+	std::string* 		get_msg				(int sock, std::list<Irisha::RegForm*>& reg_expect);
+	std::string 		time_stamp			() const;
+	RegForm*	 		find_regform		(int sock, std::list<Irisha::RegForm*>& reg_expect);
+	bool				is_valid_prefix		(const int sock);
+	void				send_msg			(int sock, const std::string& prefix, const std::string& msg) const;
+	void				send_msg			(int sock, const std::string& msg) const;
+	void				send_rpl_msg		(int sock, eReply rpl, const std::string& msg) const;
+	void				send_rpl_msg		(int sock, eReply rpl, const std::string& msg
+												, const std::string& target) const;
+	void				send_rpl_msg		(int sock, eError rpl, const std::string& msg) const;
+	void				send_rpl_msg		(int sock, eError rpl, const std::string& msg
+												, const std::string& target) const;
+	void				send_servers		(const std::string& prefix, const std::string& msg) const;
+	void				send_servers		(const std::string& prefix, const std::string& msg, const int sock) const;
+	void				send_servers		(const std::string& msg, const int sock) const;
+	void				send_everyone		(const std::string& prefix, const std::string& msg) const;
+	void				print_info			() const;
+	int 				next_token			();
+	int 				choose_sock			(AConnection* connection);
+    eType           	connection_type     (int sock);
+    eResult         	check_user_sender   (int sender_sock, User*& sender, const std::string& sender_name
+                    	                        , User*& user, const std::string& user_nick);
+    eResult         	check_user          (int sock, User*& user, const std::string& nick);
+	eResult				check_server		(int sock, Server*& server);
+    bool            	is_enough_args      (int sock, const std::string& command, int min_args_number);
+    void            	send_channels       (int sock);
+    User*				determine_user		(int sock);
+	const std::string& 	get_user_modes		(const User& user);
 
 	///	System messages
 	std::string		sys_msg				(const std::string& emoji, const std::string& str) const;
@@ -211,6 +209,7 @@ private:
 	eResult			CONNECT				(const int sock);
 	eResult			STATS				(const int sock);
 	eResult			LINKS				(const int sock);
+	eResult			ISON				(const int sock);
 
 	/// IRC commands utils
 	void			admin_info			(const int sock, const std::string& receiver);
@@ -305,6 +304,7 @@ private:
 	void 			rpl_statsuptime			(const int sock, const std::string &msg, const std::string &target);
 	void 			rpl_links				(const int sock, const std::string &serv_name, int hopcount, const std::string &target);
 	void 			rpl_endoflinks			(const int sock, const std::string &serv_name, const std::string &target);
+	void 			rpl_ison				(const int sock, const std::string &nick);
 
 	/// Unused constructors
 	Irisha				() {};
@@ -312,11 +312,11 @@ private:
 	Irisha& operator=	(const Irisha& other) { return *this; };
 
 public:
-	explicit Irisha	(int port);
-	Irisha			(int port, const std::string& password);
-	Irisha			(const std::string& host_name, int network_port, const std::string& network_password
+	explicit Irisha		(int port);
+	Irisha				(int port, const std::string& password);
+	Irisha				(const std::string& host_name, int network_port, const std::string& network_password
 		   						, int port, const std::string& password);
-	~Irisha			();
+	~Irisha				();
 
 
 	/// ‼️ ⚠️ DEVELOPMENT UTILS (REMOVE OR COMMENT WHEN PROJECT IS READY) ⚠️ ‼️ //! TODO: DEV -> REMOVE ///
@@ -327,16 +327,10 @@ public:
 		PM_ALL
 	};
 
-	friend void	sending_loop(const Irisha* server);
-	void		print_cmd	(ePrintMode mode, const int sock) const;
-	void		user_info	(const std::string& nick) const;
+	void		print_cmd			(ePrintMode mode, const int sock) const;
+	void		user_info			(const std::string& nick) const;
 	void		print_user_list		() const;
-	void		send_input_msg		(int sock) const;
 	/// ‼️ ⚠️ END OF DEVELOPMENT UTILS ⚠️ ‼️ //! TODO: DEV -> REMOVE //////////////////////////////////////
 };
-
-/// ‼️ ⚠️ DEVELOPMENT UTILS (REMOVE OR COMMENT WHEN PROJECT IS READY) ⚠️ ‼️ //! TODO: DEV -> REMOVE ///////
-void sending_loop(const Irisha* server);
-/// ‼️ ⚠️ END OF DEVELOPMENT UTILS ⚠️ ‼️ //! TODO: DEV -> REMOVE //////////////////////////////////////////
 
 #endif //FT_IRC_IRISHA_HPP

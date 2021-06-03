@@ -14,6 +14,7 @@ User::User(const int sock, const std::string& server, const std::string& nick)
 	: AConnection(sock, T_CLIENT, 0, sock, 1), server_(server), nick_(nick), operator_(false)
 {
 	host_ = std::string(get_sock_host(sock));
+
 }
 
 User::User(const int sock, const std::string& host, const int hopcount, const int source_sock, int token)
@@ -31,8 +32,9 @@ void	User::set_password	(const std::string& password)	{ password_ = password; }
 void	User::set_mode		(const int mode)				{ mode_ = mode; }
 void	User::set_operator	(bool is_operator)				{ operator_ = is_operator; }
 void	User::set_netwideID	(const std::string& netwideID)	{ netwideID_ = netwideID; }
-void    User::set_mode_str  (char mode)                     {mode_str_.push_back(mode ); }
-void    User::del_mode_str  (char mode)                     {mode_str_.erase(mode_str_.find(mode)); }
+void    User::set_mode_str  (char mode)                     { mode_str_.push_back(mode ); }
+void    User::set_mode_str(const std::string &mode_str)     { mode_str_ = mode_str; }
+void    User::del_mode_str  (char mode)                     { mode_str_.erase(mode_str_.find(mode)); }
 
 const std::string&	User::nick			() const { return nick_; }
 const std::string&	User::username		() const { return username_; }

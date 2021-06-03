@@ -345,7 +345,7 @@ void Irisha::rpl_luserclient(const int sock) const
 
 	count_global(users, servers);
 	send_rpl_msg(sock, RPL_LUSERCLIENT, ":There are " + int_to_str(users)
-						+ " users on " + int_to_str(servers) + " servers"); //! TODO: services?
+						+ " users on " + int_to_str(servers) + " servers");
 }
 
 void Irisha::rpl_luserop(const int sock) const
@@ -405,4 +405,9 @@ void Irisha::rpl_links(const int sock, const std::string &serv_name, int hopcoun
 void Irisha::rpl_endoflinks(const int sock, const std::string &serv_name, const std::string &target)
 {
 	send_rpl_msg(sock, RPL_ENDOFLINK, serv_name + " :End of /LINKS list", target);
+}
+
+void Irisha::rpl_ison(const int sock, const std::string &nick)
+{
+	send_rpl_msg(sock, RPL_ISON, nick);
 }

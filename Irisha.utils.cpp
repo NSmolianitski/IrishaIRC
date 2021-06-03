@@ -1,8 +1,10 @@
 
 #include "Irisha.hpp"
-#include "utils.hpp"
 #include "Channel.hpp"
+#include "utils.hpp"
+
 #include <sstream>
+#include <iomanip>
 
 /**
  * Determines user which sent message. If command prefix is empty determines by socket, else by prefix
@@ -36,7 +38,7 @@ void Irisha::send_servers_info(int sock)
 }
 
 /**
- * send information about all known clients to socket TODO: send correct umode
+ * send information about all known clients to socket
  * @param sock
  */
 void Irisha::send_clients_info(int sock)
@@ -133,7 +135,7 @@ std::string* Irisha::get_msg(int sock, std::list<Irisha::RegForm*>& reg_expect)
 		throw std::runtime_error("Recv error in get_msg()");
 
 	if (read_bytes == 0)
-		handle_disconnection(sock);
+		close_connection(sock, "connection lost", &reg_expect);
 	else if (read_bytes > 510)
 	{
 		send_msg(sock, domain_, "Error! Request is too long");
@@ -547,7 +549,7 @@ void Irisha::ping_connections(time_t& last_ping)
 			if (connection->last_msg_time() >= conn_timeout_)
 			{
 				--it;
-				handle_disconnection(connection->socket());
+				close_connection(connection->socket(), "timeout", nullptr);
 				continue;
 			}
 			send_msg(it->second->socket(), domain_, "PING " + domain_); // Send PING message
@@ -564,7 +566,7 @@ bool Irisha::is_valid_prefix(const int sock)
 		if (find_connection(cmd_.prefix_))
 		{
 			send_msg(sock, domain_, "Error! Cheater! Closing connection...");
-			handle_disconnection(sock);
+			close_connection(sock, "using someone's prefix", nullptr);
 		}
 		else
 			send_msg(sock, domain_, "Error! Wrong prefix!");
@@ -639,7 +641,7 @@ std::string	Irisha::sys_msg(const std::string& emoji, const std::string& str
 	return msg;
 }
 
-void Irisha::close_connection(const int sock, const std::string& comment)
+void Irisha::close_connection(const int sock, const std::string& comment, std::list<Irisha::RegForm*>* reg_expect)
 {
 	if (sock == U_EXTERNAL_CONNECTION)
 	{
@@ -647,8 +649,18 @@ void Irisha::close_connection(const int sock, const std::string& comment)
 		return;
 	}
 
-	User*		user = find_user(sock);
+	//check registration expecting connections
+	if (reg_expect != nullptr)
+	{
+		std::list<RegForm*>::iterator it = expecting_registration(sock, *reg_expect);
+		if (it != reg_expect->end())
+		{
+			reg_expect->erase(it);
+			delete *it;
+		}
+	}
 
+	User*		user = find_user(sock);
 	if (user == nullptr)
 	{
 		Server*		server = find_server(sock);
@@ -656,8 +668,8 @@ void Irisha::close_connection(const int sock, const std::string& comment)
 		if (server != nullptr)
 		{
 			name = server->name();
-			remove_server(server->name());
-			send_servers(name, "SQUIT " + name + " :" + comment);
+			remove_local_server(server);
+			send_servers(name, "SQUIT " + name + " :" + comment, sock);
 		}
 		if (name == "unknown")
 			sys_msg(E_BOOM, "Unknown connection closed!"); // Handle non-registered connection
@@ -711,7 +723,7 @@ void Irisha::remove_server(Server*& server)
  * @description	Removes servers that are connected to server
  * @param		server: server pointer
  */
-void Irisha::remove_far_servers(Server*& server)
+void Irisha::remove_local_server(Server*& server)
 {
 	int sock = choose_sock(server); // Socket of the desired server
 
@@ -724,6 +736,7 @@ void Irisha::remove_far_servers(Server*& server)
 			remove_server(tmp);
 		}
 	}
+	remove_server(server);
 }
 
 /**
@@ -745,44 +758,6 @@ bool Irisha::is_user_operator(const int sock)
 }
 
 /// ‼️ ⚠️ DEVELOPMENT UTILS (REMOVE OR COMMENT WHEN PROJECT IS READY) ⚠️ ‼️ //! TODO: DEV -> REMOVE /////////////////////
-#define GUEST52 "Guest52" //! TODO: REMOVE
-
-/**
- * @description	Thread loop for sending custom messages for all connections
- * @param		server: current server
- */
-void sending_loop(const Irisha* server)
-{
-	std::string serv_prefix = ":" + server->domain_ + " ";
-	std::string input;
-	while (true)
-	{
-		getline(std::cin, input);
-		if (input == "/exit" || input == "/EXIT")
-			exit(0);
-		if (input[0] == '!' && input[1] == ' ') // Change ! to domain name
-			input = input.replace(0, 2, serv_prefix);
-		else if (input[0] == 'W' && input[1] == ' ')
-		{
-			input = input.replace(0, 2, serv_prefix + "001 ");
-			input.append(" " + server->welcome_);
-		}
-		else if (input == "W")
-			input = serv_prefix + "001 " + GUEST52 + " ⭐ Welcome to Irisha server! ⭐";
-		else if (input[0] == 'U' && input[1] == ' ')
-			server->user_info(input.substr(2));
-		else if (input[0] == 'U')
-			server->print_user_list();
-		else
-		{
-			for (int i = 3; i < server->max_fd_ + 1; ++i)
-			{
-				if (FD_ISSET(i, &server->all_fds_) && i != server->listener_)
-					server->send_msg(i, NO_PREFIX, input);
-			}
-		}
-	}
-}
 
 /**
  * @description	Prints command structure (has three modes: PM_LINE, PM_LIST and PM_ALL(both))
@@ -825,8 +800,6 @@ void Irisha::print_cmd(ePrintMode mode, const int sock) const
 	std::cout << CLR << std::endl;
 }
 
-#include <iomanip>
-
 /**
  * @description	Prints user information
  * @param		nick
@@ -867,27 +840,6 @@ void Irisha::print_user_list() const
 		}
 	}
 	std::cout << CLR << std::endl;
-}
-
-/** (unused)
- * @description	Sends a message from input
- * @param		sock: receiver socket
- */
-void Irisha::send_input_msg(int sock) const
-{
-	std::string input;
-	getline(std::cin, input);
-	if (input == "/exit" || input == "/EXIT")
-	{
-		std::cout << ITALIC PURPLE "Server shutdown." CLR << std::endl;
-		exit(0);
-	}
-
-	std::string message = ":" + domain_ + " " + input;
-	message.append("\r\n");
-
-	ssize_t n = send(sock, message.c_str(), message.length(), 0);
-	if (n == -1) throw std::runtime_error("Send error");
 }
 
 Irisha::RegForm* Irisha::find_regform(int sock, std::list<Irisha::RegForm*>& reg_expect)

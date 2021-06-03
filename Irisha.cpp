@@ -1,20 +1,16 @@
 
 #include "Irisha.hpp"
-#include "User.hpp"
 #include "utils.hpp"
-#include "Server.hpp"
 #include "parser.hpp"
+
 #include <sys/socket.h>
 #include <netinet/in.h>
-
-
-#include <stdio.h>
-#include <string.h>
-#include <thread>     //! TODO: REMOVE ///////////////////////////////////////////////////////////////////////////////////////////
-#include <list>
-
 #include <netdb.h>
 #include <fcntl.h>
+
+#include <cstring>
+#include <list>
+
 
 Irisha::Irisha(int port)
 {
@@ -65,7 +61,7 @@ void Irisha::connect_to_server(const std::string &host_name, int port)
 
 void Irisha::send_reg_info(const std::string& pass)
 {
-	//registration
+	// Registration
 	send_msg(parent_fd_, NO_PREFIX, createPASSmsg(pass));
 	send_msg(parent_fd_, NO_PREFIX, "SERVER " + domain_ + " :Irisha server");
 }
@@ -95,7 +91,7 @@ Irisha::~Irisha()
 }
 
 /**
- * @description	The launch() function binds socket and starts to listen
+ * @description	Binds socket and starts to listen
  */
 void Irisha::launch()
 {
@@ -165,7 +161,6 @@ void Irisha::loop()
 
 	timeout.tv_sec	= ping_timeout_;
 	timeout.tv_usec	= 0;
-	std::thread	sender(sending_loop, this); //! TODO: REMOVE ////////////////////////////////////////////////////////////////////////////////////////////
 	while (true)
 	{
 		read_fds_ = all_fds_;
@@ -209,46 +204,9 @@ void Irisha::loop()
 			}
 		}
 	}
-	sender.detach(); //! TODO: REMOVE ////<======///////////////////////////////////////////////////////////////////////////////
 }
 
-/**
- * @description	Closes client socket and removes it from connections map
- * 				from the all_fds_ member
- * @param		client_socket
- */
-void Irisha::handle_disconnection(const int sock)
-{
-	User*		user = find_user(sock);
-	std::string msg;
-
-	if (user == nullptr)
-	{
-		Server*		server = find_server(sock);
-		std::string	name = "unknown";
-		if (server != nullptr)
-		{
-			name = server->name();
-			remove_server(server->name());
-			send_servers(name, "SQUIT " + name + " :connection lost");
-		}
-		if (name == "unknown")
-			sys_msg(E_BOOM, "Unknown connection closed!"); // Handle non-registered connection
-		else
-			sys_msg(E_BOOM, "Server", name, "disconnected!"); // Handle server connection
-	}
-	else
-	{
-		msg = sys_msg(E_SCULL, "User", user->nick(), "disconnected!");
-		send_servers(user->nick(), msg);
-		remove_user(user->nick());
-	}
-	if (sock != U_EXTERNAL_CONNECTION)
-	{
-		FD_CLR(sock, &all_fds_);
-		close(sock);
-	}
-}
+//! TODO: fix "MODE #124 --------------o", "MODE #124 +o" crash
 
 /// Commands+
 
@@ -257,10 +215,10 @@ void Irisha::handle_disconnection(const int sock)
 ///Commands-
 
 /**
- *
- * @param i - socket to identify connection
- * @param reg_expect - list of not registered connections
- * @return	node iterator, if socket in list, else end iterator
+ * @description
+ * @param		i - socket to identify connection
+ * @param		reg_expect - list of not registered connections
+ * @return		node iterator, if socket in list, else end iterator
  */
 std::list<Irisha::RegForm*>::iterator Irisha::expecting_registration(int i, std::list<RegForm*>& reg_expect)
 {
@@ -295,8 +253,6 @@ int			Irisha::register_connection	(std::list<Irisha::RegForm*>::iterator rf)
 }
 
 /***************Creating message strings***************/
-
-
 
 /*
  * COMMANDS:
