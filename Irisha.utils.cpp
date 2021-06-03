@@ -728,15 +728,17 @@ void Irisha::remove_local_server(Server*& server)
 	int sock = choose_sock(server); // Socket of the desired server
 
 	Server*	tmp;
-	for (con_it it = connections_.begin(); it != connections_.end(); ++it)
+	for (con_it it = connections_.begin(); it != connections_.end();)
 	{
 		if (it->second->type() == T_SERVER && choose_sock(it->second) == sock)
 		{
 			tmp = static_cast<Server*>(it->second);
+			++it;
 			remove_server(tmp);
+			continue;
 		}
+		++it;
 	}
-	remove_server(server);
 }
 
 /**
