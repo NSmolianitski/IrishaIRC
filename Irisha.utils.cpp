@@ -463,11 +463,11 @@ eResult Irisha::check_user(int sock, User*& user, const std::string& nick)
  * @param		server: server pointer to check
  * @return 		R_SUCCESS if server exists, R_FAILURE if not
  */
-eResult Irisha::check_server(int sock, Server*& server)
+eResult Irisha::check_server(int sock, Server*& server, const std::string& name)
 {
     if (server == nullptr)
     {
-		err_nosuchserver(sock, server->name());
+		err_nosuchserver(sock, name);
 		return R_FAILURE;
     }
     return R_SUCCESS;
@@ -537,6 +537,8 @@ std::string Irisha::connection_name(AConnection* connection) const
 
 void Irisha::ping_connections(time_t& last_ping)
 {
+	if (connections_.empty())
+		return;
 	std::cout << PURPLE ITALIC << "Ping connections!" CLR << std::endl;
 
 	AConnection*	connection;

@@ -122,6 +122,7 @@ private:
 	User*			find_user			(const std::string& nick) const;
 	User*			find_user			(const int sock) const;
 	bool			is_user_operator	(const int sock);
+    eResult         check_user          (int sock, User*& user, const std::string& nick);
 
 	/// Servers
 	void			remove_server		(const std::string& name);
@@ -129,6 +130,7 @@ private:
 	void			remove_local_server	(Server*& server);
 	Server*			find_server			(const std::string& name) const;
 	Server*			find_server			(const int sock) const;
+	eResult			check_server		(int sock, Server*& server, const std::string& name);
 
 	/// Utils
 	std::string*		choose_buff			(int sock, std::list<Irisha::RegForm*>& reg_expect);
@@ -154,8 +156,6 @@ private:
     eType           	connection_type     (int sock);
     eResult         	check_user_sender   (int sender_sock, User*& sender, const std::string& sender_name
                     	                        , User*& user, const std::string& user_nick);
-    eResult         	check_user          (int sock, User*& user, const std::string& nick);
-	eResult				check_server		(int sock, Server*& server);
     bool            	is_enough_args      (int sock, const std::string& command, int min_args_number);
     void            	send_channels       (int sock);
     User*				determine_user		(int sock);

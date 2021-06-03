@@ -1721,7 +1721,7 @@ eResult Irisha::LUSERS(const int sock) //! TODO: handle replies to and from othe
 	else
 	{
 		Server*	server = find_server(cmd_.arguments_[0]);
-		if (check_server(sock, server) == R_FAILURE)
+		if (check_server(sock, server, cmd_.arguments_[0]) == R_FAILURE)
 			return R_FAILURE;
 		send_msg(choose_sock(server), user->nick(), "MOTD :" + cmd_.arguments_[0]);
 	}
@@ -1766,7 +1766,7 @@ eResult Irisha::SQUIT(const int sock)
 		sys_msg(E_SLEEP, "Shutting down.");
 		exit(0);
 	}
-	else if (check_server(sock, server) == R_FAILURE)
+	else if (check_server(sock, server, cmd_.arguments_[0]) == R_FAILURE)
 		return R_FAILURE;
 
 	if (cmd_.type_ == T_SERVER)
