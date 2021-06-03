@@ -1108,16 +1108,26 @@ eResult Irisha::PART(const int sock)
                              "442 " + user->nick() + " " + arr_channel[i] + " :You're not on that channel");
                     continue;
                 }
+                (*itr).second->delUser(user);
+                (*itr).second->delOperators(user);
+                user->del_channel(arr_channel[i]);
+                if ((*itr).second->getUsers().size() == 0) {
+                    channels_.erase(itr);
+                    delete ((*itr).second);
+                    return R_SUCCESS;
+                }
                 send_channel((*itr).second, "PART " + arr_channel[i], user->nick());
             }
-            else
+            else{
+                (*itr).second->delUser(user);
+                (*itr).second->delOperators(user);
+                user->del_channel(arr_channel[i]);
+                if ((*itr).second->getUsers().size() == 0) {
+                    delete ((*itr).second);
+                    channels_.erase(itr);
+                    return R_SUCCESS;
+                }
                 send_channel((*itr).second, "PART " + arr_channel[i], user->nick(), choose_sock(user));
-            (*itr).second->delUser(user);
-            (*itr).second->delOperators(user);
-            user->del_channel(arr_channel[i]);
-            if ((*itr).second->getUsers().size() == 0) {
-                delete ((*itr).second);
-                channels_.erase(itr);
             }
         }
     }

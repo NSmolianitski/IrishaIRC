@@ -2,7 +2,7 @@
 #include "Irisha.hpp"
 #include "User.hpp"
 #include "utils.hpp"
-
+#include "Channel.hpp"
 /**
  * @description	Adds local user
  * @param		sock: user socket
@@ -53,7 +53,18 @@ void Irisha::remove_user(const std::string& nick)
 	std::vector<std::string>::iterator itr = user->channels().begin();
 	while (itr != user->channels().end())
     {
-        send_local_channel(channels_.find(*itr)->second, "PART " + *itr, user->nick(), user->socket());
+	    channels_.find(*itr)->second->delUser(user);
+	    channels_.find(*itr)->second->delOperators(user);
+	    user->del_channel(*itr);
+	    if (channels_.find(*itr)->second->getUsers().size() == 0)
+        {
+	        Channel* channel = channels_.find(*itr)->second;
+	        itr = user->channels().begin();
+            channels_.erase(channel->getName());
+            delete channel;
+            continue;
+        } else
+            send_local_channel(channels_.find(*itr)->second, "PART " + *itr, user->nick(), user->socket());
 	    itr++;
     }
 	connections_.erase(nick);
@@ -66,10 +77,26 @@ void Irisha::remove_user(const std::string& nick)
  */
 void Irisha::remove_user(User*& user)
 {
+    if (user == nullptr)
+    {
+        std::cout << E_CROSS RED "Can't remove user " CLR << std::endl;
+        return;
+    }
     std::vector<std::string>::iterator itr = user->channels().begin();
     while (itr != user->channels().end())
     {
-        send_local_channel(channels_.find(*itr)->second, "PART " + *itr, user->nick(), user->socket());
+        channels_.find(*itr)->second->delUser(user);
+        channels_.find(*itr)->second->delOperators(user);
+        user->del_channel(*itr);
+        if (channels_.find(*itr)->second->getUsers().size() == 0)
+        {
+            Channel* channel = channels_.find(*itr)->second;
+            itr = user->channels().begin();
+            channels_.erase(channel->getName());
+            delete channel;
+            continue;
+        } else
+            send_local_channel(channels_.find(*itr)->second, "PART " + *itr, user->nick(), user->socket());
         itr++;
     }
 	connections_.erase(user->nick());
