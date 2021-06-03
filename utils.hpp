@@ -189,6 +189,7 @@ enum eReply
 #define WELCOME		"welcome-message"
 #define PING_T		"ping-timeout"
 #define CONN_T		"connection-timeout"
+#define REG_T		"register-timeout"
 #define ADMIN_MAIL	"admin-mail"
 #define ADMIN_INFO	"admin-info"
 #define ADMIN_LOC	"admin-location"

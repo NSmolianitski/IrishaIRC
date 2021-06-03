@@ -167,8 +167,10 @@ void Irisha::loop()
 		n = select(max_fd_ + 1, &read_fds_, nullptr, nullptr, &timeout);
 		if (n == -1) throw std::runtime_error("Select error");
 		if (difftime(time(nullptr), last_ping) >= ping_timeout_)
+		{
 			ping_connections(last_ping);
-
+			check_reg_timeouts(reg_expect);
+		}
 		for (int i = 3; i < max_fd_ + 1; ++i)
 		{
 			if (FD_ISSET(i, &read_fds_))

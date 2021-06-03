@@ -86,7 +86,7 @@ std::string*	Irisha::choose_buff(int sock, std::list<Irisha::RegForm*>& reg_expe
 		if (form != nullptr)
 		{
 			buff = &form->buff_;
-			form->last_msg_time_ = time(nullptr);
+			form->connection_time_ = time(nullptr);
 		}
 		else
 			return &buff_;
@@ -533,6 +533,26 @@ std::string Irisha::connection_name(AConnection* connection) const
 	else
 		name = user->nick();
 	return name;
+}
+
+void Irisha::check_reg_timeouts(std::list<Irisha::RegForm*>& reg_expect)
+{
+	if (reg_expect.empty())
+		return;
+	RegForm*	form;
+	int time;
+	for (std::list<Irisha::RegForm*>::iterator it = reg_expect.begin(); it != reg_expect.end();)
+	{
+		form = *it;
+		time = static_cast<int>(form->connection_time_);
+		if (time >= reg_timeout_)
+		{
+			++it;
+			close_connection(form->socket_, "timeout", &reg_expect);
+			continue;
+		}
+		++it;
+	}
 }
 
 void Irisha::ping_connections(time_t& last_ping)

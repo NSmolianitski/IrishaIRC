@@ -44,13 +44,13 @@ private:
 		int			socket_;
 		bool		pass_received_;
 		std::string buff_;
-		time_t		last_msg_time_;
+		time_t		connection_time_;
 
 		explicit RegForm(int sock)
 		{
 			socket_ = sock;
 			pass_received_ = false;
-			last_msg_time_ = time(nullptr);
+			connection_time_ = time(nullptr);
 		}
 	};
 
@@ -82,6 +82,7 @@ private:
 	std::string	admin_info_;    // Admin information
 	int			ping_timeout_;  // How often server sends PING command
 	int			conn_timeout_;	// Seconds without respond until disconnection
+	int			reg_timeout_;	// Seconds for registration until disconnection
 	eUtils		time_stamp_;	// Enabled or disabled time stamps
 
 	std::list<Irisha::RegForm*>::iterator	expecting_registration(int i, std::list<RegForm*>& reg_expect);
@@ -110,6 +111,7 @@ private:
 	AConnection*	find_connection		(const int sock) const;
 	AConnection*	find_connection		(const std::string& name) const;
 	void			ping_connections	(time_t& last_ping);
+	void			check_reg_timeouts	(std::list<Irisha::RegForm*>& reg_expect);
 	std::string		connection_name		(const int sock) const;
 	std::string		connection_name		(AConnection* connection) const;
 
