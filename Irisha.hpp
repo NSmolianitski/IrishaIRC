@@ -311,8 +311,8 @@ private:
 
 	/// Unused constructors
 	Irisha				() {};
-	Irisha				(const Irisha& other) {};
-	Irisha& operator=	(const Irisha& other) { return *this; };
+	Irisha				(const Irisha& other) { std::cout << other.reg_timeout_; };
+	Irisha& operator=	(const Irisha& other) { std::cout << other.reg_timeout_; return *this; };
 
 public:
 	explicit Irisha		(int port);
