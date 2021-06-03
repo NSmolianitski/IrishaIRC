@@ -308,7 +308,7 @@ eResult Irisha::OPER(const int sock)
 			return R_SUCCESS;
 		user->set_operator(true);
 		user->set_mode_str('o');
-		rpl_youreoper(sock);
+		rpl_youreoper(choose_sock(user));
 		//send msg to other servers to make user operator
 		send_servers(sender->nick(), "MODE " + user->nick() + " +o");
 		return R_SUCCESS;

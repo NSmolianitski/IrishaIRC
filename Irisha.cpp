@@ -190,7 +190,7 @@ void Irisha::loop()
 						print_cmd(PM_LINE, i);
 						arr_msg.pop_front();
 						std::list<RegForm*>::iterator it = expecting_registration(i, reg_expect);	// Is this connection waiting for registration? TODO: add timeout handling to registration
-						if (it != reg_expect.end())														// Yes, register it TODO: handle sudden user disconnection (CTRL + C, CTRL + \, CTRL + D, CTRL + Z)
+						if (it != reg_expect.end())														// Yes, register it
 						{
 							if (register_connection(it) == R_SUCCESS)
 							{

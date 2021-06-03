@@ -50,22 +50,20 @@ void Irisha::remove_user(const std::string& nick)
 		std::cout << E_CROSS RED "Can't remove user " + nick + CLR << std::endl;
 		return;
 	}
-	std::vector<std::string>::iterator itr = user->channels().begin();
-	while (itr != user->channels().end())
-    {
-	    channels_.find(*itr)->second->delUser(user);
-	    channels_.find(*itr)->second->delOperators(user);
-	    user->del_channel(*itr);
-	    if (channels_.find(*itr)->second->getUsers().size() == 0)
-        {
-	        Channel* channel = channels_.find(*itr)->second;
-	        itr = user->channels().begin();
-            channels_.erase(channel->getName());
-            delete channel;
-            continue;
-        } else
-            send_local_channel(channels_.find(*itr)->second, "PART " + *itr, user->nick(), user->socket());
-	    itr++;
+	std::string ch_name;
+	while (!user->channels().empty())
+	{
+		ch_name = user->channels().back();
+		channels_.find(ch_name)->second->delUser(user);
+		channels_.find(ch_name)->second->delOperators(user);
+		if (channels_.find(ch_name)->second->getUsers().size() == 0)
+		{
+			Channel* channel = channels_.find(ch_name)->second;
+			channels_.erase(channel->getName());
+			delete channel;
+		} else
+			send_local_channel(channels_.find(ch_name)->second, "PART " + ch_name, user->nick(), user->socket());
+		user->channels().pop_back();
     }
 	connections_.erase(nick);
 	delete user;
@@ -82,23 +80,21 @@ void Irisha::remove_user(User*& user)
         std::cout << E_CROSS RED "Can't remove user " CLR << std::endl;
         return;
     }
-    std::vector<std::string>::iterator itr = user->channels().begin();
-    while (itr != user->channels().end())
-    {
-        channels_.find(*itr)->second->delUser(user);
-        channels_.find(*itr)->second->delOperators(user);
-        user->del_channel(*itr);
-        if (channels_.find(*itr)->second->getUsers().size() == 0)
-        {
-            Channel* channel = channels_.find(*itr)->second;
-            itr = user->channels().begin();
-            channels_.erase(channel->getName());
-            delete channel;
-            continue;
-        } else
-            send_local_channel(channels_.find(*itr)->second, "PART " + *itr, user->nick(), user->socket());
-        itr++;
-    }
+	std::string ch_name;
+	while (!user->channels().empty())
+	{
+		ch_name = user->channels().back();
+		channels_.find(ch_name)->second->delUser(user);
+		channels_.find(ch_name)->second->delOperators(user);
+		if (channels_.find(ch_name)->second->getUsers().size() == 0)
+		{
+			Channel* channel = channels_.find(ch_name)->second;
+			channels_.erase(channel->getName());
+			delete channel;
+		} else
+			send_local_channel(channels_.find(ch_name)->second, "PART " + ch_name, user->nick(), user->socket());
+		user->channels().pop_back();
+	}
 	connections_.erase(user->nick());
 	delete user;
 }

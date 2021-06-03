@@ -360,6 +360,7 @@ void Irisha::send_local_channel(Channel *channel, std::string msg, std::string p
             send_msg((*itr)->socket(), prefix, msg);
         }
         itr++;
+		std::cout << "send_local_channel cycle" << std::endl; //TODO:del it
     }
 }
 /// Send msg channel all users and operators

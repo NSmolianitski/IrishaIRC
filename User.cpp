@@ -73,7 +73,7 @@ void User::del_channel(const std::string &channel) {
     }
 }
 
-std::vector<std::string> User::channels() const {
+std::vector<std::string>& User::channels() {
     return channels_;
 }
 

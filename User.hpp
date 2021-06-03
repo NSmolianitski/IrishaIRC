@@ -55,7 +55,7 @@ public:
 	const std::string&	netwideID	() const;
 	const std::string&	server		() const;
 	const std::string&	host		() const;
-    std::vector<std::string> channels() const;
+    std::vector<std::string>& channels();
 };
 
 
