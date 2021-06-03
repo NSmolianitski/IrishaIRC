@@ -83,17 +83,17 @@ void Irisha::remove_user(User*& user)
 void Irisha::remove_server_users(const std::string& name)
 {
 	User* user;
-	for (con_it it = connections_.begin(); it != connections_.end(); ++it)
+	for (con_it it = connections_.begin(); it != connections_.end();)
 	{
 		if (it->second->type() == T_CLIENT)
 		{
 			user = static_cast<User*>(it->second);
+			++it;
 			if (user->server() == name)
 				remove_user(user);
 		}
+		++it;
 	}
-	connections_.erase(name);
-	delete user;
 }
 
 /**
