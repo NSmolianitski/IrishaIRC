@@ -158,6 +158,8 @@ private:
     eResult         check_user          (int sock, User*& user, const std::string& nick);
 	eResult			check_server		(int sock, Server*& server);
     bool            is_enough_args      (int sock, const std::string& command, int min_args_number);
+    User*			determine_user		(int sock);
+
     void            send_channels       (int sock);
     User*			determine_user		(int sock);
 
