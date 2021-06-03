@@ -249,7 +249,8 @@ void Irisha::send_msg(int sock, const std::string& prefix, const std::string& ms
 	message.append("\r\n");
 
 	ssize_t n = send(sock, message.c_str(), message.length(), 0);
-	if (n == -1) throw std::runtime_error("Send error");
+	if (n == -1)
+		throw std::runtime_error("Send error");
 }
 
 /**
@@ -266,7 +267,8 @@ void Irisha::send_msg(int sock, const std::string& msg) const
 	message.append("\r\n");
 
 	ssize_t n = send(sock, message.c_str(), message.length(), 0);
-	if (n == -1) throw std::runtime_error("Send error");
+	if (n == -1)
+		throw std::runtime_error("Send error");
 }
 
 /**

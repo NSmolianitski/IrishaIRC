@@ -688,6 +688,7 @@ eResult Irisha::QUIT(const int sock)
 	{
 		send_servers(user->nick(), "QUIT " + msg);
 		FD_CLR(sock, &all_fds_);
+		FD_CLR(sock, &read_fds_);
 		close(sock);
 	}
 	else
