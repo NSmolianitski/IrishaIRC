@@ -706,6 +706,7 @@ void Irisha::close_connection(const int sock, const std::string& comment, std::l
 		remove_user(user->nick());
 	}
 	FD_CLR(sock, &all_fds_);
+	FD_CLR(sock, &read_fds_);
 	close(sock);
 }
 
