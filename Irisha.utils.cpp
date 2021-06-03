@@ -86,7 +86,7 @@ std::string*	Irisha::choose_buff(int sock, std::list<Irisha::RegForm*>& reg_expe
 		if (form != nullptr)
 		{
 			buff = &form->buff_;
-			form->last_msg_time_ = time(nullptr);
+			form->connection_time_ = time(nullptr);
 		}
 		else
 			return &buff_;
@@ -249,7 +249,8 @@ void Irisha::send_msg(int sock, const std::string& prefix, const std::string& ms
 	message.append("\r\n");
 
 	ssize_t n = send(sock, message.c_str(), message.length(), 0);
-	if (n == -1) throw std::runtime_error("Send error");
+	if (n == -1)
+		throw std::runtime_error("Send error");
 }
 
 /**
@@ -266,7 +267,8 @@ void Irisha::send_msg(int sock, const std::string& msg) const
 	message.append("\r\n");
 
 	ssize_t n = send(sock, message.c_str(), message.length(), 0);
-	if (n == -1) throw std::runtime_error("Send error");
+	if (n == -1)
+		throw std::runtime_error("Send error");
 }
 
 /**
@@ -463,11 +465,11 @@ eResult Irisha::check_user(int sock, User*& user, const std::string& nick)
  * @param		server: server pointer to check
  * @return 		R_SUCCESS if server exists, R_FAILURE if not
  */
-eResult Irisha::check_server(int sock, Server*& server)
+eResult Irisha::check_server(int sock, Server*& server, const std::string& name)
 {
     if (server == nullptr)
     {
-		err_nosuchserver(sock, server->name());
+		err_nosuchserver(sock, name);
 		return R_FAILURE;
     }
     return R_SUCCESS;
@@ -535,12 +537,32 @@ std::string Irisha::connection_name(AConnection* connection) const
 	return name;
 }
 
+void Irisha::check_reg_timeouts(std::list<Irisha::RegForm*>& reg_expect)
+{
+	if (reg_expect.empty())
+		return;
+	RegForm*	form;
+	for (std::list<Irisha::RegForm*>::iterator it = reg_expect.begin(); it != reg_expect.end();)
+	{
+		form = *it;
+		if (difftime(time(nullptr), form->connection_time_) >= reg_timeout_)
+		{
+			++it;
+			close_connection(form->socket_, "timeout", &reg_expect);
+			continue;
+		}
+		++it;
+	}
+}
+
 void Irisha::ping_connections(time_t& last_ping)
 {
+	if (connections_.empty())
+		return;
 	std::cout << PURPLE ITALIC << "Ping connections!" CLR << std::endl;
 
 	AConnection*	connection;
-	for (con_it it = connections_.begin(); it != connections_.end(); ++it)
+	for (con_it it = connections_.begin(); it != connections_.end();)
 	{
 		connection = it->second;
 		int time = static_cast<int>(connection->last_msg_time());
@@ -548,12 +570,13 @@ void Irisha::ping_connections(time_t& last_ping)
 		{
 			if (connection->last_msg_time() >= conn_timeout_)
 			{
-				--it;
+				++it;
 				close_connection(connection->socket(), "timeout", nullptr);
 				continue;
 			}
 			send_msg(it->second->socket(), domain_, "PING " + domain_); // Send PING message
 		}
+		++it;
 	}
 	last_ping = time(nullptr);
 }
@@ -683,6 +706,7 @@ void Irisha::close_connection(const int sock, const std::string& comment, std::l
 		remove_user(user->nick());
 	}
 	FD_CLR(sock, &all_fds_);
+	FD_CLR(sock, &read_fds_);
 	close(sock);
 }
 
@@ -699,6 +723,7 @@ void Irisha::remove_server(const std::string& name)
 		FD_CLR(server->socket(), &all_fds_);
 		close(server->socket());
 	}
+	remove_server_users(server->name());
 	connections_.erase(name);
 	delete server;
 }
@@ -715,12 +740,13 @@ void Irisha::remove_server(Server*& server)
 		FD_CLR(server->socket(), &all_fds_);
 		close(server->socket());
 	}
+	remove_server_users(server->name());
 	connections_.erase(server->name());
 	delete server;
 }
 
 /**
- * @description	Removes servers that are connected to server
+ * @description	Removes local server with all its (users and servers)
  * @param		server: server pointer
  */
 void Irisha::remove_local_server(Server*& server)

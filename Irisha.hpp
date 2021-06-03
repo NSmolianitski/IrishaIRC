@@ -44,13 +44,13 @@ private:
 		int			socket_;
 		bool		pass_received_;
 		std::string buff_;
-		time_t		last_msg_time_;
+		time_t		connection_time_;
 
 		explicit RegForm(int sock)
 		{
 			socket_ = sock;
 			pass_received_ = false;
-			last_msg_time_ = time(nullptr);
+			connection_time_ = time(nullptr);
 		}
 	};
 
@@ -82,6 +82,7 @@ private:
 	std::string	admin_info_;    // Admin information
 	int			ping_timeout_;  // How often server sends PING command
 	int			conn_timeout_;	// Seconds without respond until disconnection
+	int			reg_timeout_;	// Seconds for registration until disconnection
 	eUtils		time_stamp_;	// Enabled or disabled time stamps
 
 	std::list<Irisha::RegForm*>::iterator	expecting_registration(int i, std::list<RegForm*>& reg_expect);
@@ -110,6 +111,7 @@ private:
 	AConnection*	find_connection		(const int sock) const;
 	AConnection*	find_connection		(const std::string& name) const;
 	void			ping_connections	(time_t& last_ping);
+	void			check_reg_timeouts	(std::list<Irisha::RegForm*>& reg_expect);
 	std::string		connection_name		(const int sock) const;
 	std::string		connection_name		(AConnection* connection) const;
 
@@ -122,6 +124,7 @@ private:
 	User*			find_user			(const std::string& nick) const;
 	User*			find_user			(const int sock) const;
 	bool			is_user_operator	(const int sock);
+    eResult         check_user          (int sock, User*& user, const std::string& nick);
 
 	/// Servers
 	void			remove_server		(const std::string& name);
@@ -129,6 +132,7 @@ private:
 	void			remove_local_server	(Server*& server);
 	Server*			find_server			(const std::string& name) const;
 	Server*			find_server			(const int sock) const;
+	eResult			check_server		(int sock, Server*& server, const std::string& name);
 
 	/// Utils
 	std::string*		choose_buff			(int sock, std::list<Irisha::RegForm*>& reg_expect);
@@ -154,8 +158,6 @@ private:
     eType           	connection_type     (int sock);
     eResult         	check_user_sender   (int sender_sock, User*& sender, const std::string& sender_name
                     	                        , User*& user, const std::string& user_nick);
-    eResult         	check_user          (int sock, User*& user, const std::string& nick);
-	eResult				check_server		(int sock, Server*& server);
     bool            	is_enough_args      (int sock, const std::string& command, int min_args_number);
     void            	send_channels       (int sock);
     User*				determine_user		(int sock);
@@ -210,6 +212,7 @@ private:
 	eResult			STATS				(const int sock);
 	eResult			LINKS				(const int sock);
 	eResult			ISON				(const int sock);
+	eResult			LUSERS_REPLIES		(const int sock);
 
 	/// IRC commands utils
 	void			admin_info			(const int sock, const std::string& receiver);
@@ -308,8 +311,8 @@ private:
 
 	/// Unused constructors
 	Irisha				() {};
-	Irisha				(const Irisha& other) {};
-	Irisha& operator=	(const Irisha& other) { return *this; };
+	Irisha				(const Irisha& other) { std::cout << other.reg_timeout_; };
+	Irisha& operator=	(const Irisha& other) { std::cout << other.reg_timeout_; return *this; };
 
 public:
 	explicit Irisha		(int port);

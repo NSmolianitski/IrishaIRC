@@ -5,7 +5,7 @@ SRCS		= 	main.cpp AConnection.cpp Channel.cpp Irisha.config.cpp Irisha.cpp Irish
 OBJS		= $(SRCS:.cpp=.o)
 
 CC			= clang++
-FLAGS		= -std=c++11
+FLAGS		= -Wall -Wextra -Werror -std=c++98
 
 .cpp.o:
 			clang++ $(FLAGS) -c $< -o ${<:.cpp=.o}

@@ -24,8 +24,8 @@ private:
 
 	/// Unused constructors
 	User() : AConnection(0, T_CLIENT,0, 0, 0) {};
-	User(const User& other) : AConnection(0, T_CLIENT, 0, 0, 0) {};
-	User& operator= (const User& other) { return *this; };
+	User(const User& other) : AConnection(0, T_CLIENT, 0, 0, 0) { std::cout << other.nick(); };
+	User& operator= (const User& other) { std::cout << other.nick(); return *this; };
 
 public:
 	User(const int sock, const std::string& server, const std::string& nick); // Constructor for local user

@@ -16,6 +16,7 @@ void Irisha::apply_config(const std::string& path)
 	//password_		= get_config_value(path, PASS);
 	ping_timeout_	= str_to_int(get_config_value(path, PING_T));
 	conn_timeout_	= str_to_int(get_config_value(path, CONN_T));
+	reg_timeout_	= str_to_int(get_config_value(path, REG_T));
 	oper_pass_		= get_config_value(path, OPER_PASS);
 	set_time_stamp(path);
 
@@ -35,11 +36,17 @@ void Irisha::check_timeout_values()
 		conn_timeout_ = 120;
 		std::cout << RED "Connection timeout is wrong - server will use default setting (120 sec)" CLR << std::endl;
 	}
-	if (ping_timeout_ > conn_timeout_)
+	if (reg_timeout_ < 1 || reg_timeout_ > 10000)
+	{
+		reg_timeout_ = 20;
+		std::cout << RED "Registration timeout is wrong - server will use default setting (20 sec)" CLR << std::endl;
+	}
+	if (ping_timeout_ > conn_timeout_ || reg_timeout_ > conn_timeout_)
 	{
 		ping_timeout_ = 20;
+		reg_timeout_ = 20;
 		conn_timeout_ = 120;
-		std::cout << RED "Ping timeout can't be greater than connection timeout - server will use default settings" CLR << std::endl;
+		std::cout << RED "Timeouts can't be greater than connection timeout - server will use default settings" CLR << std::endl;
 	}
 }
 

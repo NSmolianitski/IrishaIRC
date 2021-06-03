@@ -160,15 +160,17 @@ void Irisha::loop()
     time_t						last_ping = time(nullptr);	// Time of the last connection ping
 
 	timeout.tv_sec	= ping_timeout_;
+	if (reg_timeout_ < ping_timeout_)
+		timeout.tv_sec = reg_timeout_;
 	timeout.tv_usec	= 0;
 	while (true)
 	{
 		read_fds_ = all_fds_;
-		n = select(max_fd_ + 1, &read_fds_, nullptr, nullptr, nullptr); //! TODO: change last nullptr to &timeout (nullptr is for debugging)
+		n = select(max_fd_ + 1, &read_fds_, nullptr, nullptr, &timeout);
 		if (n == -1) throw std::runtime_error("Select error");
-//		if (difftime(time(nullptr), last_ping) >= ping_timeout_)
-//			ping_connections(last_ping);
-
+		check_reg_timeouts(reg_expect);
+		if (difftime(time(nullptr), last_ping) >= ping_timeout_)
+			ping_connections(last_ping);
 		for (int i = 3; i < max_fd_ + 1; ++i)
 		{
 			if (FD_ISSET(i, &read_fds_))
