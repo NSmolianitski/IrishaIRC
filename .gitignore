@@ -3,4 +3,3 @@ cmake-build-debug
 a.out
 server
 .DS_Store
-main.cpp
