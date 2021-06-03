@@ -542,7 +542,7 @@ void Irisha::ping_connections(time_t& last_ping)
 	std::cout << PURPLE ITALIC << "Ping connections!" CLR << std::endl;
 
 	AConnection*	connection;
-	for (con_it it = connections_.begin(); it != connections_.end(); ++it)
+	for (con_it it = connections_.begin(); it != connections_.end();)
 	{
 		connection = it->second;
 		int time = static_cast<int>(connection->last_msg_time());
@@ -550,12 +550,13 @@ void Irisha::ping_connections(time_t& last_ping)
 		{
 			if (connection->last_msg_time() >= conn_timeout_)
 			{
-				--it;
+				++it;
 				close_connection(connection->socket(), "timeout", nullptr);
 				continue;
 			}
 			send_msg(it->second->socket(), domain_, "PING " + domain_); // Send PING message
 		}
+		++it;
 	}
 	last_ping = time(nullptr);
 }
