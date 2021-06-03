@@ -540,12 +540,10 @@ void Irisha::check_reg_timeouts(std::list<Irisha::RegForm*>& reg_expect)
 	if (reg_expect.empty())
 		return;
 	RegForm*	form;
-	int time;
 	for (std::list<Irisha::RegForm*>::iterator it = reg_expect.begin(); it != reg_expect.end();)
 	{
 		form = *it;
-		time = static_cast<int>(form->connection_time_);
-		if (time >= reg_timeout_)
+		if (difftime(time(nullptr), form->connection_time_) >= reg_timeout_)
 		{
 			++it;
 			close_connection(form->socket_, "timeout", &reg_expect);
