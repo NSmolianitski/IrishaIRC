@@ -210,6 +210,7 @@ private:
 	eResult			STATS				(const int sock);
 	eResult			LINKS				(const int sock);
 	eResult			ISON				(const int sock);
+	eResult			LUSERS_REPLIES		(const int sock);
 
 	/// IRC commands utils
 	void			admin_info			(const int sock, const std::string& receiver);

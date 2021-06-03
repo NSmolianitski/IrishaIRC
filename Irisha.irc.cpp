@@ -61,6 +61,7 @@ void	Irisha::prepare_commands()
 	commands_.insert(std::pair<std::string, func>("STATS", &Irisha::STATS));
 	commands_.insert(std::pair<std::string, func>("LINKS", &Irisha::LINKS));
 	commands_.insert(std::pair<std::string, func>("ISON", &Irisha::ISON));
+	commands_.insert(std::pair<std::string, func>("LUSERS_REPLIES", &Irisha::LUSERS_REPLIES));
 }
 
 eResult Irisha::ISON(const int sock)
@@ -1727,26 +1728,26 @@ eResult Irisha::LUSERS(const int sock) //! TODO: handle replies to and from othe
 	return R_SUCCESS;
 }
 
-///**
-// * @description	Handles LUSERS replies
-// * @param		sock
-// * @return
-// */
-//eResult Irisha::LUSERS_REPLIES(const int sock)
-//{
-//	if (!is_enough_args(sock, cmd_.command_, 2))
-//		return R_FAILURE;
-//
-//	User*	user = find_user(cmd_.arguments_[0]);
-//	if (user == nullptr)
-//	{
-//		err_nosuchnick(sock, cmd_.arguments_[0]);
-//		return R_FAILURE;
-//	}
-//	send_msg(choose_sock(user), domain_,cmd_.command_
-//										+ " " + cmd_.arguments_[0] + " " + cmd_.arguments_[1]);
-//	return R_SUCCESS;
-//}
+/**
+ * @description	Handles LUSERS replies
+ * @param		sock
+ * @return
+ */
+eResult Irisha::LUSERS_REPLIES(const int sock)
+{
+	if (!is_enough_args(sock, cmd_.command_, 2))
+		return R_FAILURE;
+
+	User*	user = find_user(cmd_.arguments_[0]);
+	if (user == nullptr)
+	{
+		err_nosuchnick(sock, cmd_.arguments_[0]);
+		return R_FAILURE;
+	}
+	send_msg(choose_sock(user), domain_,cmd_.command_
+										+ " " + cmd_.arguments_[0] + " " + cmd_.arguments_[1]);
+	return R_SUCCESS;
+}
 
 /**
  * @description	Handles SQUIT command (disconnects servers)

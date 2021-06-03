@@ -699,6 +699,7 @@ void Irisha::remove_server(const std::string& name)
 		FD_CLR(server->socket(), &all_fds_);
 		close(server->socket());
 	}
+	remove_server_users(server->name());
 	connections_.erase(name);
 	delete server;
 }
@@ -715,12 +716,13 @@ void Irisha::remove_server(Server*& server)
 		FD_CLR(server->socket(), &all_fds_);
 		close(server->socket());
 	}
+	remove_server_users(server->name());
 	connections_.erase(server->name());
 	delete server;
 }
 
 /**
- * @description	Removes servers that are connected to server
+ * @description	Removes local server with all its (users and servers)
  * @param		server: server pointer
  */
 void Irisha::remove_local_server(Server*& server)
