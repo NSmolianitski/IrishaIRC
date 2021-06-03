@@ -784,7 +784,8 @@ eResult Irisha::MODE(const int sock) // Доделать !!!
             } else {
                 if (cmd_.arguments_[1][i] == 'o'){ // mode operator channel
                     if (arr_param.empty() || !is_a_valid_nick(arr_param.front())){ // empty param or nick not valid
-                        arr_param.pop_front();
+                        if (!arr_param.empty())
+                            arr_param.pop_front();
                         continue;
                     }
                     if (!(*itr).second->isUser(find_user(arr_param.front()))){ // not user in channel
@@ -815,7 +816,8 @@ eResult Irisha::MODE(const int sock) // Доделать !!!
                 }
                 else if (cmd_.arguments_[1][i] == 'v'){ // mode voice
                     if (arr_param.empty() || !is_a_valid_nick(arr_param.front())){ // empty param or nick not valid
-                        arr_param.pop_front();
+                        if (!arr_param.empty())
+                            arr_param.pop_front();
                         continue;
                     }
                     if (!(*itr).second->isUser(find_user(arr_param.front()))){ // not user in channel
