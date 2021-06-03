@@ -405,8 +405,15 @@ eResult	Irisha::NICK(const int sock)
 		if (it->second->socket() == sock)
 			break;
 	}
-	if (it == connections_.end())	// Add new local user
+	if (it == connections_.end()) // Add new local user
+	{
+		if (find_user(new_nick) != nullptr)
+		{
+			err_nicknameinuse(sock, new_nick);
+			return R_FAILURE;
+		}
 		add_user(sock, new_nick);
+	}
 	else
 	{
 		User*	connection = dynamic_cast<User *>(it->second);
