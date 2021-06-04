@@ -11,7 +11,7 @@ Comments format: `# Comment` and `; Comment`
 
 `server-domain`     # Server domain
 
-`server-password`   # Server password is unused for now (it is set at startup)
+`server-password`   # Server password, currently unused (it is set at startup)
  
 `welcome-message`   # The message that is sent to the user when connected
 
@@ -27,7 +27,9 @@ must be lower than connection timeout or setting would be default.
 
 `connection-timeout`# Time until disconnection since last message (in seconds)
 
-### Admin information (used mainly by ADMIN command)
+### Admin information
+This section is used mainly by ADMIN command
+
 `admin-location`    # Admin country, city or similar information
 
 `admin-info`		# Other admin information
