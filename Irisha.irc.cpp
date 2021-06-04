@@ -1234,20 +1234,14 @@ eResult Irisha::PRIVMSG(const int sock)
             else
                 send_channel((*itr).second, "PRIVMSG " + arr_receiver.front() + " " + cmd_.arguments_[1], sender->nick(), choose_sock(sender));
         } else {
-//            user = find_user(arr_receiver.front());
-//            if (user != nullptr){
-//                err_nosuchnick(user->socket(), arr_receiver.front());
-//                arr_receiver.pop_front();
-//                continue;
-//            }
-            if (check_user(find_user(arr_receiver.front())->socket(), user, cmd_.prefix_) == R_FAILURE){
-                arr_receiver.pop_front();
-                continue;
-            }
-//            if (cmd_.type_ == T_LOCAL_CLIENT)
-//                send_msg(sender->socket(), sender->nick(), "PRIVMSG " + arr_receiver.front() + " " + cmd_.arguments_[1]);
-//            else
-                send_msg(choose_sock(user), sender->nick(), "PRIVMSG " + arr_receiver.front() + " " + cmd_.arguments_[1]);
+			user = find_user(arr_receiver.front());
+			if (user == nullptr)
+			{
+				err_nosuchnick(sock, arr_receiver.front());
+				arr_receiver.pop_front();
+				continue;
+			}
+			send_msg(choose_sock(user), sender->nick(), "PRIVMSG " + arr_receiver.front() + " " + cmd_.arguments_[1]);
         }
         arr_receiver.pop_front();
     }
@@ -1289,11 +1283,14 @@ eResult Irisha::NOTICE(const int sock)
             else
                 send_channel((*itr).second, "PRIVMSG " + arr_receiver.front() + " " + cmd_.arguments_[1], sender->nick(), choose_sock(sender));
         } else {
-            if (check_user(find_user(arr_receiver.front())->socket(), user, cmd_.prefix_) == R_FAILURE){
-                arr_receiver.pop_front();
-                continue;
-            }
-            send_msg(choose_sock(user), sender->nick(), "PRIVMSG " + arr_receiver.front() + " " + cmd_.arguments_[1]);
+			user = find_user(arr_receiver.front());
+			if (user == nullptr)
+			{
+				err_nosuchnick(sock, arr_receiver.front());
+				arr_receiver.pop_front();
+				continue;
+			}
+			send_msg(choose_sock(user), sender->nick(), "PRIVMSG " + arr_receiver.front() + " " + cmd_.arguments_[1]);
         }
         arr_receiver.pop_front();
     }
