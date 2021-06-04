@@ -8,6 +8,7 @@ Settings format: `<NAME> = <PARAMETER>`
 Comments format: `# Comment` and `; Comment`
 
 ### Main settings
+hello            |      ahaha        
 -----------------|-------------------
 `server-domain`  |    # Server domain
 
