@@ -1,11 +1,11 @@
-# IRC SERVER "IRISHA"
+# IRC SERVER "IRISHA" 👧🏼
 
 ## Introduction
 IRC (Internet Relay Chat) - is an application layer protocol that facilitates communication in the
 form of text. Was very popular in 90-s. People used IRC to communicate long before facebook, telegram, whatsApp e.t.c.
 Read about it on [Wiki](https://en.wikipedia.org/wiki/Internet_Relay_Chat).
 
-## This project is about:
+## This project is about
 * Sockets
 * Client-server interaction
 * Server-server interaction
@@ -23,8 +23,7 @@ Irisha can connect to other IRC servers and create the IRC network (tested with 
 ## How to launch
 
 #### Configuration
-There is "irisha.conf". You can configure server name, welcome message (for clients), ping timeout,
-connection timeout, admin info, operator password.
+The `irisha.conf` file is used for server-settings. You can find configuration instructions [here](CONFIGURATION.md)
 
 #### Execution
 1) Run "make" command to compile project in the root.
@@ -37,3 +36,6 @@ Other possibilities:
 * make clean - delete all .o file
 * make fclean - delete all .o file and execution file
 * make re - recompile project%
+
+## Attention❗
+IrishaIRC is a study project. It is not perfect and contains some bugs. I hope you will like it. 😊
