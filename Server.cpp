@@ -11,8 +11,8 @@ Server::Server() :AConnection(-1, T_SERVER, -1, U_EXTERNAL_CONNECTION, 0) {}
 
 Server::~Server() {}
 
-Server::Server(const Server &server) : AConnection(-1, T_SERVER, -1, U_EXTERNAL_CONNECTION, 0) {}
+Server::Server(const Server &server) : AConnection(-1, T_SERVER, -1, U_EXTERNAL_CONNECTION, 0) { (void)server; }
 
 const std::string& Server::name()	{ return name_; }
 
-Server& Server::operator=(const Server &rh) { return *this; }
+Server& Server::operator=(const Server &rh) { (void)rh; return *this; }

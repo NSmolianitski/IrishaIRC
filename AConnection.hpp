@@ -18,10 +18,10 @@ private:
 	int			socket_;
 	eType		type_;
 	int			hopcount_;
-	int 		token_;
 	int 		source_socket_;
 	std::string	buff_;
 	time_t		last_msg_time_;
+	int 		token_;
 	time_t 		launch_time_;
 
 	/// Unused constructors

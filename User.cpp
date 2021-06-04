@@ -1,7 +1,6 @@
 
 #include "User.hpp"
 
-
 /**
  * @description	Default User constructor
  * @param		sock
@@ -11,14 +10,14 @@
  * @param		real_name
  */
 User::User(const int sock, const std::string& server, const std::string& nick)
-	: AConnection(sock, T_CLIENT, 0, sock, 1), server_(server), nick_(nick), operator_(false)
+		: AConnection(sock, T_CLIENT, 0, sock, 1), nick_(nick), operator_(false), server_(server)
 {
 	host_ = std::string(get_sock_host(sock));
 
 }
 
 User::User(const int sock, const std::string& host, const int hopcount, const int source_sock, int token)
-	: AConnection(sock, T_CLIENT, hopcount, source_sock, token), host_(host), operator_(false)
+		: AConnection(sock, T_CLIENT, hopcount, source_sock, token), operator_(false), host_(host)
 {
 
 }
@@ -44,37 +43,34 @@ int					User::mode			() const { return mode_; }
 bool 				User::is_operator	() const { return operator_; }
 const std::string&	User::netwideID		() const { return netwideID_; }
 const std::string&	User::server		() const { return server_; }
-const std::string & User::host			() const { return host_; }
-
-const std::string   &User::mode_str     () const {return mode_str_; }
+const std::string&	User::host			() const { return host_; }
+const std::string&	User::mode_str		() const {return mode_str_; }
 
 void User::set_channel(const std::string &channel) {
-    std::vector<std::string>::iterator itr = channels_.begin();
+	std::vector<std::string>::iterator itr = channels_.begin();
 
-    while (itr != channels_.end())
-    {
-        if (*itr == channel)
-            return;
-        itr++;
-    }
-    channels_.push_back(channel);
+	while (itr != channels_.end())
+	{
+		if (*itr == channel)
+			return;
+		itr++;
+	}
+	channels_.push_back(channel);
 }
 
 void User::del_channel(const std::string &channel) {
-    std::vector<std::string>::iterator itr = channels_.begin();
+	std::vector<std::string>::iterator itr = channels_.begin();
 
-    while (itr != channels_.end())
-    {
-        if (*itr == channel){
-            channels_.erase(itr);
-            return;
-        }
-        itr++;
-    }
+	while (itr != channels_.end())
+	{
+		if (*itr == channel){
+			channels_.erase(itr);
+			return;
+		}
+		itr++;
+	}
 }
 
 std::vector<std::string>& User::channels() {
-    return channels_;
+	return channels_;
 }
-
-

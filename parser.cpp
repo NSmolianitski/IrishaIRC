@@ -80,7 +80,7 @@ void parse_argv(int argc, char *argv[], std::string& host, int& port_network, st
     if (argc < 3 || argc > 4)
         throw std::runtime_error("Error size arguments");
     if (argc == 3){
-        for (int i = 0; i < strlen(argv[1]); ++i) {
+        for (size_t i = 0; i < strlen(argv[1]); ++i) {
             if (isdigit(argv[1][i]) == 0)
                 throw std::runtime_error("Error: port");
         }
@@ -99,7 +99,7 @@ void parse_argv(int argc, char *argv[], std::string& host, int& port_network, st
             throw std::runtime_error("Error size arguments network");
         host = array.front();
         array.pop_front();
-        for (int i = 0; i < array.front().length(); ++i) {
+        for (size_t i = 0; i < array.front().length(); ++i) {
             if (isdigit(array.front()[i]) == 0)
                 throw std::runtime_error("Error: port network");
         }
@@ -109,7 +109,7 @@ void parse_argv(int argc, char *argv[], std::string& host, int& port_network, st
         array.pop_front();
         password_network = array.front();
         array.pop_front();
-        for (int i = 0; i < strlen(argv[2]); ++i) {
+        for (size_t i = 0; i < strlen(argv[2]); ++i) {
             if (isdigit(argv[2][i]) == 0)
                 throw std::runtime_error("Error: port");
         }

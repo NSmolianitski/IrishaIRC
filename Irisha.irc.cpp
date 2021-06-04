@@ -71,7 +71,7 @@ eResult Irisha::ISON(const int sock)
 		err_needmoreparams(sock, "ISON");
 		return R_FAILURE;
 	}
-	for (int i = 0; i < cmd_.arguments_.size(); i++)
+	for (size_t i = 0; i < cmd_.arguments_.size(); i++)
 	{
 		User* user = find_user(cmd_.arguments_[i]);
 		if (user != nullptr)
@@ -457,7 +457,7 @@ eResult Irisha::USER(const int sock)
 
 	if (cmd_.arguments_[1].length() > 1)
 	{
-		for (int i = 0; i < cmd_.arguments_[1].length(); i++)
+		for (size_t i = 0; i < cmd_.arguments_[1].length(); i++)
 		{
 			if (cmd_.arguments_[1][i] == '8')
 				user->set_mode_str('i');
@@ -712,13 +712,13 @@ eResult Irisha::MODE(const int sock) // Доделать !!!
         if (channels_.find(cmd_.arguments_[0]) != channels_.end()){
             if (cmd_.arguments_.size() != 1){
                 if ((cmd_.arguments_[0][0] == '#' || cmd_.arguments_[0][0] == '&' || cmd_.arguments_[0][0] == '+' || cmd_.arguments_[0][0] == '!')){
-                    for (int i = 1; i < cmd_.arguments_[1].size(); ++i) {
+                    for (size_t i = 1; i < cmd_.arguments_[1].size(); ++i) {
                         channels_.find(cmd_.arguments_[0])->second->setMode(cmd_.arguments_[1][i], 1);
                     }
                 }
                 else
                 {
-                    for (int i = 0; i < cmd_.arguments_[1].size(); ++i) {
+                    for (size_t i = 0; i < cmd_.arguments_[1].size(); ++i) {
                         if (cmd_.arguments_[1][i] == '+'){
                             flag_mode = 1;
                             continue;
@@ -756,7 +756,7 @@ eResult Irisha::MODE(const int sock) // Доделать !!!
             send_msg(user->socket(), domain_, "482 " + user->nick() + " " + cmd_.arguments_[0] + " :You're not channel operator");
             return R_SUCCESS;
         }
-        for (int i = 2; i < cmd_.arguments_.size(); ++i) {
+        for (size_t i = 2; i < cmd_.arguments_.size(); ++i) {
             arr_param.push_back(cmd_.arguments_[i]);
         }
         for (size_t i = 0; i < cmd_.arguments_[1].size(); ++i) {
@@ -980,7 +980,7 @@ int     Irisha::check_mode_channel(const Channel* channel, const int sock, std::
         }
     }
     if (channel->getMode().find('l')->second == 1){
-        if (channel->getUsers().size() >= channel->getMaxUsers()){
+        if (channel->getUsers().size() >= static_cast<size_t>(channel->getMaxUsers())){
             send_msg(sock, domain_, "471 " + arr_channel + " :Cannot join channel (+l)");
             return 1;
         }
@@ -1056,6 +1056,7 @@ eResult Irisha::JOIN(const int sock)
 
 eResult Irisha::NJOIN(const int sock)
 {
+	(void)sock;
     std::vector<std::string> arr_users;
 
     if (cmd_.arguments_.size() == 0)
@@ -1067,7 +1068,7 @@ eResult Irisha::NJOIN(const int sock)
     {
         Channel* channel = new Channel(cmd_.arguments_[0]);
         channel->setType(cmd_.arguments_[0][0]);
-        for (int i = 0; i < arr_users.size(); ++i) {
+        for (size_t i = 0; i < arr_users.size(); ++i) {
             if (arr_users[i][0] == '@'){
                 arr_users[i].erase(arr_users[i].begin());
                 channel->addOperators(find_user(arr_users[i]));
@@ -1490,7 +1491,7 @@ eResult Irisha::ADMIN(const int sock)
 	std::string prefix = cmd_.prefix_;
 	if (prefix.empty())
 		prefix = connection_name(sock);
-	for (int i = 0; i < cmd_.arguments_.size(); ++i)
+	for (size_t i = 0; i < cmd_.arguments_.size(); ++i)
 	{
 		server = find_server(cmd_.arguments_[i]);
 		if (cmd_.arguments_[i] == domain_)
@@ -1506,6 +1507,7 @@ eResult Irisha::ADMIN(const int sock)
 
 eResult Irisha::ERROR(const int sock)
 {
+	(void)sock;
 	std::cout << E_CROSS RED " ALARM! " + cmd_.command_ + " " + cmd_.arguments_[0] + " " E_CROSS CLR << std::endl;
 	return R_SUCCESS;
 }
@@ -1569,6 +1571,7 @@ eResult Irisha::RPL_259(const int sock)
  */
 eResult Irisha::RPL_421(const int sock)
 {
+	(void)sock;
     return R_SUCCESS;
 }
 

@@ -118,6 +118,7 @@ void Irisha::err_notexttosend(const int sock) const
 
 void Irisha::err_notoplevel(const int sock, const std::string& mask) const
 {
+	(void)mask;
 	send_rpl_msg(sock, ERR_NOTOPLEVEL, ":No toplevel domain specified");
 }
 

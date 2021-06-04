@@ -5,8 +5,8 @@
 
 AConnection::AConnection() {}
 AConnection::AConnection(int socket, eType type, int hopcount, int source_socket, int token)
-	: socket_(socket), type_(type), hopcount_(hopcount), last_msg_time_(time(nullptr)), source_socket_(source_socket),
-		token_(token), launch_time_(time(0)) {}
+		: socket_(socket), type_(type), hopcount_(hopcount), source_socket_(source_socket), last_msg_time_(time(nullptr)),
+		  token_(token), launch_time_(time(0)) {}
 AConnection::~AConnection() {}
 
 int				AConnection::socket				() const { return socket_; }

@@ -56,6 +56,7 @@ void Irisha::send_clients_info(int sock)
 
 eResult Irisha::resend_msg(int sock)
 {
+	(void)sock;
 	AConnection* target = find_connection(cmd_.arguments_[0]);
 	if (target == 0)
 		return R_FAILURE;
@@ -485,7 +486,7 @@ eResult Irisha::check_server(int sock, Server*& server, const std::string& name)
  */
 bool Irisha::is_enough_args(int sock, const std::string& command, int min_args_number)
 {
-    if (cmd_.arguments_.size() >= min_args_number)
+    if (cmd_.arguments_.size() >= static_cast<size_t>(min_args_number))
         return true;
     else
     {
@@ -819,7 +820,7 @@ void Irisha::print_cmd(ePrintMode mode, const int sock) const
 		std::cout << BWHITE "ARGUMENTS: ";
 	std::cout << CYAN ITALIC;
 
-	for (int i = 0; i < cmd_.arguments_.size(); ++i)
+	for (size_t i = 0; i < cmd_.arguments_.size(); ++i)
 	{
 		if (cmd_.arguments_[i].empty())
 			std::cout << "<empty>" << " ";
