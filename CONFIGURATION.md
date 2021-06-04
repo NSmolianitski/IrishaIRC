@@ -8,9 +8,9 @@ Settings format: `<NAME> = <PARAMETER>`
 Comments format: `# Comment` and `; Comment`
 
 ### Main settings
-`server-domain`|Server domain
------------------|-------------------
-`server-password`|Server password, currently unused (it is set at startup)
+`server-domain`      # Server domain
+
+`server-password`    # Server password, currently unused (it is set at startup)
  
 `welcome-message`    # The message that is sent to the user when connected
 
