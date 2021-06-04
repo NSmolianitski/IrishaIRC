@@ -9,7 +9,7 @@ Comments format: `# Comment` and `; Comment`
 
 ### Main settings
 
-`server-domain`      # Server domain
+`server-domain`  |    # Server domain
 
 `server-password`    # Server password, currently unused (it is set at startup)
  
