@@ -38,4 +38,4 @@ Other possibilities:
 * make re - recompile project%
 
 ## Attention❗
-IrishaIRC is a study project. It is not perfect and contains some bugs. I hope you will like it. 😊
+IrishaIRC is a study project. It's not perfect and contains some bugs. However, I hope you will enjoy it. 😊
