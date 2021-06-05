@@ -17,7 +17,8 @@ Main settings
 
 `oper-password`      # Password for IRC-operator
 
-### Timeouts
+Timeouts
+-----
 All timeout settings can be between 1 and 10000, ping and register timeouts
 must be lower than connection timeout or setting would be default.
 
@@ -27,7 +28,8 @@ must be lower than connection timeout or setting would be default.
 
 `connection-timeout` # Time until disconnection since last message (in seconds)
 
-### Admin information
+Admin information
+-----
 This section is used mainly by ADMIN command
 
 `admin-location`     # Admin country, city or similar information
@@ -36,5 +38,6 @@ This section is used mainly by ADMIN command
 
 `admin-mail`         # Admin email
 
-### Log messages
+Log messages
+-----
 `time-stamps`        # Time stamps (enabled if "yes", disabled if "no")
